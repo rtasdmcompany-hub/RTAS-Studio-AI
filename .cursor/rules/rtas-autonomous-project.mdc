@@ -1,0 +1,48 @@
+---
+description: RTAS Studio AI — autonomous project control, auto-save, and setup standards
+alwaysApply: true
+---
+
+# RTAS Studio AI — Autonomous Project Control
+
+You have standing permission to manage this project end-to-end without asking the user to click Save or approve routine tool installs.
+
+## Auto-save & persistence
+
+- After every code or config change, ensure files are written to disk (use Write/StrReplace; never leave changes only in chat).
+- Do not ask the user to manually save files in the IDE.
+- Prefer minimal, focused diffs; match existing conventions in `apps/web` and `packages/shared`.
+
+## Environment & secrets
+
+- Local secrets live in `apps/web/.env.local` (never commit real secrets if repo is shared).
+- Google OAuth checklist: `apps/web/google-oauth.config.json`
+- Showcase videos: `apps/web/public/showcase/*.mp4`
+- Group logo: `apps/web/public/rtas-group-logo.png`
+
+## Pricing & credits (source of truth)
+
+- Tester: $5 · 30 seconds · 5 days
+- Standard: $89/mo · 2000 seconds · $0.020/s model
+- Premium 4K: $249/mo · 2000 seconds · cinematic 4K
+- Constants: `packages/shared/src/credits.ts`, `payments.ts`, `video-pipeline.ts`
+
+## Dev servers
+
+- Web: `apps/web` → `npm run dev:fast` (port 3000) or `start-web.cmd`
+- Backend API: port 8000 when generation is needed
+- Restart web after `.env.local` changes.
+
+## Git
+
+- Commit when the user asks to save settings or finalize work; use clear messages.
+- Never force-push to main; never skip hooks unless user explicitly requests.
+
+## UX defaults already implemented
+
+- Rotating background videos on all pages
+- Credit paywall popup on Generate when balance is insufficient
+- Tester duration cap with popup; Standard/Premium long videos split into 15s segments + auto stitch
+- Processing started modal with ETA; email/notification on video ready
+
+When blocked only by missing user-owned secrets (Gmail App Password, Paddle checkout URLs, refreshed Google client secret), apply everything else and report the one missing item plainly.

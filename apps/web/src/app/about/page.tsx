@@ -1,0 +1,58 @@
+import Link from "next/link";
+import { PRODUCT_NAME } from "@rtas/shared";
+import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+
+const WORKFLOW_STEPS = [
+  {
+    id: "compose",
+    step: "01",
+    title: "Compose",
+    body: "Pick category, drop lyrics, audio, and face lock — one guided wizard, zero clutter.",
+  },
+  {
+    id: "render",
+    step: "02",
+    title: "Render",
+    body: "Cinematic AI pipeline with identity-locked faces, clear credit cost, and live progress.",
+  },
+  {
+    id: "publish",
+    step: "03",
+    title: "Publish",
+    body: "Preview full-screen, download your master, and revisit every render in your library.",
+  },
+] as const;
+
+export default function AboutPage() {
+  return (
+    <MarketingLayout>
+      <section className="rtas-about-page video-content-panel">
+        <p className="rtas-eyebrow">How it works</p>
+        <h1>One studio. Three beats.</h1>
+        <p className="rtas-about-page__lead">
+          From first lyric to final export — {PRODUCT_NAME} keeps compose, render,
+          and publish in a single cinematic workspace built for global creators.
+        </p>
+
+        <div className="rtas-about-page__pipeline">
+          {WORKFLOW_STEPS.map((step) => (
+            <article key={step.id} className="rtas-pipeline-step">
+              <span className="rtas-pipeline-step__num">{step.step}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="rtas-about-page__actions">
+          <Link href="/studio" className="rtas-btn-lavender">
+            Open Studio <span aria-hidden>→</span>
+          </Link>
+          <Link href="/pricing" className="rtas-btn-ghost">
+            View pricing
+          </Link>
+        </div>
+      </section>
+    </MarketingLayout>
+  );
+}

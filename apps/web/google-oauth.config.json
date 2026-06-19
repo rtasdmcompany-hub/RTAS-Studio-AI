@@ -1,0 +1,23 @@
+{
+  "provider": "google",
+  "applicationType": "Web application",
+  "nextAuthUrl": "http://localhost:3000",
+  "authorizedRedirectUris": [
+    "http://localhost:3000/api/auth/callback/google",
+    "http://127.0.0.1:3000/api/auth/callback/google"
+  ],
+  "authorizedJavaScriptOrigins": [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+  ],
+  "googleCloudConsolePath": "APIs & Services → Credentials → OAuth 2.0 Client IDs",
+  "envFile": "apps/web/.env.local",
+  "requiredEnvKeys": [
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    "GOOGLE_OAUTH_JS_ORIGIN"
+  ]
+}

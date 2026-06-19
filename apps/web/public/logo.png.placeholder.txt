@@ -1,0 +1,6 @@
+Brand assets live in this folder:
+- rtas-favicon.png  (R icon — browser tab / favicon)
+- rtas-logo.png     (full RTAS STUDIO AI lockup — headers & footer)
+- favicon.png       (alias of rtas-favicon.png for legacy links)
+
+Paths are defined in src/lib/brand-assets.ts

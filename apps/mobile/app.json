@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "RTAS Studio AI",
+    "slug": "rtas-studio-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0b10"
+    },
+    "ios": {
+      "bundleIdentifier": "com.rtasgroup.studioai",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.rtasgroup.studioai",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0b10"
+      }
+    },
+    "extra": {
+      "apiUrl": "https://your-production-domain.com"
+    }
+  }
+}

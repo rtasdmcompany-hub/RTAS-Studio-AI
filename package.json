@@ -1,0 +1,26 @@
+{
+  "name": "rtas-studio-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "RTAS Studio AI — prompt & image to video platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup:env": "npm run setup:env -w @rtas/web",
+    "dev": "npm run dev -w @rtas/web",
+    "dev:api": "node scripts/start-api.mjs",
+    "verify:stack": "node scripts/verify-stack.mjs",
+    "build": "npm run build -w @rtas/web",
+    "lint": "npm run lint -w @rtas/web",
+    "mobile": "npm run start -w @rtas/mobile"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

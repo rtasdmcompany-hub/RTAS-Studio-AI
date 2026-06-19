@@ -1,0 +1,13 @@
+.data/
+apps/backend/.venv/
+apps/backend/__pycache__/
+apps/backend/**/__pycache__/
+apps/backend/data/
+node_modules/
+.next/
+.expo/
+dist/
+.env
+.env.local
+*.log
+.DS_Store

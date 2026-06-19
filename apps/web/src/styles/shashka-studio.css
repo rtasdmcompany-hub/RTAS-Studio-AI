@@ -1,0 +1,2175 @@
+/* Studio — unified with RTAS marketing (black + lavender) */
+
+:root {
+  --shashka-lavender: #a594fd;
+  --shashka-lavender-hover: #b8abff;
+  --rtas-lavender: #a594fd;
+  --rtas-lavender-hover: #b8abff;
+  --shashka-gold: #e8c547;
+  --shashka-green: #4ecb8c;
+  --shashka-card: #141414;
+  --shashka-card-2: #1a1a1a;
+  --shashka-border: rgba(255, 255, 255, 0.08);
+  --shashka-muted: #9a9a9a;
+}
+
+.studio-shell--unified {
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  overflow: hidden;
+  color: #fff;
+  scrollbar-color: #333 #000;
+  scrollbar-width: thin;
+  pointer-events: auto;
+}
+
+.rtas-header--studio {
+  position: fixed;
+  z-index: 120;
+  border-bottom: 1px solid var(--shashka-border);
+  background: rgba(0, 0, 0, 0.92);
+  pointer-events: auto;
+}
+
+.rtas-header--studio a,
+.rtas-header--studio button {
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.rtas-header--studio .rtas-header__studio-tag {
+  font-size: 0.72rem;
+  color: var(--shashka-muted);
+  margin-left: 0.15rem;
+  font-weight: 500;
+}
+
+.studio-shell--unified .credits-pill {
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+}
+
+.studio-shell--unified .credits-pill strong {
+  color: var(--shashka-lavender);
+}
+
+.studio-shell--unified .auth-user-pill {
+  background: var(--shashka-card);
+  border-color: var(--shashka-border);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.studio-shell--unified .btn-ghost {
+  color: rgba(255, 255, 255, 0.75);
+  border: none;
+}
+
+.studio-shell--unified .btn-ghost:hover {
+  color: #fff;
+}
+
+/* Main canvas */
+.shashka-studio {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shashka-studio::after {
+  display: none;
+}
+
+.shashka-studio__content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 5.25rem 2.75rem 1rem 1rem;
+  align-items: stretch;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+/* —— Screen 1: full-screen Create wizard only —— */
+.shashka-studio--screen-create .shashka-studio__content {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 5.5rem 2rem 1.25rem;
+}
+
+.shashka-studio__create-screen {
+  position: relative;
+  width: min(920px, 96vw);
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.shashka-studio__create-screen::before {
+  content: "";
+  position: absolute;
+  inset: -15% -25%;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 28%,
+    rgba(165, 148, 253, 0.14),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.shashka-studio--screen-create .shashka-studio__sidebar {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.shashka-studio--screen-create .create-panel-unified {
+  min-height: 0;
+  flex: 1;
+  background: rgba(10, 10, 16, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 1px rgba(165, 148, 253, 0.16),
+    0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.create-panel-unified__bar h2 {
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a594fd;
+}
+
+.create-panel-unified__tagline {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.58);
+  font-weight: 500;
+}
+
+/* —— Screen 2: Preview — left status + videos, right player —— */
+.shashka-studio--screen-preview .shashka-studio__content {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  max-width: 1240px;
+  width: 100%;
+  padding: 5.5rem 1.25rem 1.25rem 1rem;
+  min-height: 0;
+}
+
+.shashka-preview-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.shashka-preview-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.65rem;
+  background: rgba(10, 10, 16, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 14px;
+  border: 1px solid rgba(165, 148, 253, 0.14);
+}
+
+.shashka-preview-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  justify-content: center;
+}
+
+.shashka-preview-main .shashka-preview-frame {
+  flex: 1;
+  min-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(10, 10, 16, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.shashka-preview-main .shashka-preview-frame .video-player-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+}
+
+.shashka-preview-main .shashka-preview-frame .player-wrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 0;
+}
+
+.shashka-preview-side .shashka-carousel {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.shashka-studio--screen-preview .shashka-preview-zone {
+  min-height: 0;
+}
+
+.shashka-studio--screen-preview .shashka-preview-frame {
+  min-height: min(68vh, 620px);
+}
+
+@media (max-width: 860px) {
+  .shashka-preview-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(280px, 1fr);
+  }
+
+  .shashka-preview-main .shashka-preview-frame {
+    min-height: 42vh;
+  }
+}
+
+/* Side rail — switch Create ↑ / Preview ↓ */
+.studio-screen-rail {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2rem;
+  padding: 0.45rem 0.3rem;
+  border-radius: 14px 0 0 14px;
+  background: rgba(10, 10, 14, 0.92);
+  border: 1px solid rgba(165, 148, 253, 0.22);
+  border-right: none;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+}
+
+.studio-screen-rail__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.55rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.studio-screen-rail__btn:hover:not(:disabled) {
+  background: rgba(165, 148, 253, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.studio-screen-rail__btn--active {
+  background: rgba(165, 148, 253, 0.2);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(165, 148, 253, 0.35);
+}
+
+.studio-screen-rail__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.studio-screen-rail__chev {
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--shashka-lavender);
+}
+
+.studio-screen-rail__divider {
+  height: 1px;
+  margin: 0.1rem 0.35rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.shashka-studio__sidebar {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.shashka-studio__sidebar--locked {
+  opacity: 0.88;
+}
+
+.shashka-studio__sidebar--locked .shashka-holo-widget,
+.shashka-studio__sidebar--locked .shashka-console__deck {
+  filter: saturate(0.65);
+}
+
+.studio-sidebar-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.42);
+  border-radius: 14px;
+  backdrop-filter: blur(1px);
+}
+
+.shashka-studio__sidebar--locked input,
+.shashka-studio__sidebar--locked textarea,
+.shashka-studio__sidebar--locked select,
+.shashka-studio__sidebar--locked button,
+.shashka-studio__sidebar--locked .file-upload-input {
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+.shashka-studio__sidebar--locked fieldset:disabled {
+  opacity: 0.85;
+}
+
+.studio-form-notice {
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fecaca;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.shashka-studio__content > * {
+  pointer-events: auto;
+}
+
+.shashka-studio--focus-preview .shashka-studio__content {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "preview"
+    "carousel";
+  max-width: 960px;
+}
+
+.shashka-studio--locked .shashka-holo-stack,
+.shashka-studio--locked .shashka-console__deck {
+  filter: saturate(0.85);
+}
+
+.shashka-studio--locked .shashka-lock-veil {
+  opacity: 1;
+  pointer-events: none;
+}
+
+/* Ambient — cinematic video per wizard step */
+.shashka-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.shashka-ambient__video {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  filter: contrast(1.12) saturate(0.88) brightness(0.4);
+  transform: scale(1.07);
+  transition: opacity 0.6s ease;
+}
+
+.shashka-ambient--unified .shashka-ambient__solid {
+  display: none;
+}
+
+.shashka-ambient__rain {
+  position: absolute;
+  inset: -20%;
+  background: repeating-linear-gradient(
+    115deg,
+    transparent 0,
+    transparent 3px,
+    rgba(120, 180, 255, 0.03) 3px,
+    rgba(120, 180, 255, 0.03) 4px
+  );
+  animation: shashkaRain 0.35s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+@keyframes shashkaRain {
+  from {
+    transform: translateY(-2%);
+  }
+  to {
+    transform: translateY(2%);
+  }
+}
+
+.shashka-ambient__neon {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 40% 30% at 15% 80%, rgba(255, 60, 120, 0.22), transparent 60%),
+    radial-gradient(ellipse 35% 25% at 85% 25%, rgba(78, 200, 255, 0.2), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(201, 162, 39, 0.12), transparent 65%);
+  animation: shashkaNeonPulse 6s ease-in-out infinite alternate;
+}
+
+@keyframes shashkaNeonPulse {
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.shashka-ambient__grade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 12, 28, 0.55) 0%,
+    rgba(20, 8, 32, 0.35) 45%,
+    rgba(5, 8, 18, 0.65) 100%
+  );
+}
+
+.shashka-ambient__flare {
+  position: absolute;
+  width: 45vw;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 220, 160, 0.85),
+    transparent
+  );
+  filter: blur(1px);
+  opacity: 0.55;
+  transform: rotate(-8deg);
+}
+
+.shashka-ambient__flare--a {
+  top: 28%;
+  left: -5%;
+  animation: shashkaFlareA 9s ease-in-out infinite;
+}
+
+.shashka-ambient__flare--b {
+  top: 62%;
+  right: -8%;
+  transform: rotate(6deg);
+  animation: shashkaFlareB 11s ease-in-out infinite;
+}
+
+@keyframes shashkaFlareA {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: rotate(-8deg) translateX(0);
+  }
+  50% {
+    opacity: 0.75;
+    transform: rotate(-8deg) translateX(4vw);
+  }
+}
+
+@keyframes shashkaFlareB {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  45% {
+    opacity: 0.6;
+  }
+}
+
+.shashka-ambient__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.shashka-ambient__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, transparent 35%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+.shashka-ambient__caption {
+  position: absolute;
+  left: 1rem;
+  bottom: 6.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240, 242, 248, 0.35);
+  z-index: 1;
+}
+
+/* Studio status panel — in preview column, not floating */
+.shashka-hud {
+  position: relative;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  font-size: 0.68rem;
+  overflow: hidden;
+}
+
+.shashka-hud__scan {
+  display: none;
+}
+
+.shashka-hud__title {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--shashka-muted);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.shashka-hud__grid {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.shashka-hud__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.shashka-hud__row dt {
+  color: rgba(240, 242, 248, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.58rem;
+}
+
+.shashka-hud__row dd {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.shashka-hud__row--gold dd {
+  color: var(--shashka-lavender);
+}
+
+.shashka-hud__row--green dd {
+  color: var(--shashka-green);
+}
+
+.shashka-hud__row--warn dd {
+  color: #f59e0b;
+}
+
+.shashka-hud__status,
+.shashka-hud__api {
+  font-size: 0.58rem;
+  color: rgba(240, 242, 248, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.2rem;
+}
+
+.shashka-hud__skip {
+  margin-top: 0.55rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(165, 148, 253, 0.45);
+  background: rgba(165, 148, 253, 0.12);
+  color: var(--shashka-lavender);
+  font-size: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shashka-hud__skip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shashka-hud__seal {
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--shashka-border);
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(248, 113, 113, 0.85);
+}
+
+.shashka-hud__seal--ready {
+  color: var(--shashka-green);
+}
+
+/* Form stack — solid dark cards */
+.shashka-holo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shashka-holo-stack.create-panel {
+  height: 100%;
+}
+
+.shashka-holo-widget {
+  position: relative;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.shashka-holo-widget--compact-header {
+  flex-shrink: 0;
+  padding: 0.45rem 0.7rem;
+}
+
+.shashka-holo-widget--compact-header h2 {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+.shashka-holo-widget--compact-header .studio-form-notice,
+.shashka-holo-widget--compact-header .create-panel-lock-notice {
+  margin: 0.35rem 0 0;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.68rem;
+}
+
+.shashka-holo-widget::before {
+  display: none;
+}
+
+.shashka-holo-widget h2 {
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 0.65rem;
+  font-weight: 700;
+}
+
+.shashka-holo-widget .section-label {
+  color: var(--shashka-muted);
+  font-size: 0.62rem;
+}
+
+.shashka-holo-widget input,
+.shashka-holo-widget textarea,
+.shashka-holo-widget select,
+.shashka-holo-widget .file-upload-row {
+  background: var(--shashka-card-2);
+  border: 1px solid var(--shashka-border);
+  color: #fff;
+  border-radius: 8px;
+}
+
+.shashka-holo-widget .chip {
+  background: var(--shashka-card-2);
+  border-color: var(--shashka-border);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.shashka-holo-widget .chip.active {
+  border-color: var(--shashka-lavender);
+  background: rgba(165, 148, 253, 0.15);
+  color: #fff;
+}
+
+.shashka-holo-widget .api-status {
+  font-size: 0.62rem;
+  opacity: 0.7;
+}
+
+/* Face hero + shield */
+.shashka-face-hero {
+  position: relative;
+  align-self: center;
+  width: 120px;
+  height: 120px;
+  margin: 0.25rem auto 0.5rem;
+}
+
+.shashka-face-hero__halo {
+  position: absolute;
+  inset: -18%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(165, 148, 253, 0.35), transparent 68%);
+  animation: shashkaFacePulse 3s ease-in-out infinite;
+}
+
+@keyframes shashkaFacePulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.shashka-face-hero__ring {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  border: 2px solid rgba(165, 148, 253, 0.55);
+  box-shadow: 0 0 20px rgba(165, 148, 253, 0.25);
+}
+
+.shashka-face-hero__photo,
+.shashka-face-hero__placeholder {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.shashka-face-hero__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--shashka-card-2);
+  font-size: 0.62rem;
+  text-align: center;
+  color: var(--shashka-lavender);
+}
+
+.shashka-face-hero__tag {
+  position: absolute;
+  bottom: -0.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--shashka-lavender);
+  color: #0a0a0a;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.shashka-face-shield {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(165, 148, 253, 0.08);
+  border: 1px solid rgba(165, 148, 253, 0.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.shashka-face-shield-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.shashka-face-shield--premium {
+  background: linear-gradient(
+    135deg,
+    rgba(201, 162, 39, 0.16),
+    rgba(165, 148, 253, 0.12)
+  );
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  box-shadow:
+    0 0 24px rgba(201, 162, 39, 0.22),
+    0 0 48px rgba(201, 162, 39, 0.08);
+  animation: identityShieldPulse 2.8s ease-in-out infinite;
+}
+
+.shashka-face-shield--premium .shashka-face-shield__glow {
+  display: block;
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(201, 162, 39, 0.35),
+    transparent 62%
+  );
+  pointer-events: none;
+  animation: identityShieldGlow 3s ease-in-out infinite;
+}
+
+.shashka-face-shield--premium .shashka-face-shield__icon {
+  color: #e8c547;
+  filter: drop-shadow(0 0 8px rgba(201, 162, 39, 0.65));
+}
+
+.shashka-face-shield--premium .shashka-face-shield__percent {
+  color: #f0d060;
+  text-shadow: 0 0 12px rgba(201, 162, 39, 0.45);
+}
+
+.shashka-face-shield-tagline {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(240, 208, 96, 0.92);
+  line-height: 1.35;
+  max-width: 18rem;
+}
+
+@keyframes identityShieldPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(201, 162, 39, 0.18),
+      0 0 40px rgba(201, 162, 39, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 28px rgba(201, 162, 39, 0.32),
+      0 0 56px rgba(201, 162, 39, 0.12);
+  }
+}
+
+@keyframes identityShieldGlow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+}
+
+.shashka-face-shield__glow {
+  display: none;
+}
+
+.shashka-face-shield__icon {
+  width: 2rem;
+  height: 2.25rem;
+  color: var(--shashka-lavender);
+  flex-shrink: 0;
+}
+
+.shashka-face-shield__percent {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--shashka-lavender);
+  line-height: 1;
+}
+
+.shashka-face-shield__label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: rgba(240, 242, 248, 0.88);
+}
+
+/* Wizard steps — fit viewport, no page scroll */
+.shashka-wizard-step {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.7rem;
+  overflow: hidden;
+}
+
+.shashka-wizard-step__head {
+  flex-shrink: 0;
+}
+
+.shashka-wizard-step__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shashka-wizard-step__footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.shashka-wizard-step__meta {
+  margin: 0 0 0.2rem;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.shashka-wizard-step__label {
+  margin: 0 0 0.45rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #a594fd;
+}
+
+.shashka-wizard-step .create-panel-fieldset {
+  min-height: 0;
+  overflow: visible;
+}
+
+.shashka-wizard-step .section-label {
+  margin-bottom: 0.3rem;
+  font-size: 0.58rem;
+}
+
+.shashka-wizard-step .chip-row {
+  margin-bottom: 0.4rem;
+  gap: 0.3rem;
+}
+
+.shashka-wizard-step .chip {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.68rem;
+}
+
+.shashka-wizard-step .field {
+  margin-bottom: 0.4rem;
+}
+
+.shashka-wizard-step .field label {
+  font-size: 0.72rem;
+  margin-bottom: 0.25rem;
+}
+
+.shashka-wizard-step .field input,
+.shashka-wizard-step .field select {
+  padding: 0.42rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+.shashka-wizard-step .field textarea {
+  min-height: 2.6rem;
+  max-height: 3.4rem;
+  resize: none;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.shashka-wizard-step .field .help,
+.shashka-wizard-step .field-error {
+  font-size: 0.62rem;
+  margin-top: 0.2rem;
+}
+
+.shashka-wizard-step .file-upload-row {
+  padding: 0.45rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.create-panel-unified {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(10, 10, 16, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.create-panel-unified__bar {
+  flex-shrink: 0;
+  padding: 0.55rem 0.7rem 0.35rem;
+  border-bottom: 1px solid rgba(165, 148, 253, 0.12);
+}
+
+.shashka-face-lock-stage,
+.shashka-face-consent-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+  padding: 1rem 0.5rem 0.65rem;
+  border-radius: 14px;
+  overflow: visible;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 30%,
+    rgba(201, 162, 39, 0.1),
+    rgba(165, 148, 253, 0.08) 45%,
+    transparent 72%
+  );
+  border: 1px solid rgba(201, 162, 39, 0.22);
+}
+
+.shashka-wizard-step--face-lock .shashka-face-hero,
+.shashka-wizard-step--face-consent .shashka-face-hero {
+  width: 148px;
+  height: 148px;
+  margin: 0.35rem auto 0.5rem;
+  overflow: visible;
+}
+
+.shashka-wizard-step--face-lock .shashka-face-hero__photo,
+.shashka-wizard-step--face-consent .shashka-face-hero__photo {
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.shashka-wizard-step--face-lock .shashka-face-shield,
+.shashka-wizard-step--face-consent .shashka-face-shield {
+  width: 100%;
+  max-width: 18rem;
+  margin: 0;
+  justify-content: center;
+}
+
+/* Face upload step — photo + YES only, no hero */
+.shashka-wizard-step--face-upload .category-wizard-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shashka-wizard-step--face-upload .field--faceConsent {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(165, 148, 253, 0.42);
+  background: rgba(165, 148, 253, 0.1);
+}
+
+.shashka-wizard-step--face-upload .field--faceConsent label {
+  font-weight: 700;
+  color: #c4b8ff;
+  font-size: 0.76rem;
+}
+
+.shashka-wizard-step--face-upload .field--faceConsent input {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 2px solid rgba(165, 148, 253, 0.55);
+  background: #0f0f14;
+  color: #fff;
+}
+
+.shashka-wizard-step--setup .create-panel-fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.shashka-wizard-step--setup .chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.shashka-wizard-step__hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: rgba(220, 215, 255, 0.72);
+}
+
+.studio-setup-section {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(165, 148, 253, 0.18);
+  background: rgba(12, 12, 18, 0.45);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.studio-setup-section--active {
+  border-color: rgba(165, 148, 253, 0.55);
+  background: rgba(22, 18, 38, 0.65);
+  box-shadow: 0 0 0 1px rgba(165, 148, 253, 0.15);
+}
+
+.studio-setup-section__prompt {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  color: rgba(200, 195, 230, 0.75);
+}
+
+.shashka-wizard-nav__next:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shashka-wizard-step--duration-prompt .category-wizard-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.shashka-wizard-step--duration-prompt .field,
+.shashka-wizard-step--duration-prompt .field--duration {
+  width: 100%;
+}
+
+.shashka-wizard-step--duration-prompt .field textarea {
+  min-height: 5.5rem;
+  max-height: 8rem;
+}
+
+.shashka-wizard-step--face-lock .shashka-face-hero__halo,
+.shashka-wizard-step--face-consent .shashka-face-hero__halo {
+  inset: -22%;
+  background: radial-gradient(
+    circle,
+    rgba(165, 148, 253, 0.55),
+    rgba(120, 200, 255, 0.12) 45%,
+    transparent 70%
+  );
+}
+
+.shashka-wizard-step--face-lock .shashka-face-hero__ring,
+.shashka-wizard-step--face-consent .shashka-face-hero__ring {
+  inset: -8%;
+  border-width: 2.5px;
+  box-shadow:
+    0 0 28px rgba(165, 148, 253, 0.45),
+    0 0 60px rgba(165, 148, 253, 0.15);
+}
+
+.shashka-face-shield--setup {
+  margin-top: 0.35rem;
+}
+
+.shashka-wizard-nav {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0;
+}
+
+.shashka-wizard-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.shashka-wizard-actions .shashka-wizard-nav__prev {
+  flex: 0 0 auto;
+  min-width: 6.5rem;
+  max-width: 7.5rem;
+}
+
+.shashka-wizard-actions .shashka-console__generate {
+  flex: 1.4 1 0;
+  min-width: 0;
+  width: auto;
+  padding: 0.62rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.shashka-wizard-actions .shashka-console__compile {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  padding: 0.58rem 0.7rem;
+  font-size: 0.72rem;
+}
+
+.shashka-wizard-step__footer .shashka-console__footnote {
+  font-size: 0.58rem;
+  margin: 0.15rem 0 0;
+  text-align: center;
+}
+
+.shashka-wizard-nav__prev,
+.shashka-wizard-nav__next {
+  flex: 1;
+  padding: 0.52rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.shashka-wizard-nav__prev {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.shashka-wizard-nav__prev:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.shashka-wizard-nav__next {
+  border: 1px solid rgba(165, 148, 253, 0.45);
+  background: rgba(165, 148, 253, 0.14);
+  color: #fff;
+}
+
+.shashka-wizard-nav__next:hover:not(:disabled) {
+  background: rgba(165, 148, 253, 0.24);
+  border-color: rgba(165, 148, 253, 0.65);
+}
+
+.shashka-wizard-nav__prev:disabled,
+.shashka-wizard-nav__next:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.category-wizard-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* Title + directional prompt */
+.shashka-wizard-step--title-direction .field--directionPrompt textarea {
+  min-height: 3rem;
+  max-height: 4.5rem;
+}
+
+/* Face photo + consent — consent must stay visible */
+.shashka-wizard-step--face-consent .category-wizard-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-content: flex-start;
+}
+
+.shashka-wizard-step--face-consent .file-upload--faceReference .help {
+  display: none;
+}
+
+.shashka-wizard-step--face-consent .file-upload--faceReference .file-upload-row {
+  padding: 0.38rem 0.5rem;
+}
+
+.shashka-wizard-step--face-consent .file-upload--faceReference .file-upload-name {
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 9.5rem;
+}
+
+.shashka-wizard-step--face-consent .field--faceConsent {
+  margin: 0;
+  padding: 0.5rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid rgba(165, 148, 253, 0.42);
+  background: rgba(165, 148, 253, 0.1);
+  flex-shrink: 0;
+}
+
+.shashka-wizard-step--face-consent .field--faceConsent label {
+  font-weight: 700;
+  color: #c4b8ff;
+  font-size: 0.74rem;
+}
+
+.shashka-wizard-step--face-consent .field--faceConsent input {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 2px solid rgba(165, 148, 253, 0.55);
+  background: #0f0f14;
+  color: #fff;
+}
+
+.shashka-wizard-step--face-consent .field--faceConsent input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+}
+
+.shashka-wizard-step--face-consent .field--faceConsent .help {
+  font-size: 0.6rem;
+  margin-top: 0.25rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.studio-form-notice--generate {
+  margin: 0 0 0.45rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 120, 120, 0.55);
+  background: rgba(255, 80, 80, 0.14);
+  color: #ffb4b4;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.shashka-wizard-step__footer .shashka-console__deck {
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+}
+
+.shashka-wizard-step__footer .shashka-console__generate {
+  padding: 0.62rem 1rem;
+  font-size: 0.82rem;
+}
+
+.shashka-wizard-step__footer .shashka-console__footnote {
+  font-size: 0.58rem;
+  margin: 0;
+}
+
+/* Preview zone */
+.shashka-preview-zone {
+  grid-area: preview;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.studio-shell--unified .studio-preview-panel {
+  position: static;
+  top: auto;
+  max-height: 100%;
+  overflow: hidden;
+  scroll-margin-top: 0;
+}
+
+.shashka-preview-side .preview-progress {
+  flex-shrink: 0;
+}
+
+.shashka-preview-side .preview-progress-message {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  max-height: none;
+  overflow: visible;
+}
+
+.shashka-preview-side .shashka-preview-header {
+  flex-shrink: 0;
+}
+
+.shashka-wizard-step .field--video-title {
+  margin-bottom: 0.4rem;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.shashka-preview-frame {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 16px;
+  padding: 0.65rem;
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.shashka-preview-frame .player-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  flex: 1;
+  aspect-ratio: unset;
+  min-height: 0;
+  max-height: 100%;
+  background: #000;
+}
+
+.shashka-preview-frame .video-player-block {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.shashka-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.shashka-preview-header h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #fff;
+  font-weight: 700;
+}
+
+.shashka-preview-zone .status-bar {
+  font-size: 0.68rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  background: var(--shashka-card-2);
+  border: 1px solid var(--shashka-border);
+  color: var(--shashka-muted);
+}
+
+/* Generate console */
+.shashka-console {
+  flex-shrink: 0;
+}
+
+.shashka-console__deck {
+  position: relative;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.shashka-console__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.shashka-console__generate {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0a0a0a;
+  background: var(--shashka-lavender);
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.shashka-console__generate:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--shashka-lavender-hover);
+}
+
+.shashka-console__generate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shashka-console__compile {
+  width: 100%;
+  padding: 0.72rem 1.1rem;
+  border: 1px solid rgba(165, 148, 253, 0.45);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: #ebe6ff;
+  background: rgba(12, 12, 20, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.shashka-console__compile:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(184, 168, 255, 0.75);
+}
+
+.shashka-console__compile:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shashka-console__compile-progress {
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+.shashka-console__compile-track {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.shashka-console__compile-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c5cfc, #a594fd);
+  transition: width 0.4s ease;
+}
+
+.shashka-console__compile-label {
+  margin: 0.35rem 0 0;
+  font-size: 0.62rem;
+  color: rgba(240, 242, 248, 0.65);
+}
+
+.shashka-console__footnote {
+  font-size: 0.62rem;
+  color: rgba(240, 242, 248, 0.55);
+  line-height: 1.35;
+}
+
+/* Video carousel — in-page row, no overlap */
+.shashka-carousel {
+  grid-area: carousel;
+  position: relative;
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--shashka-card);
+  border: 1px solid var(--shashka-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.shashka-carousel__label {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--shashka-muted);
+  margin-bottom: 0.4rem;
+}
+
+.shashka-carousel__track {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.shashka-carousel__empty {
+  font-size: 0.72rem;
+  color: rgba(240, 242, 248, 0.45);
+}
+
+.shashka-carousel__vinyl {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  min-width: 72px;
+}
+
+.shashka-carousel__vinyl:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shashka-carousel__disc {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--shashka-card-2);
+  border: 2px solid var(--shashka-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: shashkaVinylSpin 12s linear infinite;
+}
+
+.shashka-carousel__vinyl--active .shashka-carousel__disc {
+  border-color: var(--shashka-lavender);
+  box-shadow: 0 0 16px rgba(165, 148, 253, 0.35);
+  animation-duration: 6s;
+}
+
+@keyframes shashkaVinylSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.shashka-carousel__disc-groove {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.shashka-carousel__disc-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--shashka-lavender);
+}
+
+.shashka-carousel__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: 88px;
+}
+
+.shashka-carousel__title {
+  font-size: 0.58rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.shashka-carousel__badge {
+  font-size: 0.5rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(165, 148, 253, 0.15);
+  color: var(--shashka-lavender);
+}
+
+.shashka-carousel__badge--premium {
+  background: rgba(165, 148, 253, 0.22);
+  color: var(--shashka-lavender);
+}
+
+/* Lock veil during diagnostic */
+.shashka-lock-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  opacity: 0;
+  transition: opacity 0.3s;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* Hide legacy list in cinematic mode */
+.shashka-studio .video-list {
+  display: none;
+}
+
+.shashka-studio .showcase-quality-badge {
+  border-color: rgba(165, 148, 253, 0.45);
+  color: var(--shashka-lavender);
+}
+
+@media (max-width: 900px) {
+  .shashka-studio__content {
+    padding: 5rem 2.5rem 1rem 0.85rem;
+  }
+
+  .shashka-studio--screen-create .shashka-studio__content {
+    padding: 5rem 2.5rem 1rem 0.85rem;
+  }
+
+  .shashka-studio--screen-preview .shashka-studio__content {
+    padding: 5rem 2.5rem 1rem 0.85rem;
+  }
+
+  .studio-screen-rail__label {
+    font-size: 0.5rem;
+  }
+}
+
+/* Dark scrollbars inside studio panels */
+.studio-shell--unified ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.studio-shell--unified ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.studio-shell--unified ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 999px;
+}
+
+.studio-shell--unified ::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* —— Studio UI polish (lavender premium) —— */
+
+.shashka-holo-widget.create-panel-unified {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.shashka-studio--screen-create .create-panel-unified {
+  border-radius: 18px;
+  border: 1px solid rgba(165, 148, 253, 0.3);
+  background: rgba(8, 8, 14, 0.88);
+  box-shadow:
+    0 0 0 1px rgba(165, 148, 253, 0.08),
+    0 28px 72px rgba(0, 0, 0, 0.62),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.create-panel-unified__bar {
+  padding: 1rem 1.25rem 0.9rem;
+  background: linear-gradient(
+    180deg,
+    rgba(165, 148, 253, 0.1) 0%,
+    rgba(165, 148, 253, 0.02) 100%
+  );
+  border-bottom: 1px solid rgba(165, 148, 253, 0.18);
+}
+
+.create-panel-unified__bar h2 {
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  color: #fff;
+}
+
+.create-panel-unified__tagline {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.15rem;
+}
+
+.studio-wizard-progress-wrap {
+  margin-top: 0.85rem;
+}
+
+.studio-wizard-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.studio-wizard-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c6cf0 0%, #a594fd 55%, #c9bfff 100%);
+  box-shadow: 0 0 12px rgba(165, 148, 253, 0.55);
+  transition: width 0.35s ease;
+}
+
+.studio-wizard-progress__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.studio-wizard-progress__meta strong {
+  color: var(--shashka-lavender);
+  font-weight: 800;
+}
+
+.studio-wizard-progress__step-name {
+  color: rgba(255, 255, 255, 0.78);
+  text-align: right;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+.shashka-wizard-step {
+  padding: 0.85rem 1.15rem 1rem;
+}
+
+.shashka-wizard-step__label {
+  font-size: 0.78rem;
+  margin-bottom: 0.65rem;
+  color: #c4b8ff;
+}
+
+.shashka-wizard-step .section-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.shashka-wizard-step .chip-row {
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.shashka-wizard-step .chip,
+.shashka-holo-widget .chip {
+  padding: 0.42rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.82);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.shashka-wizard-step .chip:hover:not(:disabled),
+.shashka-holo-widget .chip:hover:not(:disabled) {
+  border-color: rgba(165, 148, 253, 0.45);
+  background: rgba(165, 148, 253, 0.1);
+  transform: translateY(-1px);
+}
+
+.shashka-wizard-step .chip.active,
+.shashka-holo-widget .chip.active {
+  border-color: var(--shashka-lavender);
+  background: rgba(165, 148, 253, 0.22);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgba(165, 148, 253, 0.35), 0 4px 16px rgba(165, 148, 253, 0.2);
+}
+
+.shashka-wizard-step .field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.shashka-wizard-step .field input,
+.shashka-wizard-step .field select,
+.shashka-wizard-step .field textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shashka-wizard-step .field input:focus,
+.shashka-wizard-step .field select:focus,
+.shashka-wizard-step .field textarea:focus {
+  outline: none;
+  border-color: rgba(165, 148, 253, 0.55);
+  box-shadow: 0 0 0 3px rgba(165, 148, 253, 0.12);
+}
+
+.shashka-wizard-step .field select,
+.shashka-holo-widget select {
+  cursor: pointer;
+  color: #fff;
+  color-scheme: dark;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+.shashka-wizard-step .field select option,
+.shashka-holo-widget select option {
+  background: #141414;
+  color: #fff;
+}
+
+.shashka-wizard-step .field--duration select {
+  font-weight: 600;
+  padding: 0.55rem 0.75rem;
+  min-height: 2.5rem;
+}
+
+.shashka-wizard-step .field .help {
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.shashka-wizard-nav {
+  max-width: 22rem;
+  margin: 0 auto;
+  width: 100%;
+  gap: 0.65rem;
+}
+
+.shashka-wizard-nav__prev,
+.shashka-wizard-nav__next {
+  flex: 1;
+  padding: 0.68rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.shashka-wizard-nav__prev {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.shashka-wizard-nav__next {
+  border: none;
+  background: var(--shashka-lavender);
+  color: #0a0a0a;
+  box-shadow: 0 4px 18px rgba(165, 148, 253, 0.35);
+}
+
+.shashka-wizard-nav__next:hover:not(:disabled) {
+  background: var(--shashka-lavender-hover);
+  transform: translateY(-1px);
+}
+
+.shashka-wizard-actions {
+  gap: 0.55rem;
+  max-width: 100%;
+}
+
+.shashka-wizard-actions .shashka-wizard-nav__prev {
+  flex: 0 0 auto;
+  min-width: 7rem;
+  max-width: 8.5rem;
+  border-radius: 999px;
+}
+
+.shashka-wizard-actions .shashka-console__generate {
+  flex: 1.5 1 0;
+  padding: 0.68rem 0.85rem;
+  font-size: 0.82rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(165, 148, 253, 0.3);
+}
+
+.shashka-wizard-actions .shashka-console__compile {
+  flex: 1 1 0;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.76rem;
+  border-radius: 999px;
+}
+
+.studio-screen-rail {
+  padding: 0.55rem 0.35rem;
+  border-radius: 16px 0 0 16px;
+  border-color: rgba(165, 148, 253, 0.35);
+  box-shadow: -10px 0 36px rgba(0, 0, 0, 0.5);
+}
+
+.studio-screen-rail__btn {
+  padding: 0.6rem 0.65rem;
+  font-size: 0.62rem;
+  border-radius: 12px;
+}
+
+.studio-screen-rail__btn--active {
+  background: rgba(165, 148, 253, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(165, 148, 253, 0.5);
+}
+
+.studio-shell--unified .credits-pill {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border-color: rgba(165, 148, 253, 0.35);
+  background: rgba(165, 148, 253, 0.1);
+  font-weight: 600;
+}
+
+.studio-shell--unified .credits-pill strong {
+  font-weight: 800;
+}
+
+.studio-shell--unified .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(165, 148, 253, 0.4);
+  background: rgba(165, 148, 253, 0.12);
+  color: #ebe6ff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.studio-shell--unified .btn-secondary:hover {
+  background: rgba(165, 148, 253, 0.22);
+  border-color: rgba(165, 148, 253, 0.6);
+}
+
+@media (max-width: 640px) {
+  .shashka-studio--screen-create .shashka-studio__content {
+    padding: 5.25rem 0.65rem 0.85rem;
+  }
+
+  .shashka-studio__create-screen {
+    width: 100%;
+  }
+
+  .shashka-wizard-step {
+    padding: 0.75rem 0.85rem 0.9rem;
+  }
+
+  .studio-wizard-progress__meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .studio-wizard-progress__step-name {
+    text-align: left;
+  }
+
+  .shashka-wizard-actions {
+    flex-wrap: wrap;
+  }
+
+  .shashka-wizard-actions .shashka-wizard-nav__prev {
+    min-width: 100%;
+    max-width: none;
+  }
+}
+
+.shashka-preview-side {
+  border-radius: 16px;
+  border-color: rgba(165, 148, 253, 0.28);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.shashka-preview-header h2 {
+  font-size: 0.82rem;
+  color: #c4b8ff;
+}
+
+.shashka-preview-main .shashka-preview-frame {
+  border-radius: 16px;
+  border: 1px solid rgba(165, 148, 253, 0.2);
+}
+
+.studio-shell--unified .gen-spinner {
+  border-top-color: #a594fd;
+}
+
+.studio-shell--unified .gen-percent {
+  color: #c4b8ff;
+}
+
+.studio-shell--unified .gen-bar-fill {
+  background: linear-gradient(90deg, #8b7cf8, #a594fd, #c9bfff);
+}
