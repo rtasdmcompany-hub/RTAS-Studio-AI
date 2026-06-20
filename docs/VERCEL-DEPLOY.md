@@ -4,10 +4,10 @@
 
 1. Open [vercel.com/new](https://vercel.com/new) and import **rtasdmcompany-hub/RTAS-Studio-AI**.
 2. **Project Settings → General → Root Directory:** set to **`apps/web`** and click Save.
-3. **Project Settings → Build & Development Settings** — clear ALL overrides (leave empty so `apps/web/vercel.json` is used):
-   - **Install Command:** *(empty)* — do **not** use `cd ../.. && npm install`
-   - **Build Command:** *(empty)*
-   - **Output Directory:** *(empty)* — default `.next` inside `apps/web`
+3. **Project Settings → Build & Development Settings** — either leave ALL overrides **empty** (recommended — `apps/web/vercel.json` applies), **or** match exactly:
+   - **Install Command:** `cd ../.. && npm install --legacy-peer-deps --no-audit --no-fund`
+   - **Build Command:** `cd ../.. && npm run build -w @rtas/web`
+   - **Output Directory:** `.next`
 4. Framework: **Next.js** (auto-detected).
 5. Add environment variables from `apps/web/.env.example` (see below).
 6. Deploy.

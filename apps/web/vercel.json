@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "npm --prefix ../.. install --workspace=@rtas/web --include-workspace-root --legacy-peer-deps --no-audit --no-fund",
-  "buildCommand": "next build"
+  "installCommand": "cd ../.. && npm install --legacy-peer-deps --no-audit --no-fund",
+  "buildCommand": "cd ../.. && npm run build -w @rtas/web",
+  "outputDirectory": ".next"
 }
