@@ -98,10 +98,11 @@ export function isGoogleAuthConfigured(): boolean {
   return id.length > 0 && secret.length > 0 && id.includes(".apps.googleusercontent.com");
 }
 
-/** Google button + provider only when flag is on AND credentials exist. */
+/** Google button + provider when credentials exist; explicit opt-out via env. */
 export function isGoogleAuthEnabled(): boolean {
-  const flagOn = readEnv("NEXT_PUBLIC_GOOGLE_AUTH_ENABLED").toLowerCase() === "true";
-  return flagOn && isGoogleAuthConfigured();
+  const explicit = readEnv("NEXT_PUBLIC_GOOGLE_AUTH_ENABLED").toLowerCase();
+  if (explicit === "false") return false;
+  return isGoogleAuthConfigured();
 }
 
 export function isFalConfigured(): boolean {

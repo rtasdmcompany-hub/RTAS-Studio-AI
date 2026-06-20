@@ -54,8 +54,8 @@ export function AuthForm({ mode }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [googleAuthEnabled, setGoogleAuthEnabled] = useState(false);
-  const [simulationMode, setSimulationMode] = useState(true);
+  const [googleAuthEnabled, setGoogleAuthEnabled] = useState<boolean | null>(null);
+  const [simulationMode, setSimulationMode] = useState<boolean | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -209,7 +209,7 @@ export function AuthForm({ mode }: Props) {
         </p>
       )}
 
-      {googleAuthEnabled && (
+      {googleAuthEnabled === true && (
         <>
           <GoogleSignInButton callbackUrl={callbackUrl} />
           <div className="auth-divider">
@@ -218,11 +218,12 @@ export function AuthForm({ mode }: Props) {
         </>
       )}
 
-      {simulationMode && (
+      {simulationMode === true && (
         <p className="auth-simulation-note">
-          Cloud AI keys are not configured — studio runs in local simulation mode with
-          demo previews until you add <code>FAL_KEY</code> to{" "}
-          <code>apps/backend/.env</code> or <code>apps/api/.env</code>.
+          Cloud AI keys are not configured on this deployment — studio runs in
+          simulation mode with demo previews until you add <code>FAL_KEY</code>{" "}
+          (or <code>REPLICATE_API_TOKEN</code>) to your hosting environment
+          variables.
         </p>
       )}
 
