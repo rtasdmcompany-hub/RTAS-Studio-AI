@@ -5,10 +5,11 @@
 1. Open [vercel.com/new](https://vercel.com/new) and import **rtasdmcompany-hub/RTAS-Studio-AI**.
 2. Set **Root Directory** to `apps/web` (required — monorepo).
 3. Framework: **Next.js** (auto-detected). Do not override Install/Build commands — `apps/web/vercel.json` handles the monorepo.
-4. Add environment variables from `apps/web/.env.example` (see below).
-5. Deploy.
+4. **Output Directory:** leave **empty** (default `.next` inside `apps/web`). Do **not** override unless you changed `distDir` in `next.config.js`.
+5. Add environment variables from `apps/web/.env.example` (see below).
+6. Deploy.
 
-**If build fails on `npm install`:** ensure Root Directory is exactly `apps/web`. The install command installs only `@rtas/web` + `@rtas/shared` (skips Expo mobile workspace).
+**Routes manifest / `.next` not found:** usually means Root Directory is not `apps/web`, or Output Directory was overridden to the wrong path. Build must run `next build` inside `apps/web` so `.next` lands next to `package.json`.
 
 ## Environment variables (production)
 
