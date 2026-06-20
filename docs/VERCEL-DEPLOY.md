@@ -1,39 +1,55 @@
-# Deploy RTAS Studio AI on Vercel
+# Deploy RTAS Studio AI on Vercel (fresh setup from zero)
 
-## One-time setup (GitHub)
+## Step 1 — Import project (Vercel dashboard)
 
-1. Open [vercel.com/new](https://vercel.com/new) and import **rtasdmcompany-hub/RTAS-Studio-AI**.
-2. **Project Settings → General → Root Directory:** set to **`apps/web`** and click Save.
-3. **Project Settings → Build & Development Settings** — either leave ALL overrides **empty** (recommended — `apps/web/vercel.json` applies), **or** match exactly:
-   - **Install Command:** `cd ../.. && npm install --legacy-peer-deps --no-audit --no-fund`
-   - **Build Command:** `cd ../.. && npm run build -w @rtas/web`
-   - **Output Directory:** `.next`
-4. Framework: **Next.js** (auto-detected).
-5. Add environment variables from `apps/web/.env.example` (see below).
-6. Deploy.
+1. Open **https://vercel.com/new**
+2. Import GitHub repo **`rtasdmcompany-hub/RTAS-Studio-AI`**
+3. **Root Directory:** click Edit → set to **`apps/web`** → Continue
+4. Framework: **Next.js** (auto-detected)
 
-**If you see `idealTree already exists` or `cd ../.. && npm install` in logs:** the Dashboard Install Command override is still set — clear it and redeploy.
+## Step 2 — Build settings (IMPORTANT)
 
-**If you see `.next was not found at /vercel/path0/.next`:** Root Directory is not `apps/web` — fix step 2 and redeploy.
+Under **Build & Development Settings**, leave these **empty** (do not override):
 
-## Environment variables (production)
+| Setting | Value |
+|---------|--------|
+| Install Command | *(empty)* |
+| Build Command | *(empty)* |
+| Output Directory | *(empty)* |
 
-| Variable | Notes |
-|----------|--------|
-| `NEXTAUTH_URL` | `https://your-app.vercel.app` |
-| `NEXTAUTH_SECRET` | Same as local or generate new |
-| `NEXT_PUBLIC_APP_URL` | Same as `NEXTAUTH_URL` |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Add Vercel URL to Google OAuth console |
-| `GOOGLE_OAUTH_REDIRECT_URI` | `https://your-app.vercel.app/api/auth/callback/google` |
-| `GOOGLE_OAUTH_JS_ORIGIN` | `https://your-app.vercel.app` |
-| `FAL_KEY` | For live video generation |
-| `NEXT_PUBLIC_FASTAPI_URL` | URL of Python backend (Railway/Render) if hosted separately |
+`apps/web/vercel.json` handles install + build. **Never** use `cd ../.. && npm install` — it causes `idealTree already exists` on Vercel.
 
-**Note:** Video generation (`/api/generate`, FFmpeg compile) needs the **FastAPI backend** on a separate host. Vercel serves the Next.js frontend, auth, pricing, and studio UI.
+## Step 3 — Environment variables (minimum for live site)
 
-## CLI deploy
+Add in Vercel → Settings → Environment Variables:
+
+| Variable | Example |
+|----------|---------|
+| `NEXTAUTH_URL` | `https://YOUR-PROJECT.vercel.app` |
+| `NEXTAUTH_SECRET` | *(same as local `.env.local` or generate new)* |
+| `NEXT_PUBLIC_APP_URL` | `https://YOUR-PROJECT.vercel.app` |
+
+Optional: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `FAL_KEY` — add when ready.
+
+## Step 4 — Deploy
+
+Click **Deploy**. After first deploy, update `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` to the real `.vercel.app` URL and redeploy once.
+
+## CLI alternative (after `npx vercel login`)
 
 ```bash
 cd apps/web
-npx vercel --prod
+npx vercel link
+npx vercel --prod --yes
 ```
+
+When linking, choose team **RTAS_Group**, create project name e.g. **rtas-studio-ai**.
+
+## Troubleshooting
+
+| Error | Fix |
+|-------|-----|
+| `idealTree already exists` | Dashboard Install Command override still set — clear it |
+| `.next not found at /vercel/path0/.next` | Root Directory is not `apps/web` |
+| `DEPLOYMENT_NOT_FOUND` | Old URL — use latest deployment from dashboard |
+| Invalid git author | Commits must use `RTAS-Studio-AI <rtasdmcompany@gmail.com>` |
