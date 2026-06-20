@@ -23,11 +23,8 @@ function mapAuthError(code: string | null): string {
     case "OAuthCallback":
     case "google":
       return (
-        "Google login fail — OAuth client invalid (invalid_client). " +
-        "Google Cloud Console → APIs & Services → Credentials → apna Web client kholein → " +
-        "Client ID + naya Client secret copy karke apps/web/.env.local mein paste karein (bina quotes). " +
-        "Authorized redirect URI: http://localhost:3000/api/auth/callback/google · " +
-        "Authorized JavaScript origin: http://localhost:3000 · phir npm run dev restart."
+        "Google sign-in failed. Check that Google OAuth redirect URI and JavaScript origin " +
+        "match your live site URL in Google Cloud Console, and that NEXTAUTH_URL is set on Vercel."
       );
     default:
       if (code.includes("expired") || code.includes("invalid")) return code;

@@ -79,12 +79,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
-        await upsertOAuthUser({
-          id: user.id,
-          email: user.email,
-          name: user.name ?? user.email,
-          image: user.image,
-        });
+        try {
+          await upsertOAuthUser({
+            id: user.id,
+            email: user.email,
+            name: user.name ?? user.email,
+            image: user.image,
+          });
+        } catch (err) {
+          console.error("Google sign-in: could not persist user record", err);
+        }
       }
 
       if (account?.provider === "credentials") {

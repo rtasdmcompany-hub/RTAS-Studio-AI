@@ -3,7 +3,9 @@ import path from "path";
 import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import { getServerDataDir } from "@/lib/server/data-dir";
+
+const DATA_DIR = getServerDataDir();
 const PROFILES_FILE = path.join(DATA_DIR, "profiles.json");
 
 type ProfileMap = Record<string, UserProfile>;

@@ -6,7 +6,9 @@ import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
 import { saveServerProfile, getServerProfile } from "@/lib/server/profile-store";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import { getServerDataDir } from "@/lib/server/data-dir";
+
+const DATA_DIR = getServerDataDir();
 const AUTH_USERS_FILE = path.join(DATA_DIR, "auth-users.json");
 /** Lower rounds = faster signup on slow disks; still fine for dev/local auth. */
 const BCRYPT_ROUNDS = 10;

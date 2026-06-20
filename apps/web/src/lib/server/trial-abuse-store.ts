@@ -1,7 +1,9 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import { getServerDataDir } from "@/lib/server/data-dir";
+
+const DATA_DIR = getServerDataDir();
 const TRIAL_CLAIMS_FILE = path.join(DATA_DIR, "trial-claims.json");
 
 export const FREE_TRIAL_ABUSE_MESSAGE =

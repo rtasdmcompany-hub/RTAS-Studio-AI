@@ -12,7 +12,9 @@ import {
 import { sendEmail } from "@/lib/server/mailer";
 import type { EmailDeliveryMode } from "@/lib/env";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import { getServerDataDir } from "@/lib/server/data-dir";
+
+const DATA_DIR = getServerDataDir();
 const TOKENS_FILE = path.join(DATA_DIR, "email-verification-tokens.json");
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 

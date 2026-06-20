@@ -2,7 +2,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { PaidPlanType } from "@rtas/shared";
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import { getServerDataDir } from "@/lib/server/data-dir";
+
+const DATA_DIR = getServerDataDir();
 const LEDGER_FILE = path.join(DATA_DIR, "fal-ledger.json");
 
 export type FalLedgerEntry = {

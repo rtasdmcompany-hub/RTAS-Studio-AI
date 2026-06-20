@@ -1,11 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import {
-  getEmailFrom,
-  getResendApiKey,
-  getSmtpConfig,
-  isEmailDeliveryConfigured,
-} from "@/lib/env";
+import { getServerDataDir } from "@/lib/server/data-dir";
 
 export type SendEmailInput = {
   to: string;
@@ -21,7 +16,14 @@ export type SendEmailResult = {
   error?: string;
 };
 
-const DEV_EMAIL_DIR = path.join(process.cwd(), ".data", "dev-emails");
+import {
+  getEmailFrom,
+  getResendApiKey,
+  getSmtpConfig,
+  isEmailDeliveryConfigured,
+} from "@/lib/env";
+
+const DEV_EMAIL_DIR = path.join(getServerDataDir(), "dev-emails");
 
 async function sendViaResend(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = getResendApiKey();
