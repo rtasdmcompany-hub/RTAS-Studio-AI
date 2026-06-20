@@ -3,13 +3,18 @@
 ## One-time setup (GitHub)
 
 1. Open [vercel.com/new](https://vercel.com/new) and import **rtasdmcompany-hub/RTAS-Studio-AI**.
-2. Set **Root Directory** to `apps/web` (required — monorepo).
-3. Framework: **Next.js** (auto-detected). Do not override Install/Build commands — `apps/web/vercel.json` handles the monorepo.
-4. **Output Directory:** leave **empty** (default `.next` inside `apps/web`). Do **not** override unless you changed `distDir` in `next.config.js`.
+2. **Project Settings → General → Root Directory:** set to **`apps/web`** and click Save.
+3. **Project Settings → Build & Development Settings** — clear ALL overrides (leave empty so `apps/web/vercel.json` is used):
+   - **Install Command:** *(empty)* — do **not** use `cd ../.. && npm install`
+   - **Build Command:** *(empty)*
+   - **Output Directory:** *(empty)* — default `.next` inside `apps/web`
+4. Framework: **Next.js** (auto-detected).
 5. Add environment variables from `apps/web/.env.example` (see below).
 6. Deploy.
 
-**Routes manifest / `.next` not found:** usually means Root Directory is not `apps/web`, or Output Directory was overridden to the wrong path. Build must run `next build` inside `apps/web` so `.next` lands next to `package.json`.
+**If you see `idealTree already exists` or `cd ../.. && npm install` in logs:** the Dashboard Install Command override is still set — clear it and redeploy.
+
+**If you see `.next was not found at /vercel/path0/.next`:** Root Directory is not `apps/web` — fix step 2 and redeploy.
 
 ## Environment variables (production)
 
