@@ -90,14 +90,14 @@ export function LandingCategoryShowcase({
         </span>
       </Link>
 
-      <Link href="/studio" className="rtas-category-card" aria-label="Islamic — open studio">
+      <Link href="/studio" className="rtas-category-card" aria-label="Religious — open studio">
         <span className="rtas-category-card__media">
           <ShowcaseVideo src="/showcase/islamic.mp4" />
           <span className="rtas-category-card__sheen" aria-hidden />
         </span>
         <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Islamic</span>
-          <span className="rtas-category-card__blurb">Nasheeds, reminders &amp; Quran visuals</span>
+          <span className="rtas-category-card__label">Religious</span>
+          <span className="rtas-category-card__blurb">Faith stories, prayers, and teachings for any tradition</span>
         </span>
       </Link>
     </div>

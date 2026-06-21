@@ -45,7 +45,7 @@ const WORKFLOW_STEPS = [
 const VALUE_GRID = [
   {
     title: "Every style. One studio.",
-    body: "Song videos, Islamic content, business ads, cartoons, and stories — pick a category and only the inputs you need appear.",
+    body: "Song videos, religious and faith-based content, business ads, cartoons, and stories — pick a category and only the inputs you need appear.",
   },
   {
     title: "Music-first pipeline.",

@@ -56,7 +56,7 @@ export function HowToUseGuide() {
         <p className="rtas-eyebrow">User guide</p>
         <h1>How to use {PRODUCT_NAME}</h1>
         <p className="rtas-howto-page__lead">
-          Step-by-step instructions with visuals for Song, Islamic, Cartoon, Podcast,
+          Step-by-step instructions with visuals for Song, Religious, Cartoon, Podcast,
           Business, and Story videos. Follow along and create in Studio.
         </p>
         <div className="rtas-howto-page__actions">

@@ -47,7 +47,7 @@ export const STUDIO_FLOW = [
   { label: "Mode", options: "Prompt (text to video) · Image (photo to video)" },
   {
     label: "Category",
-    options: "Song · Islamic · Business · Cartoon · Story · Podcast",
+    options: "Song · Religious · Business · Cartoon · Story · Podcast",
   },
   {
     label: "Visual style",
@@ -87,26 +87,44 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     ],
   },
   {
-    id: "islamic",
-    title: "Islamic Video",
-    media: { type: "video", src: "/showcase/islamic.mp4", alt: "Islamic nasheed video example" },
-    summary: "Nasheeds, daily reminders, Ramadan content, and respectful faith-based visuals.",
-    bestFor: ["Nasheed visuals", "Short reminders", "Ramadan and Jummah posts"],
+    id: "religious",
+    title: "Religious / Faith Video",
+    media: {
+      type: "video",
+      src: "/showcase/islamic.mp4",
+      alt: "Religious faith-based video example",
+    },
+    summary:
+      "Faith-based videos for any tradition — prayers, hymns, holidays, parables, and teachings.",
+    bestFor: [
+      "Prayer and worship visuals",
+      "Holiday and festival posts",
+      "Short faith reminders and stories",
+    ],
     recommended: {
-      mode: "Prompt mode with a clear script",
+      mode: "Prompt mode with a clear script or reading",
       visualStyle: "Real or Avatar for speakers; calm Cartoon for children",
-      length: "15–60 seconds for social status clips",
+      length: "15–60 seconds for social clips",
     },
     steps: [
-      { title: "Select Islamic category", detail: "Category → Islamic Video." },
-      { title: "Topic", detail: "Examples: patience, Ramadan, gratitude, daily reminder." },
-      { title: "Script or verses", detail: "Arabic text, translation, or narration script." },
-      { title: "Tone", detail: "Calm, inspiring, or educational." },
-      { title: "Direction", detail: "Soft light, respectful B-roll, minimal text overlays." },
+      { title: "Select Religious category", detail: "Category → Religious Video." },
+      {
+        title: "Topic",
+        detail: "Examples: gratitude, forgiveness, holiday, daily reflection, parable.",
+      },
+      {
+        title: "Script or reading",
+        detail: "Sacred text, prayer, hymn lyrics, or narration for your faith tradition.",
+      },
+      { title: "Tone", detail: "Calm, uplifting, educational, or celebratory." },
+      {
+        title: "Direction",
+        detail: "Soft light, respectful visuals, minimal text overlays.",
+      },
     ],
     tips: [
-      "Double-check spelling and wording for accuracy and respect.",
-      "Calm tone with 30-second length works well for status videos.",
+      "Use wording that is accurate and respectful for your faith community.",
+      "Calm tone with 30-second length works well for social status clips.",
     ],
   },
   {

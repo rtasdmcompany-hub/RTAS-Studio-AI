@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 VisualStyle = Literal["real", "avatar", "cartoon"]
 GenerationMode = Literal["prompt", "image"]
 VideoCategory = Literal[
-    "song", "islamic", "business", "cartoon", "story", "podcast"
+    "song", "religious", "business", "cartoon", "story", "podcast"
 ]
 IdentityProvider = Literal["instant-id", "ip-adapter", "kling-character-id"]
 

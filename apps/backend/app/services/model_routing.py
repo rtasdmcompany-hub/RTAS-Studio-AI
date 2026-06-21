@@ -65,7 +65,7 @@ class ModelSelection:
 
 
 CATEGORY_REQUIREMENTS: dict[str, CategoryRequirements] = {
-    "islamic": CategoryRequirements(
+    "religious": CategoryRequirements(
         min_quality_tier=2,
         required_capabilities=frozenset({"talking_head"}),
     ),
@@ -104,7 +104,7 @@ MODEL_CATALOG: tuple[ModelSpec, ...] = (
         cost_per_second=0.005,
         quality_tier=2,
         capabilities=frozenset({"talking_head", "identity", "i2v"}),
-        supported_categories=frozenset({"islamic", "podcast", "business"}),
+        supported_categories=frozenset({"religious", "podcast", "business"}),
         supported_visual_styles=frozenset({"real", "avatar"}),
         requires_image=True,
     ),
@@ -128,7 +128,7 @@ MODEL_CATALOG: tuple[ModelSpec, ...] = (
         quality_tier=3,
         capabilities=frozenset({"cinematic", "identity", "i2v", "cartoon"}),
         supported_categories=frozenset(
-            {"song", "story", "cartoon", "business", "islamic", "podcast"}
+            {"song", "story", "cartoon", "business", "religious", "podcast"}
         ),
         supported_visual_styles=frozenset({"real", "avatar", "cartoon"}),
     ),
@@ -141,7 +141,7 @@ MODEL_CATALOG: tuple[ModelSpec, ...] = (
         quality_tier=4,
         capabilities=frozenset({"cinematic", "identity", "i2v", "talking_head"}),
         supported_categories=frozenset(
-            {"song", "story", "business", "islamic", "podcast"}
+            {"song", "story", "business", "religious", "podcast"}
         ),
         supported_visual_styles=frozenset({"real"}),
         requires_image=True,
@@ -166,7 +166,7 @@ MODEL_CATALOG: tuple[ModelSpec, ...] = (
         quality_tier=3,
         capabilities=frozenset({"cinematic", "identity", "i2v"}),
         supported_categories=frozenset(
-            {"song", "story", "business", "islamic", "podcast", "cartoon"}
+            {"song", "story", "business", "religious", "podcast", "cartoon"}
         ),
         supported_visual_styles=frozenset({"real", "avatar", "cartoon"}),
     ),
@@ -190,7 +190,7 @@ MODEL_CATALOG: tuple[ModelSpec, ...] = (
         quality_tier=4,
         capabilities=frozenset({"cinematic", "identity", "i2v", "talking_head"}),
         supported_categories=frozenset(
-            {"song", "story", "business", "islamic", "podcast"}
+            {"song", "story", "business", "religious", "podcast"}
         ),
         supported_visual_styles=frozenset({"real"}),
         requires_image=True,

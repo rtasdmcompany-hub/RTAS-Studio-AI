@@ -32,7 +32,7 @@ export function ShowcaseInputDemo() {
             <span className="showcase-input-demo__section">Category</span>
             <div className="showcase-input-demo__chips">
               <span className="showcase-input-demo__chip active">Song</span>
-              <span className="showcase-input-demo__chip">Islamic</span>
+              <span className="showcase-input-demo__chip">Religious</span>
               <span className="showcase-input-demo__chip">Story</span>
             </div>
           </div>

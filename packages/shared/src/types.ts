@@ -6,7 +6,7 @@ export type VisualStyle = "real" | "avatar" | "cartoon";
 
 export type VideoCategory =
   | "song"
-  | "islamic"
+  | "religious"
   | "business"
   | "cartoon"
   | "story"

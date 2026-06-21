@@ -1134,7 +1134,7 @@ export function StudioClient() {
     }
 
     if (!category) {
-      setFormNotice("Please select a category first (Song, Islamic, Business, etc.).");
+      setFormNotice("Please select a category first (Song, Religious, Business, etc.).");
       return;
     }
     if (!mode) {
@@ -1398,7 +1398,7 @@ export function StudioClient() {
         return;
       }
       if (!category) {
-        setFormNotice("Please select a category (Song, Islamic, Business, etc.).");
+        setFormNotice("Please select a category (Song, Religious, Business, etc.).");
         return;
       }
       if (!visualStyle) {

@@ -6,7 +6,7 @@ import { HowToUseGuide } from "@/components/marketing/HowToUseGuide";
 export const metadata: Metadata = {
   title: `How to Use | ${PRODUCT_NAME}`,
   description:
-    "Complete visual guide for RTAS Studio AI — Song, Islamic, Cartoon, Podcast, Business, and Story videos step by step.",
+    "Complete visual guide for RTAS Studio AI — Song, Religious, Cartoon, Podcast, Business, and Story videos step by step.",
 };
 
 export default function HowToUsePage() {

@@ -9,10 +9,10 @@ export const CATEGORY_META: Record<
     shortLabel: "Song",
     description: "Music videos with lyrics and style",
   },
-  islamic: {
-    label: "Islamic Video",
-    shortLabel: "Islamic",
-    description: "Nasheeds, reminders, Quran visuals",
+  religious: {
+    label: "Religious Video",
+    shortLabel: "Religious",
+    description: "Faith-based stories, prayers, hymns, and teachings for any tradition",
   },
   business: {
     label: "Business Ad",
@@ -104,29 +104,29 @@ export const CATEGORY_FIELDS: Record<VideoCategory, CategoryField[]> = {
     },
     directionPrompt,
   ],
-  islamic: [
+  religious: [
     {
       id: "topic",
       label: "Topic",
       shortLabel: "Topic",
       type: "text",
       required: true,
-      placeholder: "e.g. Sabr, Ramadan, daily reminder",
+      placeholder: "e.g. gratitude, holiday, daily reflection, parable",
     },
     {
       id: "script",
-      label: "Script / Verses",
+      label: "Script / Reading",
       shortLabel: "Script",
       type: "textarea",
       required: true,
-      placeholder: "Arabic text, translation, or narration",
+      placeholder: "Sacred text, prayer, hymn lyrics, or narration for your faith",
     },
     {
       id: "tone",
       label: "Tone",
       shortLabel: "Tone",
       type: "text",
-      placeholder: "Calm, inspiring, educational",
+      placeholder: "Calm, uplifting, educational, celebratory",
     },
     {
       id: "referenceImage",
