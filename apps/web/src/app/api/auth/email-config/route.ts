@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import {
+  canDeliverEmailToAnyInbox,
   getEmailDeliveryMode,
   getResendApiKey,
   getSmtpConfig,
   isEmailDeliveryConfigured,
+  isResendSandboxFrom,
 } from "@/lib/env";
 
 function readSmtpUser(): string {
@@ -18,7 +20,7 @@ export async function GET() {
   const mode = getEmailDeliveryMode();
   const smtpUser = readSmtpUser();
   const smtpPass = readSmtpPass();
-  const realInboxDelivery = mode === "resend" || mode === "smtp";
+  const realInboxDelivery = canDeliverEmailToAnyInbox();
 
   return NextResponse.json({
     configured:
@@ -27,7 +29,8 @@ export async function GET() {
       mode === "link-only",
     mode,
     realInboxDelivery,
-    linkOnlyConfirmation: mode === "link-only",
+    linkOnlyConfirmation: !realInboxDelivery,
+    resendSandboxFrom: isResendSandboxFrom(),
     smtpNeedsAppPassword:
       process.env.NODE_ENV === "development" && Boolean(smtpUser && !smtpPass),
     resendNeedsApiKey: !getResendApiKey() && !getSmtpConfig(),

@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import {
-  exposesVerificationLinkOnPage,
-} from "@/lib/env";
-import {
   findAuthUserById,
   registerCredentialsUser,
 } from "@/lib/server/auth-users";
@@ -47,10 +44,10 @@ export async function POST(request: Request) {
       email: maskEmail(result.email),
       linkedGoogleAccount: result.linkedGoogleAccount ?? false,
       emailDelivery: sent.delivery,
-      realInboxDelivery: sent.delivery === "smtp" || sent.delivery === "resend",
-      devVerificationUrl: exposesVerificationLinkOnPage(sent.delivery)
-        ? sent.verifyUrl
-        : undefined,
+      emailSent: sent.emailSent,
+      realInboxDelivery: sent.emailSent,
+      devVerificationUrl: sent.emailSent ? undefined : sent.verifyUrl,
+      deliveryError: sent.deliveryError,
     });
   } catch (err) {
     if (err instanceof PersistentStoreNotConfiguredError) {

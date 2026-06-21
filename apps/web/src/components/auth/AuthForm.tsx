@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PRODUCT_NAME } from "@rtas/shared";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { BrandLockup } from "@/components/BrandLockup";
-import { storeDevVerificationUrl } from "./CheckEmailClient";
+import { storeDevVerificationUrl, storeEmailSentToInbox } from "./CheckEmailClient";
 
 type Mode = "login" | "signup";
 
@@ -57,6 +57,7 @@ export function AuthForm({ mode }: Props) {
   const [signupSentModal, setSignupSentModal] = useState<{
     email: string;
     masked: string;
+    emailSent: boolean;
     devVerificationUrl?: string;
   } | null>(null);
 
@@ -121,6 +122,8 @@ export function AuthForm({ mode }: Props) {
           linkedGoogleAccount?: boolean;
           needsEmailVerification?: boolean;
           email?: string;
+          emailSent?: boolean;
+          realInboxDelivery?: boolean;
           devVerificationUrl?: string;
         };
         try {
@@ -136,12 +139,15 @@ export function AuthForm({ mode }: Props) {
         }
 
         await signOut({ redirect: false });
+        const emailSent = data.emailSent === true || data.realInboxDelivery === true;
+        storeEmailSentToInbox(emailSent);
         storeDevVerificationUrl(data.devVerificationUrl);
 
         const masked = data.email ?? email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
         setSignupSentModal({
           email,
           masked,
+          emailSent,
           devVerificationUrl: data.devVerificationUrl,
         });
         return;
@@ -207,14 +213,31 @@ export function AuthForm({ mode }: Props) {
       {signupSentModal && (
         <div className="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="signup-sent-title">
           <div className="auth-modal">
-            <h2 id="signup-sent-title">Check your email</h2>
-            <p>
-              We sent a confirmation email to <strong>{signupSentModal.masked}</strong>.
-            </p>
-            <p>
-              Open the email, click <strong>Confirm my account</strong>, then sign in.
-              You cannot access the studio until your email is verified.
-            </p>
+            <h2 id="signup-sent-title">
+              {signupSentModal.emailSent ? "Check your email" : "Confirm your account"}
+            </h2>
+            {signupSentModal.emailSent ? (
+              <>
+                <p>
+                  We sent a confirmation email to <strong>{signupSentModal.masked}</strong>.
+                </p>
+                <p>
+                  Open the email, click <strong>Confirm my account</strong>, then sign in.
+                  You cannot access the studio until your email is verified.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  Your account for <strong>{signupSentModal.masked}</strong> was created, but
+                  we could not deliver email to your inbox yet.
+                </p>
+                <p>
+                  On the next screen, click <strong>Confirm my account now</strong> to verify
+                  your email, then sign in.
+                </p>
+              </>
+            )}
             <button type="button" className="btn-primary auth-submit" onClick={closeSignupSentModal}>
               Got it
             </button>

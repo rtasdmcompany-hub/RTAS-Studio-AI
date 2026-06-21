@@ -114,8 +114,10 @@ export async function sendVerificationEmailForUser(input: {
   | {
       ok: true;
       verifyUrl: string;
+      emailSent: boolean;
       delivery: EmailDeliveryMode;
       devPreviewPath?: string;
+      deliveryError?: string;
     }
   | { ok: false; error: string }
 > {
@@ -137,15 +139,23 @@ export async function sendVerificationEmailForUser(input: {
     text,
   });
 
-  if (!sent.ok) {
-    return { ok: false, error: sent.error ?? "Could not send confirmation email." };
+  if (sent.ok) {
+    return {
+      ok: true,
+      verifyUrl,
+      emailSent: sent.provider === "resend" || sent.provider === "smtp",
+      delivery: sent.provider ?? getEmailDeliveryMode(),
+      devPreviewPath: sent.devPreviewPath,
+    };
   }
 
+  // Inbox delivery failed — still return a signed link so the user can confirm on-page.
   return {
     ok: true,
     verifyUrl,
-    delivery: sent.provider ?? getEmailDeliveryMode(),
-    devPreviewPath: sent.devPreviewPath,
+    emailSent: false,
+    delivery: "link-only",
+    deliveryError: sent.error ?? "Could not send confirmation email.",
   };
 }
 
@@ -176,7 +186,9 @@ export async function resendVerificationForEmail(
       ok: true;
       maskedEmail: string;
       verifyUrl: string;
+      emailSent: boolean;
       delivery: EmailDeliveryMode;
+      deliveryError?: string;
     }
   | { ok: false; error: string }
 > {
@@ -209,7 +221,9 @@ export async function resendVerificationForEmail(
     ok: true,
     maskedEmail: maskEmail(user.email),
     verifyUrl: sent.verifyUrl,
+    emailSent: sent.emailSent,
     delivery: sent.delivery,
+    deliveryError: sent.deliveryError,
   };
 }
 

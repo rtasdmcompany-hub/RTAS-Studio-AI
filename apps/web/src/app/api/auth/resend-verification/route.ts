@@ -1,8 +1,4 @@
 import { NextResponse } from "next/server";
-import {
-  exposesVerificationLinkOnPage,
-  getEmailDeliveryMode,
-} from "@/lib/env";
 import { resendVerificationForEmail } from "@/lib/server/email-verification";
 
 export async function POST(request: Request) {
@@ -18,19 +14,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    const mode = getEmailDeliveryMode();
-
     return NextResponse.json({
       ok: true,
       email: result.maskedEmail,
-      message:
-        mode === "smtp" || mode === "resend"
-          ? "Confirmation email sent. Check your inbox and spam folder."
-          : "Confirmation link ready. Use the button below to confirm your account.",
-      realInboxDelivery: mode === "smtp" || mode === "resend",
-      devVerificationUrl: exposesVerificationLinkOnPage(mode)
-        ? result.verifyUrl
-        : undefined,
+      message: result.emailSent
+        ? "Confirmation email sent. Check your inbox and spam folder."
+        : "Confirmation link ready. Use the button below to confirm your account.",
+      emailSent: result.emailSent,
+      realInboxDelivery: result.emailSent,
+      devVerificationUrl: result.emailSent ? undefined : result.verifyUrl,
+      deliveryError: result.deliveryError,
     });
   } catch {
     return NextResponse.json(

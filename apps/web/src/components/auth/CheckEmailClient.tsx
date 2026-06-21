@@ -7,17 +7,19 @@ import { BrandLockup } from "@/components/BrandLockup";
 import { AuthFlowGuard } from "./AuthFlowGuard";
 
 const DEV_VERIFY_KEY = "rtas_dev_verify_url";
+const EMAIL_SENT_KEY = "rtas_email_sent";
 
 type EmailConfig = {
   realInboxDelivery?: boolean;
   mode?: string;
+  resendSandboxFrom?: boolean;
   smtpNeedsAppPassword?: boolean;
 };
 
 export function CheckEmailClient() {
   const searchParams = useSearchParams();
   const resendEmail = searchParams.get("email")?.trim() ?? "";
-  const justSent = searchParams.get("sent") === "1";
+  const justSignedUp = searchParams.get("sent") === "1";
   const maskedEmail =
     searchParams.get("masked")?.trim() ||
     (resendEmail
@@ -25,11 +27,12 @@ export function CheckEmailClient() {
       : "your email");
 
   const [busy, setBusy] = useState(false);
-  const [loadingLink, setLoadingLink] = useState(!justSent);
+  const [loadingLink, setLoadingLink] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [devVerificationUrl, setDevVerificationUrl] = useState<string | null>(null);
   const [emailConfig, setEmailConfig] = useState<EmailConfig | null>(null);
+  const [inboxEmailSent, setInboxEmailSent] = useState<boolean | null>(null);
 
   async function loadVerificationLink(showSuccessNotice = false) {
     if (!resendEmail) {
@@ -52,7 +55,9 @@ export function CheckEmailClient() {
         message?: string;
         email?: string;
         devVerificationUrl?: string;
+        emailSent?: boolean;
         realInboxDelivery?: boolean;
+        deliveryError?: string;
       };
 
       if (!res.ok) {
@@ -60,17 +65,27 @@ export function CheckEmailClient() {
         return;
       }
 
+      const sentToInbox = data.emailSent === true || data.realInboxDelivery === true;
+      setInboxEmailSent(sentToInbox);
+      sessionStorage.setItem(EMAIL_SENT_KEY, sentToInbox ? "1" : "0");
+
       if (data.devVerificationUrl) {
         setDevVerificationUrl(data.devVerificationUrl);
         sessionStorage.setItem(DEV_VERIFY_KEY, data.devVerificationUrl);
       }
 
       if (showSuccessNotice) {
-        setNotice(
-          data.realInboxDelivery
-            ? `Confirmation email sent to ${data.email ?? maskedEmail}. Check your inbox and spam folder.`
-            : "Confirmation link is ready below."
-        );
+        if (sentToInbox) {
+          setNotice(
+            `Confirmation email sent to ${data.email ?? maskedEmail}. Check your inbox and spam folder.`
+          );
+        } else {
+          setNotice(
+            data.deliveryError
+              ? "We could not deliver email to your inbox yet. Use the confirmation button below to activate your account."
+              : "Your confirmation link is ready below."
+          );
+        }
       }
     } catch {
       setError("Could not send confirmation email.");
@@ -81,37 +96,55 @@ export function CheckEmailClient() {
   }
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(DEV_VERIFY_KEY);
-    if (stored) setDevVerificationUrl(stored);
+    const storedUrl = sessionStorage.getItem(DEV_VERIFY_KEY);
+    if (storedUrl) setDevVerificationUrl(storedUrl);
 
-    if (justSent) {
-      setNotice(
-        `We sent a confirmation email to ${maskedEmail}. Open the email, click Confirm my account, then sign in. You cannot access the studio until your email is verified.`
-      );
-      setLoadingLink(false);
-    }
+    const storedSent = sessionStorage.getItem(EMAIL_SENT_KEY);
+    if (storedSent === "1") setInboxEmailSent(true);
+    else if (storedSent === "0") setInboxEmailSent(false);
 
     void fetch("/api/auth/email-config")
       .then((r) => (r.ok ? r.json() : null))
       .then((cfg: EmailConfig | null) => {
         setEmailConfig(cfg);
-        if (justSent) return;
-        if (cfg?.mode === "dev-file") {
+
+        if (justSignedUp) {
+          if (storedSent === "1") {
+            setNotice(
+              `We sent a confirmation email to ${maskedEmail}. Open the email, click Confirm my account, then sign in.`
+            );
+          } else if (storedUrl) {
+            setNotice(
+              "We could not deliver email to your inbox yet. Click Confirm my account below to activate your account, then sign in."
+            );
+          } else if (cfg?.realInboxDelivery) {
+            setNotice(
+              `We sent a confirmation email to ${maskedEmail}. Check your inbox and spam folder.`
+            );
+          }
+          return;
+        }
+
+        if (cfg?.mode === "dev-file" || !cfg?.realInboxDelivery) {
           void loadVerificationLink(false);
           return;
         }
+
         setLoadingLink(false);
       })
       .catch(() => {
         setEmailConfig({ realInboxDelivery: false, smtpNeedsAppPassword: true });
-        if (!justSent) void loadVerificationLink(false);
+        if (!justSignedUp) void loadVerificationLink(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resendEmail, justSent, maskedEmail]);
+  }, [resendEmail, justSignedUp, maskedEmail]);
 
   const realInboxDelivery = emailConfig?.realInboxDelivery === true;
   const devFileMode = emailConfig?.mode === "dev-file";
+  const resendSandboxFrom = emailConfig?.resendSandboxFrom === true;
   const smtpNeedsAppPassword = emailConfig?.smtpNeedsAppPassword === true;
+  const showOnPageConfirm = Boolean(devVerificationUrl);
+  const emailWasSentToInbox = inboxEmailSent === true;
 
   return (
     <>
@@ -131,7 +164,7 @@ export function CheckEmailClient() {
           </div>
         )}
 
-        {realInboxDelivery && !notice && (
+        {realInboxDelivery && emailWasSentToInbox && !notice && (
           <div className="auth-success" role="status">
             <p>
               We sent a confirmation email to <strong>{maskedEmail}</strong>.
@@ -142,6 +175,15 @@ export function CheckEmailClient() {
             <p>
               After confirming,{" "}
               <Link href="/auth/login?callbackUrl=%2Fstudio">sign in</Link> to open Studio.
+            </p>
+          </div>
+        )}
+
+        {resendSandboxFrom && !showOnPageConfirm && (
+          <div className="auth-notice" role="status">
+            <p>
+              Email delivery uses Resend&apos;s test sender, which only works after you verify
+              your own domain in Resend. Until then, use the confirmation link below.
             </p>
           </div>
         )}
@@ -158,8 +200,8 @@ export function CheckEmailClient() {
         {smtpNeedsAppPassword && (
           <p className="auth-error" role="alert">
             SMTP is not configured in <code>apps/web/.env.local</code>. Add{" "}
-            <code>SMTP_PASS</code> for real email delivery, or use the development link
-            below to confirm locally.
+            <code>SMTP_PASS</code> for real email delivery, or use the confirmation link
+            below.
           </p>
         )}
 
@@ -169,20 +211,20 @@ export function CheckEmailClient() {
           </p>
         )}
 
-        {loadingLink && !devVerificationUrl && devFileMode && (
+        {loadingLink && !devVerificationUrl && (
           <p className="auth-loading">Preparing confirmation link…</p>
         )}
 
-        {devVerificationUrl && devFileMode && (
+        {showOnPageConfirm && (
           <>
             <a
-              href={devVerificationUrl}
+              href={devVerificationUrl!}
               className="btn-primary auth-submit auth-confirm-link-btn"
             >
               Confirm my account now
             </a>
             <p className="auth-dev-link">
-              Copy link: <a href={devVerificationUrl}>{devVerificationUrl}</a>
+              Copy link: <a href={devVerificationUrl!}>{devVerificationUrl}</a>
             </p>
           </>
         )}
@@ -218,7 +260,13 @@ export function storeDevVerificationUrl(url?: string) {
   sessionStorage.setItem(DEV_VERIFY_KEY, url);
 }
 
+export function storeEmailSentToInbox(sent: boolean) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(EMAIL_SENT_KEY, sent ? "1" : "0");
+}
+
 export function clearDevVerificationUrl() {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(DEV_VERIFY_KEY);
+  sessionStorage.removeItem(EMAIL_SENT_KEY);
 }

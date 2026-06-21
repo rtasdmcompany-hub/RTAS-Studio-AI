@@ -139,6 +139,19 @@ export function getEmailFrom(): string {
   );
 }
 
+/** Resend's default sender only delivers to the Resend account owner's inbox. */
+export function isResendSandboxFrom(): boolean {
+  const from = getEmailFrom().toLowerCase();
+  return from.includes("onboarding@resend.dev") || from.includes("@resend.dev");
+}
+
+/** True when email can reach any recipient (verified domain or SMTP). */
+export function canDeliverEmailToAnyInbox(): boolean {
+  if (getSmtpConfig()) return true;
+  if (getResendApiKey() && !isResendSandboxFrom()) return true;
+  return false;
+}
+
 export type SmtpConfig = {
   host: string;
   port: number;

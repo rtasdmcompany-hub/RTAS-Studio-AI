@@ -99,10 +99,13 @@ ${input.html}
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
-  if (getResendApiKey()) {
+  const resendKey = getResendApiKey();
+  if (resendKey) {
     const result = await sendViaResend(input);
     if (result.ok) return result;
     console.error("[mailer] Resend failed:", result.error);
+    // Do not fall through to link-only — callers must surface the failure or use on-page links.
+    return result;
   }
 
   const smtp = getSmtpConfig();
@@ -124,7 +127,11 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   if (isServerlessRuntime()) {
-    return { ok: true, provider: "link-only" };
+    return {
+      ok: false,
+      error:
+        "Email is not configured for production. Set RESEND_API_KEY with a verified domain, or SMTP_* variables.",
+    };
   }
 
   return {
