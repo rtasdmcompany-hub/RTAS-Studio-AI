@@ -2272,6 +2272,395 @@
   }
 }
 
+/* How to use guide */
+.rtas-marketing-main:has(.rtas-howto-page) {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 clamp(0.65rem, 2vw, 1.25rem);
+}
+
+.rtas-howto-page {
+  width: min(980px, 100%);
+  margin: clamp(4.75rem, 10vh, 5.5rem) auto clamp(2.5rem, 5vh, 3.5rem);
+  padding: clamp(2rem, 4vh, 2.75rem) clamp(1.25rem, 3vw, 2rem);
+  background: rgba(0, 0, 0, 0.58) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.rtas-howto-page__hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.rtas-howto-page__hero h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin: 0 0 0.85rem;
+}
+
+.rtas-howto-page__lead {
+  color: var(--rtas-muted);
+  max-width: 58ch;
+  margin: 0 auto 1.25rem;
+  line-height: 1.65;
+}
+
+.rtas-howto-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.rtas-howto-section {
+  margin-bottom: 2.5rem;
+  padding-top: 0.5rem;
+}
+
+.rtas-howto-section h2 {
+  font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+  margin: 0 0 0.5rem;
+}
+
+.rtas-howto-section__intro {
+  color: var(--rtas-muted);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+.rtas-howto-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.rtas-howto-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.rtas-howto-step__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--rtas-lavender), #5a3fd4);
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.rtas-howto-step__body h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.rtas-howto-step__body p {
+  margin: 0 0 0.35rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.rtas-howto-step__ur {
+  color: var(--rtas-lavender) !important;
+  font-size: 0.92rem;
+}
+
+.rtas-howto-flow {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .rtas-howto-flow {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+.rtas-howto-flow__item {
+  position: relative;
+  padding: 1rem;
+  background: rgba(124, 92, 255, 0.08);
+  border: 1px solid rgba(124, 92, 255, 0.22);
+  border-radius: 12px;
+}
+
+.rtas-howto-flow__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin-bottom: 0.5rem;
+  border-radius: 999px;
+  background: var(--rtas-lavender);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rtas-howto-flow__ur {
+  color: var(--rtas-muted);
+  font-size: 0.85rem;
+}
+
+.rtas-howto-flow__item p {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--rtas-muted);
+}
+
+.rtas-howto-flow__arrow {
+  display: none;
+}
+
+.rtas-howto-callout {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--rtas-lavender);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.rtas-howto-jump {
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rtas-howto-jump h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+}
+
+.rtas-howto-jump__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rtas-howto-jump__list a {
+  display: inline-block;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(124, 92, 255, 0.15);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+  color: var(--rtas-lavender);
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.rtas-howto-jump__list a:hover {
+  background: rgba(124, 92, 255, 0.28);
+}
+
+.rtas-howto-category {
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  scroll-margin-top: 5.5rem;
+}
+
+.rtas-howto-category__grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .rtas-howto-category__grid {
+    grid-template-columns: minmax(220px, 38%) 1fr;
+    align-items: start;
+  }
+}
+
+.rtas-howto-media {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 9 / 16;
+  max-height: 420px;
+  background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.rtas-howto-media__video,
+.rtas-howto-media__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rtas-howto-media__label {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.65rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.rtas-howto-category__content h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.35rem;
+}
+
+.rtas-howto-category__ur {
+  color: var(--rtas-lavender);
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+}
+
+.rtas-howto-category__content > p {
+  margin: 0 0 0.5rem;
+  line-height: 1.6;
+}
+
+.rtas-howto-category__content h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rtas-muted);
+}
+
+.rtas-howto-tags {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.rtas-howto-tags li {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+}
+
+.rtas-howto-reco dl {
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rtas-howto-reco dt {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rtas-muted);
+  margin-bottom: 0.2rem;
+}
+
+.rtas-howto-reco dd {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.rtas-howto-mini-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.rtas-howto-mini-steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.rtas-howto-mini-steps__num {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(124, 92, 255, 0.25);
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.rtas-howto-mini-steps p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.rtas-howto-tips {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(124, 92, 255, 0.08);
+}
+
+.rtas-howto-tips ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.rtas-howto-tips li {
+  margin-bottom: 0.45rem;
+  line-height: 1.55;
+}
+
+.rtas-howto-category__cta {
+  display: inline-flex;
+  margin-top: 0.5rem;
+}
+
+.rtas-howto-page__footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rtas-howto-page__footer p {
+  color: var(--rtas-muted);
+  max-width: 42ch;
+  margin: 0.5rem auto 1rem;
+}
+
+.rtas-howto-page__footer a {
+  color: var(--rtas-lavender);
+}
+
 /* Profile */
 .rtas-profile-wrap {
   max-width: 640px;

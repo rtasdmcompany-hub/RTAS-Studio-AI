@@ -36,8 +36,8 @@ export function EarlyResubscribeModal({
           Extend your subscription?
         </h2>
         <p className="paywall-desc">
-          Aap ki current subscription ki mudaat aur credits abhi baaki hain. Kya
-          aap naye credits add kar ke apni subscription barhana chahte hain?
+          Your current subscription period and credits are still active. Would you like
+          to add new credits and extend your subscription now?
         </p>
         <p className="paywall-desc">
           You have <strong>{remainingCredits}</strong> credits remaining (valid

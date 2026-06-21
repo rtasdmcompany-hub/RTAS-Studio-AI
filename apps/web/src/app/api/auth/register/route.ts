@@ -4,7 +4,6 @@ import {
 } from "@/lib/env";
 import {
   findAuthUserById,
-  markAuthUserEmailVerified,
   registerCredentialsUser,
 } from "@/lib/server/auth-users";
 import {
@@ -40,10 +39,6 @@ export async function POST(request: Request) {
 
     if (!sent.ok) {
       return NextResponse.json({ error: sent.error }, { status: 500 });
-    }
-
-    if (sent.delivery === "link-only") {
-      await markAuthUserEmailVerified(result.userId);
     }
 
     return NextResponse.json({

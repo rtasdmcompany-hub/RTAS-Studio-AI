@@ -82,7 +82,7 @@ export const CATEGORY_FIELDS: Record<VideoCategory, CategoryField[]> = {
       shortLabel: "Style",
       type: "text",
       required: true,
-      placeholder: "e.g. Urdu pop, acoustic, nasheed",
+      placeholder: "e.g. acoustic pop, drill, nasheed",
     },
     {
       id: "audioSource",
@@ -119,7 +119,7 @@ export const CATEGORY_FIELDS: Record<VideoCategory, CategoryField[]> = {
       shortLabel: "Script",
       type: "textarea",
       required: true,
-      placeholder: "Arabic/Urdu text, translation, or narration",
+      placeholder: "Arabic text, translation, or narration",
     },
     {
       id: "tone",

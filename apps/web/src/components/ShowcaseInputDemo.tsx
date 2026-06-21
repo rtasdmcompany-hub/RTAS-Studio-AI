@@ -5,7 +5,7 @@ export function ShowcaseInputDemo() {
   return (
     <div className="showcase-input-demo" aria-label="How to use RTAS Studio demo">
       <div className="showcase-input-demo__top">
-        <span className="showcase-input-demo__step-label">Step 1–4 · Form bharein</span>
+        <span className="showcase-input-demo__step-label">Step 1–4 · Fill the form</span>
         <span className="showcase-ff-badge">⏩ Demo fast-forward</span>
       </div>
 
@@ -58,7 +58,7 @@ export function ShowcaseInputDemo() {
             <span className="showcase-input-demo__section">Music Style</span>
             <div className="showcase-input-demo__field">
               <span className="showcase-input-demo__value showcase-anim-style">
-                Urdu trap · deep voice · cinematic
+                Trap beat · deep voice · cinematic
               </span>
             </div>
           </div>

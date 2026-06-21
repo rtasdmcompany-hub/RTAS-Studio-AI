@@ -10,13 +10,14 @@ const DEV_VERIFY_KEY = "rtas_dev_verify_url";
 
 type EmailConfig = {
   realInboxDelivery?: boolean;
-  linkOnlyConfirmation?: boolean;
+  mode?: string;
   smtpNeedsAppPassword?: boolean;
 };
 
 export function CheckEmailClient() {
   const searchParams = useSearchParams();
   const resendEmail = searchParams.get("email")?.trim() ?? "";
+  const justSent = searchParams.get("sent") === "1";
   const maskedEmail =
     searchParams.get("masked")?.trim() ||
     (resendEmail
@@ -24,7 +25,7 @@ export function CheckEmailClient() {
       : "your email");
 
   const [busy, setBusy] = useState(false);
-  const [loadingLink, setLoadingLink] = useState(true);
+  const [loadingLink, setLoadingLink] = useState(!justSent);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [devVerificationUrl, setDevVerificationUrl] = useState<string | null>(null);
@@ -55,7 +56,7 @@ export function CheckEmailClient() {
       };
 
       if (!res.ok) {
-        setError(data.error ?? "Could not prepare confirmation link.");
+        setError(data.error ?? "Could not send confirmation email.");
         return;
       }
 
@@ -67,12 +68,12 @@ export function CheckEmailClient() {
       if (showSuccessNotice) {
         setNotice(
           data.realInboxDelivery
-            ? `Email sent to ${data.email ?? maskedEmail}. Check inbox and spam.`
+            ? `Confirmation email sent to ${data.email ?? maskedEmail}. Check your inbox and spam folder.`
             : "Confirmation link is ready below."
         );
       }
     } catch {
-      setError("Could not prepare confirmation link.");
+      setError("Could not send confirmation email.");
     } finally {
       setBusy(false);
       setLoadingLink(false);
@@ -83,33 +84,34 @@ export function CheckEmailClient() {
     const stored = sessionStorage.getItem(DEV_VERIFY_KEY);
     if (stored) setDevVerificationUrl(stored);
 
+    if (justSent) {
+      setNotice(
+        `We sent a confirmation email to ${maskedEmail}. Open the email, click Confirm my account, then sign in. You cannot access the studio until your email is verified.`
+      );
+      setLoadingLink(false);
+    }
+
     void fetch("/api/auth/email-config")
       .then((r) => (r.ok ? r.json() : null))
       .then((cfg: EmailConfig | null) => {
         setEmailConfig(cfg);
-        if (cfg?.realInboxDelivery) {
-          setLoadingLink(false);
-          if (!stored) void loadVerificationLink(false);
+        if (justSent) return;
+        if (cfg?.mode === "dev-file") {
+          void loadVerificationLink(false);
           return;
         }
-        if (cfg?.linkOnlyConfirmation) {
-          setLoadingLink(false);
-          if (!stored) void loadVerificationLink(false);
-          return;
-        }
-        void loadVerificationLink(false);
+        setLoadingLink(false);
       })
       .catch(() => {
         setEmailConfig({ realInboxDelivery: false, smtpNeedsAppPassword: true });
-        void loadVerificationLink(false);
+        if (!justSent) void loadVerificationLink(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resendEmail]);
+  }, [resendEmail, justSent, maskedEmail]);
 
   const realInboxDelivery = emailConfig?.realInboxDelivery === true;
-  const linkOnlyConfirmation = emailConfig?.linkOnlyConfirmation === true;
-  const smtpNeedsAppPassword =
-    emailConfig?.smtpNeedsAppPassword === true && !linkOnlyConfirmation;
+  const devFileMode = emailConfig?.mode === "dev-file";
+  const smtpNeedsAppPassword = emailConfig?.smtpNeedsAppPassword === true;
 
   return (
     <>
@@ -123,48 +125,42 @@ export function CheckEmailClient() {
           </p>
         </div>
 
-        {smtpNeedsAppPassword && (
-          <p className="auth-error" role="alert">
-            <strong>Gmail email abhi send nahi ho rahi.</strong>{" "}
-            <code>apps/web/.env.local</code> mein <code>SMTP_PASS=</code> ke baad
-            Gmail App Password lagayein, phir server restart karein. Tab tak neeche wale
-            button se account confirm karein.
-          </p>
+        {notice && (
+          <div className="auth-success auth-confirmation-banner" role="status">
+            <p>{notice}</p>
+          </div>
         )}
 
-        {realInboxDelivery ? (
+        {realInboxDelivery && !notice && (
           <div className="auth-success" role="status">
             <p>
-              Confirmation email bhej di gayi hai: <strong>{maskedEmail}</strong>
+              We sent a confirmation email to <strong>{maskedEmail}</strong>.
             </p>
             <p>
-              Gmail inbox aur <strong>Spam</strong> folder check karein, phir{" "}
-              <strong>Confirm my account</strong> par click karein.
+              Check your inbox and spam folder, then click <strong>Confirm my account</strong>.
             </p>
             <p>
-              Confirm ke baad{" "}
-              <Link href="/auth/login?callbackUrl=%2Fstudio">Sign in</Link> karein.
+              After confirming,{" "}
+              <Link href="/auth/login?callbackUrl=%2Fstudio">sign in</Link> to open Studio.
             </p>
           </div>
-        ) : linkOnlyConfirmation ? (
-          <div className="auth-success" role="status">
-            <p>
-              Aapka account tayar hai. Neeche <strong>Sign in now</strong> par
-              click karke studio mein enter ho jayein.
-            </p>
-            <p className="auth-notice">
-              Email inbox setup baad mein add ho sakta hai — abhi direct sign in
-              use karein.
-            </p>
-          </div>
-        ) : (
+        )}
+
+        {devFileMode && (
           <div className="auth-notice" role="status">
             <p>
-              <strong>Abhi real email Gmail tak nahi ja rahi</strong> — SMTP
-              password set nahi hai. Neeche <strong>Confirm my account now</strong>{" "}
-              button use karein.
+              Email delivery is in local development mode. Use the confirmation link below
+              to verify your account, then sign in.
             </p>
           </div>
+        )}
+
+        {smtpNeedsAppPassword && (
+          <p className="auth-error" role="alert">
+            SMTP is not configured in <code>apps/web/.env.local</code>. Add{" "}
+            <code>SMTP_PASS</code> for real email delivery, or use the development link
+            below to confirm locally.
+          </p>
         )}
 
         {error && (
@@ -173,17 +169,11 @@ export function CheckEmailClient() {
           </p>
         )}
 
-        {notice && (
-          <p className="auth-notice" role="status">
-            {notice}
-          </p>
-        )}
-
-        {loadingLink && !devVerificationUrl && (
+        {loadingLink && !devVerificationUrl && devFileMode && (
           <p className="auth-loading">Preparing confirmation link…</p>
         )}
 
-        {devVerificationUrl && !linkOnlyConfirmation && (
+        {devVerificationUrl && devFileMode && (
           <>
             <a
               href={devVerificationUrl}
@@ -192,19 +182,9 @@ export function CheckEmailClient() {
               Confirm my account now
             </a>
             <p className="auth-dev-link">
-              Link copy karein:{" "}
-              <a href={devVerificationUrl}>{devVerificationUrl}</a>
+              Copy link: <a href={devVerificationUrl}>{devVerificationUrl}</a>
             </p>
           </>
-        )}
-
-        {linkOnlyConfirmation && (
-          <Link
-            href="/auth/login?callbackUrl=%2Fstudio"
-            className="btn-primary auth-submit auth-confirm-link-btn"
-          >
-            Sign in now
-          </Link>
         )}
 
         <button

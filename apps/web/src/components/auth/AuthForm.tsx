@@ -54,6 +54,11 @@ export function AuthForm({ mode }: Props) {
   const [googleAuthEnabled, setGoogleAuthEnabled] = useState<boolean | null>(null);
   const [simulationMode, setSimulationMode] = useState<boolean | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [signupSentModal, setSignupSentModal] = useState<{
+    email: string;
+    masked: string;
+    devVerificationUrl?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (verified) {
@@ -131,12 +136,14 @@ export function AuthForm({ mode }: Props) {
         }
 
         await signOut({ redirect: false });
-
         storeDevVerificationUrl(data.devVerificationUrl);
-        const masked = encodeURIComponent(data.email ?? email);
-        router.push(
-          `/auth/check-email?email=${encodeURIComponent(email)}&masked=${masked}`
-        );
+
+        const masked = data.email ?? email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+        setSignupSentModal({
+          email,
+          masked,
+          devVerificationUrl: data.devVerificationUrl,
+        });
         return;
       }
 
@@ -186,8 +193,36 @@ export function AuthForm({ mode }: Props) {
     }
   }
 
+  function closeSignupSentModal() {
+    if (!signupSentModal) return;
+    const masked = encodeURIComponent(signupSentModal.masked);
+    router.push(
+      `/auth/check-email?email=${encodeURIComponent(signupSentModal.email)}&masked=${masked}&sent=1`
+    );
+    setSignupSentModal(null);
+  }
+
   return (
-    <div className="auth-card">
+    <>
+      {signupSentModal && (
+        <div className="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="signup-sent-title">
+          <div className="auth-modal">
+            <h2 id="signup-sent-title">Check your email</h2>
+            <p>
+              We sent a confirmation email to <strong>{signupSentModal.masked}</strong>.
+            </p>
+            <p>
+              Open the email, click <strong>Confirm my account</strong>, then sign in.
+              You cannot access the studio until your email is verified.
+            </p>
+            <button type="button" className="btn-primary auth-submit" onClick={closeSignupSentModal}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="auth-card">
       <div className="auth-card-header auth-card-header--lockup">
         <BrandLockup logoVariant="icon" logoSize={72} className="auth-brand-lockup" />
         <h1>{title}</h1>
@@ -295,5 +330,6 @@ export function AuthForm({ mode }: Props) {
         ← Back to home
       </Link>
     </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 
 const NAV = [
   { href: "/studio", label: "Studio" },
+  { href: "/how-to-use", label: "How to use" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/terms", label: "Legal" },
@@ -22,6 +23,7 @@ type Props = {
 
 function isNavActive(pathname: string, href: string): boolean {
   if (href === "/studio") return pathname.startsWith("/studio");
+  if (href === "/how-to-use") return pathname.startsWith("/how-to-use");
   if (href === "/pricing") return pathname === "/pricing";
   if (href === "/about") return pathname === "/about";
   if (href === "/terms") {

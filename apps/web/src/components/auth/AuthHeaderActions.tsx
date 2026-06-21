@@ -11,9 +11,11 @@ const AUTH_GUEST_ONLY_PATHS = ["/auth/signup", "/auth/check-email"];
 export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
-  const forceGuest = AUTH_GUEST_ONLY_PATHS.some((path) => pathname?.startsWith(path));
+  const forceGuest =
+    AUTH_GUEST_ONLY_PATHS.some((path) => pathname?.startsWith(path)) ||
+    session?.user?.emailVerified === false;
 
-  if (status === "loading") {
+  if (status === "loading" && pathname && AUTH_GUEST_ONLY_PATHS.some((p) => pathname.startsWith(p))) {
     return <span className="auth-header-loading">…</span>;
   }
 

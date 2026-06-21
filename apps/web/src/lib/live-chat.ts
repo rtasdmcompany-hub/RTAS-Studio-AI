@@ -48,7 +48,7 @@ const FAQ_RULES: FaqRule[] = [
   },
   {
     id: "time",
-    keywords: ["long", "time", "wait", "how many minutes", "rendering", "processing", "slow", "kitna time", "lagta"],
+    keywords: ["long", "time", "wait", "how many minutes", "rendering", "processing", "slow", "minutes"],
     reply: `Render time depends on video length:\n\n• **15 sec or less** — often a few minutes.\n• **1–3 min** — can take roughly 15–45 minutes.\n• **5 min (300 sec)** — usually about **40–90+ minutes** (many parts render one after another, then stitch).\n\nYou can leave the Preview screen — we'll email you when it's ready.`,
   },
   {
@@ -63,7 +63,6 @@ const FAQ_RULES: FaqRule[] = [
       "segment",
       "stitch",
       "parts",
-      "lambi video",
       "compile",
       "10 min",
     ],

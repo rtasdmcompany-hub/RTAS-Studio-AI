@@ -48,6 +48,7 @@ export function SiteFooter() {
           <div className="rtas-footer__col">
             <h3>Product</h3>
             <Link href="/studio">Open Studio</Link>
+            <Link href="/how-to-use">How to use</Link>
             <Link href="/#features">Features</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/profile">Account</Link>
@@ -60,6 +61,7 @@ export function SiteFooter() {
           </div>
           <div className="rtas-footer__col">
             <h3>Support</h3>
+            <Link href="/how-to-use">How to use</Link>
             <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>
             <p className="rtas-footer__muted">International AI video studio</p>
           </div>
