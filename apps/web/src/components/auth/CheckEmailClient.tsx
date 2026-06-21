@@ -82,7 +82,7 @@ export function CheckEmailClient() {
         } else {
           setNotice(
             data.deliveryError
-              ? "We could not deliver email to your inbox yet. Use the confirmation button below to activate your account."
+              ? "Your account is ready. Use Confirm my account now below to activate it."
               : "Your confirmation link is ready below."
           );
         }
@@ -115,7 +115,7 @@ export function CheckEmailClient() {
             );
           } else if (storedUrl) {
             setNotice(
-              "We could not deliver email to your inbox yet. Click Confirm my account below to activate your account, then sign in."
+              "Your account is ready. Click Confirm my account now below, then sign in."
             );
           } else if (cfg?.realInboxDelivery) {
             setNotice(
@@ -179,11 +179,11 @@ export function CheckEmailClient() {
           </div>
         )}
 
-        {resendSandboxFrom && !showOnPageConfirm && (
+        {resendSandboxFrom && (
           <div className="auth-notice" role="status">
             <p>
-              Email delivery uses Resend&apos;s test sender, which only works after you verify
-              your own domain in Resend. Until then, use the confirmation link below.
+              Inbox email is not active yet because the sending domain is not verified in
+              Resend. Use <strong>Confirm my account now</strong> below to activate your account.
             </p>
           </div>
         )}
@@ -223,9 +223,11 @@ export function CheckEmailClient() {
             >
               Confirm my account now
             </a>
-            <p className="auth-dev-link">
-              Copy link: <a href={devVerificationUrl!}>{devVerificationUrl}</a>
-            </p>
+            {!resendSandboxFrom && !realInboxDelivery && (
+              <p className="auth-dev-link">
+                Copy link: <a href={devVerificationUrl!}>{devVerificationUrl}</a>
+              </p>
+            )}
           </>
         )}
 

@@ -229,12 +229,10 @@ export function AuthForm({ mode }: Props) {
             ) : (
               <>
                 <p>
-                  Your account for <strong>{signupSentModal.masked}</strong> was created, but
-                  we could not deliver email to your inbox yet.
+                  Your account for <strong>{signupSentModal.masked}</strong> is ready.
                 </p>
                 <p>
-                  On the next screen, click <strong>Confirm my account now</strong> to verify
-                  your email, then sign in.
+                  On the next screen, click <strong>Confirm my account now</strong>, then sign in.
                 </p>
               </>
             )}
