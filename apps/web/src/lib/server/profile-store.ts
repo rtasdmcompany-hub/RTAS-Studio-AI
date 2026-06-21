@@ -1,31 +1,17 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
+import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-store";
 
-import { getServerDataDir } from "@/lib/server/data-dir";
-
-const DATA_DIR = getServerDataDir();
-const PROFILES_FILE = path.join(DATA_DIR, "profiles.json");
+const STORE_NAME = "profiles";
 
 type ProfileMap = Record<string, UserProfile>;
 
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-}
-
 async function readAll(): Promise<ProfileMap> {
-  try {
-    const raw = await fs.readFile(PROFILES_FILE, "utf-8");
-    return JSON.parse(raw) as ProfileMap;
-  } catch {
-    return {};
-  }
+  return readJsonDocument<ProfileMap>(STORE_NAME, {});
 }
 
 async function writeAll(map: ProfileMap) {
-  await ensureDataDir();
-  await fs.writeFile(PROFILES_FILE, JSON.stringify(map, null, 2), "utf-8");
+  await writeJsonDocument(STORE_NAME, map);
 }
 
 export async function getServerProfile(userId: string): Promise<UserProfile> {

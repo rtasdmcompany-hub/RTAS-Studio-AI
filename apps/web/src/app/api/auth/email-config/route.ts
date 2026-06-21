@@ -21,10 +21,15 @@ export async function GET() {
   const realInboxDelivery = mode === "resend" || mode === "smtp";
 
   return NextResponse.json({
-    configured: isEmailDeliveryConfigured() || mode === "dev-file",
+    configured:
+      isEmailDeliveryConfigured() ||
+      mode === "dev-file" ||
+      mode === "link-only",
     mode,
     realInboxDelivery,
-    smtpNeedsAppPassword: Boolean(smtpUser && !smtpPass),
+    linkOnlyConfirmation: mode === "link-only",
+    smtpNeedsAppPassword:
+      process.env.NODE_ENV === "development" && Boolean(smtpUser && !smtpPass),
     resendNeedsApiKey: !getResendApiKey() && !getSmtpConfig(),
   });
 }

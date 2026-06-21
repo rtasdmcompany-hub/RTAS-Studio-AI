@@ -1,8 +1,6 @@
-import { randomBytes } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
+import { createHmac, timingSafeEqual } from "crypto";
 import { PRODUCT_NAME } from "@rtas/shared";
-import { getNextAuthUrl } from "@/lib/env";
+import { getEmailDeliveryMode, getNextAuthSecret, getNextAuthUrl } from "@/lib/env";
 import {
   findAuthUserByEmail,
   findAuthUserById,
@@ -12,45 +10,7 @@ import {
 import { sendEmail } from "@/lib/server/mailer";
 import type { EmailDeliveryMode } from "@/lib/env";
 
-import { getServerDataDir } from "@/lib/server/data-dir";
-
-const DATA_DIR = getServerDataDir();
-const TOKENS_FILE = path.join(DATA_DIR, "email-verification-tokens.json");
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
-
-type VerificationTokenRecord = {
-  userId: string;
-  email: string;
-  expiresAt: string;
-  createdAt: string;
-};
-
-type VerificationTokenMap = Record<string, VerificationTokenRecord>;
-
-async function readTokens(): Promise<VerificationTokenMap> {
-  try {
-    const raw = await fs.readFile(TOKENS_FILE, "utf-8");
-    return JSON.parse(raw) as VerificationTokenMap;
-  } catch {
-    return {};
-  }
-}
-
-async function writeTokens(map: VerificationTokenMap) {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(TOKENS_FILE, JSON.stringify(map, null, 2), "utf-8");
-}
-
-function purgeExpired(map: VerificationTokenMap): VerificationTokenMap {
-  const now = Date.now();
-  const next: VerificationTokenMap = {};
-  for (const [token, record] of Object.entries(map)) {
-    if (new Date(record.expiresAt).getTime() > now) {
-      next[token] = record;
-    }
-  }
-  return next;
-}
 
 export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
@@ -59,25 +19,62 @@ export function maskEmail(email: string): string {
   return `${visible}@${domain}`;
 }
 
+function signVerificationPayload(
+  userId: string,
+  email: string,
+  expiresAt: number
+): string {
+  const payload = `${userId}:${email}:${expiresAt}`;
+  const data = Buffer.from(payload, "utf8").toString("base64url");
+  const sig = createHmac("sha256", getNextAuthSecret())
+    .update(payload)
+    .digest("base64url");
+  return `${data}.${sig}`;
+}
+
+function parseSignedVerificationToken(
+  token: string
+): { userId: string; email: string } | null {
+  const dot = token.indexOf(".");
+  if (dot <= 0) return null;
+
+  const data = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!data || !sig) return null;
+
+  let payload = "";
+  try {
+    payload = Buffer.from(data, "base64url").toString("utf8");
+  } catch {
+    return null;
+  }
+
+  const parts = payload.split(":");
+  if (parts.length !== 3) return null;
+  const [userId, email, expStr] = parts;
+  const expiresAt = Number(expStr);
+  if (!userId || !email || !Number.isFinite(expiresAt)) return null;
+  if (Date.now() > expiresAt) return null;
+
+  const expected = createHmac("sha256", getNextAuthSecret())
+    .update(payload)
+    .digest("base64url");
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (
+    sigBuf.length !== expectedBuf.length ||
+    !timingSafeEqual(sigBuf, expectedBuf)
+  ) {
+    return null;
+  }
+
+  return { userId, email };
+}
+
+/** Stateless HMAC-signed token — no server-side token files required. */
 async function createVerificationToken(userId: string, email: string): Promise<string> {
-  const token = randomBytes(32).toString("hex");
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + TOKEN_TTL_MS);
-
-  let map = purgeExpired(await readTokens());
-  map = Object.fromEntries(
-    Object.entries(map).filter(([, record]) => record.userId !== userId)
-  );
-
-  map[token] = {
-    userId,
-    email,
-    expiresAt: expiresAt.toISOString(),
-    createdAt: now.toISOString(),
-  };
-
-  await writeTokens(map);
-  return token;
+  const expiresAtMs = Date.now() + TOKEN_TTL_MS;
+  return signVerificationPayload(userId, email, expiresAtMs);
 }
 
 function buildVerificationEmail(name: string, verifyUrl: string) {
@@ -147,7 +144,7 @@ export async function sendVerificationEmailForUser(input: {
   return {
     ok: true,
     verifyUrl,
-    delivery: sent.provider ?? "dev-file",
+    delivery: sent.provider ?? getEmailDeliveryMode(),
     devPreviewPath: sent.devPreviewPath,
   };
 }
@@ -158,28 +155,17 @@ export async function verifyEmailWithToken(
   const trimmed = token.trim();
   if (!trimmed) return { ok: false, error: "Invalid confirmation link." };
 
-  const map = purgeExpired(await readTokens());
-  const record = map[trimmed];
-  if (!record) {
+  const signed = parseSignedVerificationToken(trimmed);
+  if (!signed) {
     return { ok: false, error: "This confirmation link is invalid or has expired." };
   }
 
-  if (new Date(record.expiresAt).getTime() <= Date.now()) {
-    delete map[trimmed];
-    await writeTokens(map);
-    return { ok: false, error: "This confirmation link has expired. Request a new one." };
-  }
-
-  const user = await findAuthUserById(record.userId);
+  const user = await findAuthUserById(signed.userId);
   if (!user) {
-    return { ok: false, error: "Account not found." };
+    return { ok: false, error: "Account not found. Sign up again or use Google sign-in." };
   }
 
   await markAuthUserEmailVerified(user.id);
-
-  delete map[trimmed];
-  await writeTokens(map);
-
   return { ok: true, email: user.email };
 }
 

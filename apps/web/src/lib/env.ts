@@ -161,18 +161,30 @@ export function getSmtpConfig(): SmtpConfig | null {
   return { host, port, secure, user, pass };
 }
 
+import { isServerlessRuntime } from "@/lib/server/data-dir";
+
 export function isEmailDeliveryConfigured(): boolean {
   return Boolean(getResendApiKey() || getSmtpConfig());
 }
 
-export function getEmailDeliveryMode(): "resend" | "smtp" | "dev-file" | "none" {
+export function getEmailDeliveryMode():
+  | "resend"
+  | "smtp"
+  | "dev-file"
+  | "link-only"
+  | "none" {
   if (getResendApiKey()) return "resend";
   if (getSmtpConfig()) return "smtp";
   if (process.env.NODE_ENV === "development") return "dev-file";
+  if (isServerlessRuntime()) return "link-only";
   return "none";
 }
 
 export type EmailDeliveryMode = ReturnType<typeof getEmailDeliveryMode>;
+
+export function exposesVerificationLinkOnPage(mode: EmailDeliveryMode): boolean {
+  return mode === "dev-file" || mode === "link-only";
+}
 
 export type PublicRuntimeConfig = {
   googleAuthEnabled: boolean;

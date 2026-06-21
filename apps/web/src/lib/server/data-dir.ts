@@ -1,18 +1,13 @@
-import os from "os";
-import path from "path";
-
 /**
- * Writable data directory for JSON file stores.
- * - Local dev: `<cwd>/.data`
- * - Vercel/serverless: `/tmp/rtas-studio-data` (cwd is read-only under /var/task)
+ * Runtime detection for Vercel/AWS Lambda (read-only filesystem except /tmp).
+ * User/auth data must use {@link persistent-store} (Vercel KV), not local files.
  */
-export function getServerDataDir(): string {
-  const override = process.env.RTAS_DATA_DIR?.trim();
-  if (override) return override;
-
-  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    return path.join(os.tmpdir(), "rtas-studio-data");
+export function isServerlessRuntime(): boolean {
+  if (process.env.VERCEL === "1" || process.env.VERCEL === "true") return true;
+  if (process.env.VERCEL_ENV === "production" || process.env.VERCEL_ENV === "preview") {
+    return true;
   }
-
-  return path.join(process.cwd(), ".data");
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME) return true;
+  const cwd = process.cwd();
+  return cwd.startsWith("/var/task") || cwd.startsWith("/vercel/path");
 }

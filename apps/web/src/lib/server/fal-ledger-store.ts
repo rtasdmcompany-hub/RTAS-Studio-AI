@@ -1,11 +1,7 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { PaidPlanType } from "@rtas/shared";
+import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-store";
 
-import { getServerDataDir } from "@/lib/server/data-dir";
-
-const DATA_DIR = getServerDataDir();
-const LEDGER_FILE = path.join(DATA_DIR, "fal-ledger.json");
+const STORE_NAME = "fal-ledger";
 
 export type FalLedgerEntry = {
   id: string;
@@ -33,22 +29,12 @@ type FalLedgerFile = {
   lastSnapshot?: FalBalanceSnapshot;
 };
 
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-}
-
 async function readLedger(): Promise<FalLedgerFile> {
-  try {
-    const raw = await fs.readFile(LEDGER_FILE, "utf-8");
-    return JSON.parse(raw) as FalLedgerFile;
-  } catch {
-    return { entries: [] };
-  }
+  return readJsonDocument<FalLedgerFile>(STORE_NAME, { entries: [] });
 }
 
 async function writeLedger(data: FalLedgerFile) {
-  await ensureDataDir();
-  await fs.writeFile(LEDGER_FILE, JSON.stringify(data, null, 2), "utf-8");
+  await writeJsonDocument(STORE_NAME, data);
 }
 
 export async function recordFalLedgerEntry(

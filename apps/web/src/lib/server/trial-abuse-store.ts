@@ -1,10 +1,6 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-store";
 
-import { getServerDataDir } from "@/lib/server/data-dir";
-
-const DATA_DIR = getServerDataDir();
-const TRIAL_CLAIMS_FILE = path.join(DATA_DIR, "trial-claims.json");
+const STORE_NAME = "trial-claims";
 
 export const FREE_TRIAL_ABUSE_MESSAGE =
   "Free trial limit reached for this device/network. Please upgrade to the Premium Plan to continue.";
@@ -16,31 +12,19 @@ export interface TrialClaimRecord {
   claimedAt: string;
 }
 
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-}
+type TrialClaimsFile = { claims: TrialClaimRecord[] };
 
 async function readClaims(): Promise<TrialClaimRecord[]> {
-  try {
-    const raw = await fs.readFile(TRIAL_CLAIMS_FILE, "utf-8");
-    const parsed = JSON.parse(raw) as { claims?: TrialClaimRecord[] };
-    return Array.isArray(parsed.claims) ? parsed.claims : [];
-  } catch {
-    return [];
-  }
+  const parsed = await readJsonDocument<TrialClaimsFile>(STORE_NAME, { claims: [] });
+  return Array.isArray(parsed.claims) ? parsed.claims : [];
 }
 
 async function writeClaims(claims: TrialClaimRecord[]) {
-  await ensureDataDir();
-  await fs.writeFile(
-    TRIAL_CLAIMS_FILE,
-    JSON.stringify({ claims }, null, 2),
-    "utf-8"
-  );
+  await writeJsonDocument(STORE_NAME, { claims });
 }
 
 export function getTrialClaimsFilePath(): string {
-  return TRIAL_CLAIMS_FILE;
+  return STORE_NAME;
 }
 
 export async function isFreeTrialBlocked(params: {

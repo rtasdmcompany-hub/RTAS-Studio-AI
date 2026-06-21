@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import {
+  exposesVerificationLinkOnPage,
+} from "@/lib/env";
+import {
   findAuthUserById,
+  markAuthUserEmailVerified,
   registerCredentialsUser,
 } from "@/lib/server/auth-users";
 import {
   maskEmail,
   sendVerificationEmailForUser,
 } from "@/lib/server/email-verification";
+import { PersistentStoreNotConfiguredError } from "@/lib/server/persistent-store";
 
 export async function POST(request: Request) {
   try {
@@ -37,6 +42,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: sent.error }, { status: 500 });
     }
 
+    if (sent.delivery === "link-only") {
+      await markAuthUserEmailVerified(result.userId);
+    }
+
     return NextResponse.json({
       ok: true,
       needsEmailVerification: true,
@@ -44,12 +53,14 @@ export async function POST(request: Request) {
       linkedGoogleAccount: result.linkedGoogleAccount ?? false,
       emailDelivery: sent.delivery,
       realInboxDelivery: sent.delivery === "smtp" || sent.delivery === "resend",
-      devVerificationUrl:
-        sent.delivery === "dev-file" || process.env.NODE_ENV === "development"
-          ? sent.verifyUrl
-          : undefined,
+      devVerificationUrl: exposesVerificationLinkOnPage(sent.delivery)
+        ? sent.verifyUrl
+        : undefined,
     });
-  } catch {
+  } catch (err) {
+    if (err instanceof PersistentStoreNotConfiguredError) {
+      return NextResponse.json({ error: err.message }, { status: 503 });
+    }
     return NextResponse.json(
       { error: "Could not create account. Try again." },
       { status: 500 }

@@ -115,12 +115,16 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token.sub) {
-        const record = await findAuthUserById(token.sub);
-        if (record) {
-          token.name = record.name;
-          token.email = record.email;
-          token.picture = record.image ?? token.picture;
-          token.emailVerified = isEmailVerified(record);
+        try {
+          const record = await findAuthUserById(token.sub);
+          if (record) {
+            token.name = record.name;
+            token.email = record.email;
+            token.picture = record.image ?? token.picture;
+            token.emailVerified = isEmailVerified(record);
+          }
+        } catch (err) {
+          console.error("JWT callback: could not refresh user from store", err);
         }
       }
 

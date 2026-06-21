@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPublicRuntimeConfig } from "@/lib/env";
+import {
+  getPersistentStoreMode,
+  isPersistentStoreConfigured,
+} from "@/lib/server/persistent-store";
+import { isServerlessRuntime } from "@/lib/server/data-dir";
 
 type BackendHealth = {
   fal?: {
@@ -17,6 +22,11 @@ type BackendHealth = {
 /** Public runtime flags for auth UI and client fallbacks (no secrets exposed). */
 export async function GET() {
   const config = getPublicRuntimeConfig();
+  const storageMeta = {
+    persistentStoreConfigured: isPersistentStoreConfigured(),
+    persistentStoreMode: getPersistentStoreMode(),
+    serverlessRuntime: isServerlessRuntime(),
+  };
 
   const fastApiUrl = config.fastApiUrl.toLowerCase();
   const canProbeBackend =
@@ -40,6 +50,7 @@ export async function GET() {
 
         return NextResponse.json({
           ...config,
+          ...storageMeta,
           falConfigured,
           replicateConfigured,
           simulationMode: !cloudConfigured,
@@ -50,5 +61,8 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json(config);
+  return NextResponse.json({
+    ...config,
+    ...storageMeta,
+  });
 }

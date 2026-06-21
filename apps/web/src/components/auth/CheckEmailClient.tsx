@@ -10,6 +10,7 @@ const DEV_VERIFY_KEY = "rtas_dev_verify_url";
 
 type EmailConfig = {
   realInboxDelivery?: boolean;
+  linkOnlyConfirmation?: boolean;
   smtpNeedsAppPassword?: boolean;
 };
 
@@ -91,6 +92,11 @@ export function CheckEmailClient() {
           if (!stored) void loadVerificationLink(false);
           return;
         }
+        if (cfg?.linkOnlyConfirmation) {
+          setLoadingLink(false);
+          if (!stored) void loadVerificationLink(false);
+          return;
+        }
         void loadVerificationLink(false);
       })
       .catch(() => {
@@ -101,7 +107,9 @@ export function CheckEmailClient() {
   }, [resendEmail]);
 
   const realInboxDelivery = emailConfig?.realInboxDelivery === true;
-  const smtpNeedsAppPassword = emailConfig?.smtpNeedsAppPassword === true;
+  const linkOnlyConfirmation = emailConfig?.linkOnlyConfirmation === true;
+  const smtpNeedsAppPassword =
+    emailConfig?.smtpNeedsAppPassword === true && !linkOnlyConfirmation;
 
   return (
     <>
@@ -138,11 +146,23 @@ export function CheckEmailClient() {
               <Link href="/auth/login?callbackUrl=%2Fstudio">Sign in</Link> karein.
             </p>
           </div>
+        ) : linkOnlyConfirmation ? (
+          <div className="auth-success" role="status">
+            <p>
+              Aapka account tayar hai. Neeche <strong>Sign in now</strong> par
+              click karke studio mein enter ho jayein.
+            </p>
+            <p className="auth-notice">
+              Email inbox setup baad mein add ho sakta hai — abhi direct sign in
+              use karein.
+            </p>
+          </div>
         ) : (
           <div className="auth-notice" role="status">
             <p>
-              <strong>Abhi real email Gmail tak nahi ja rahi</strong> — SMTP password set
-              nahi hai. Neeche <strong>Confirm my account now</strong> button use karein.
+              <strong>Abhi real email Gmail tak nahi ja rahi</strong> — SMTP
+              password set nahi hai. Neeche <strong>Confirm my account now</strong>{" "}
+              button use karein.
             </p>
           </div>
         )}
@@ -163,7 +183,7 @@ export function CheckEmailClient() {
           <p className="auth-loading">Preparing confirmation link…</p>
         )}
 
-        {devVerificationUrl && (
+        {devVerificationUrl && !linkOnlyConfirmation && (
           <>
             <a
               href={devVerificationUrl}
@@ -176,6 +196,15 @@ export function CheckEmailClient() {
               <a href={devVerificationUrl}>{devVerificationUrl}</a>
             </p>
           </>
+        )}
+
+        {linkOnlyConfirmation && (
+          <Link
+            href="/auth/login?callbackUrl=%2Fstudio"
+            className="btn-primary auth-submit auth-confirm-link-btn"
+          >
+            Sign in now
+          </Link>
         )}
 
         <button

@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { getServerDataDir } from "@/lib/server/data-dir";
+import { isServerlessRuntime } from "@/lib/server/data-dir";
 
 export type SendEmailInput = {
   to: string;
@@ -11,7 +11,7 @@ export type SendEmailInput = {
 
 export type SendEmailResult = {
   ok: boolean;
-  provider?: "resend" | "smtp" | "dev-file";
+  provider?: "resend" | "smtp" | "dev-file" | "link-only";
   devPreviewPath?: string;
   error?: string;
 };
@@ -23,7 +23,7 @@ import {
   isEmailDeliveryConfigured,
 } from "@/lib/env";
 
-const DEV_EMAIL_DIR = path.join(getServerDataDir(), "dev-emails");
+const devEmailDir = () => path.join(process.cwd(), ".data", "dev-emails");
 
 async function sendViaResend(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = getResendApiKey();
@@ -79,10 +79,10 @@ async function sendViaSmtp(input: SendEmailInput): Promise<SendEmailResult> {
 }
 
 async function sendViaDevFile(input: SendEmailInput): Promise<SendEmailResult> {
-  await fs.mkdir(DEV_EMAIL_DIR, { recursive: true });
+  await fs.mkdir(devEmailDir(), { recursive: true });
   const safeTo = input.to.replace(/[^a-zA-Z0-9@._-]/g, "_");
   const filename = `${Date.now()}-${safeTo}.html`;
-  const filePath = path.join(DEV_EMAIL_DIR, filename);
+  const filePath = path.join(devEmailDir(), filename);
   const content = `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><title>${input.subject}</title></head>
@@ -121,6 +121,10 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
 
   if (process.env.NODE_ENV === "development") {
     return sendViaDevFile(input);
+  }
+
+  if (isServerlessRuntime()) {
+    return { ok: true, provider: "link-only" };
   }
 
   return {

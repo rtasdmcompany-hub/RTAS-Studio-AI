@@ -1,21 +1,17 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
 import { saveServerProfile, getServerProfile } from "@/lib/server/profile-store";
+import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-store";
 
-import { getServerDataDir } from "@/lib/server/data-dir";
-
-const DATA_DIR = getServerDataDir();
-const AUTH_USERS_FILE = path.join(DATA_DIR, "auth-users.json");
+const STORE_NAME = "auth-users";
 /** Lower rounds = faster signup on slow disks; still fine for dev/local auth. */
 const BCRYPT_ROUNDS = 10;
 
 type AuthUserMap = Record<string, AuthUserRecord>;
 
-let authUsersCache: { map: AuthUserMap; mtimeMs: number } | null = null;
+let authUsersCache: AuthUserMap | null = null;
 
 export type AuthUserRecord = {
   id: string;
@@ -49,29 +45,16 @@ export async function markAuthUserEmailVerified(userId: string): Promise<void> {
   await writeAll(map);
 }
 
-async function ensureDataDir() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-}
-
 async function readAll(): Promise<AuthUserMap> {
-  try {
-    const stat = await fs.stat(AUTH_USERS_FILE);
-    if (authUsersCache && authUsersCache.mtimeMs === stat.mtimeMs) {
-      return authUsersCache.map;
-    }
-    const raw = await fs.readFile(AUTH_USERS_FILE, "utf-8");
-    const map = JSON.parse(raw) as AuthUserMap;
-    authUsersCache = { map, mtimeMs: stat.mtimeMs };
-    return map;
-  } catch {
-    return {};
-  }
+  if (authUsersCache) return authUsersCache;
+  const map = await readJsonDocument<AuthUserMap>(STORE_NAME, {});
+  authUsersCache = map;
+  return map;
 }
 
 async function writeAll(map: AuthUserMap) {
-  await ensureDataDir();
-  await fs.writeFile(AUTH_USERS_FILE, JSON.stringify(map, null, 2), "utf-8");
-  authUsersCache = null;
+  await writeJsonDocument(STORE_NAME, map);
+  authUsersCache = map;
 }
 
 function findInMap(map: AuthUserMap, email: string): AuthUserRecord | null {
