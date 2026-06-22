@@ -8,6 +8,7 @@ import { PRODUCT_NAME } from "@rtas/shared";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { BrandLockup } from "@/components/BrandLockup";
 import { storeDevVerificationUrl, storeEmailSentToInbox } from "./CheckEmailClient";
+import { resolveAuthCallbackUrl } from "./AuthFlowGuard";
 
 type Mode = "login" | "signup";
 
@@ -183,8 +184,8 @@ export function AuthForm({ mode }: Props) {
         return;
       }
 
-      router.push(result?.url ?? callbackUrl);
-      router.refresh();
+      window.location.assign(resolveAuthCallbackUrl(null, callbackUrl));
+      return;
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         setError(
