@@ -2,6 +2,11 @@
  * RTAS Studio AI — generation client (browser ↔ credit-guarded Next.js API)
  */
 
+import {
+  isPipelineFailurePayload,
+  PipelineFailureError,
+} from "@/lib/pipeline-errors";
+
 export const BACKEND_CONNECTION_ERROR =
   "Backend server connection error. Please ensure the API service is running.";
 
@@ -239,6 +244,12 @@ export class ReplicateCreditError extends Error {
     this.name = "ReplicateCreditError";
   }
 }
+
+export {
+  isPipelineFailurePayload,
+  PipelineFailureError,
+  isPipelineFailureError,
+} from "@/lib/pipeline-errors";
 
 export function isBackendConnectionError(err: unknown): boolean {
   return err instanceof BackendConnectionError;
@@ -479,6 +490,14 @@ export async function postGenerateToBackend(
   } catch {
     if (!res.ok) throw new BackendConnectionError();
     throw new Error("Invalid response from API");
+  }
+
+  if (isPipelineFailurePayload(data)) {
+    throw new PipelineFailureError(
+      data.error,
+      data.details,
+      data.code
+    );
   }
 
   if (!res.ok) {

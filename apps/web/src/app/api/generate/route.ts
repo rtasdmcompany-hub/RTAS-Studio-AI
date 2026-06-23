@@ -5,6 +5,10 @@ import { type GenerateBody } from "@/lib/generation";
 import { authOptions } from "@/lib/auth/auth-options";
 import { proxyGenerateToFastApi } from "@/lib/server/fastapi-proxy";
 import {
+  buildGpuPipelineFailure,
+  httpStatusForPipelineFailure,
+} from "@/lib/server/gpu-pipeline-errors";
+import {
   assertAndAcquireRenderingSlot,
   completeGenerationJob,
   completeRenderingSlot,
@@ -19,19 +23,38 @@ import {
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+const AUTH_REQUIRED_BODY = {
+  error: "Authentication required. Please log in to access the studio.",
+} as const;
+
+async function releaseSlotOnFailure(
+  userId: string | null,
+  skipBilling: boolean,
+  previewOnly?: boolean,
+  useFreeTrial?: boolean
+) {
+  if (!userId || skipBilling) return;
+  await releaseRenderingSlotOnFailure(userId, { previewOnly, useFreeTrial });
+}
+
 /**
  * Credit-guarded generation gateway. All studio renders proxy to FastAPI
  * server-side so clients cannot bypass SaaS billing controls.
  */
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json(AUTH_REQUIRED_BODY, { status: 401 });
+  }
+
+  const effectiveUserId = session.user.id;
   let jobId: string | null = null;
-  let effectiveUserId: string | null = null;
   let skipBilling = false;
+  let previewOnly = false;
+  let useFreeTrial = false;
 
   try {
-    const session = await getServerSession(authOptions);
     const body = (await request.json()) as GenerateBody & {
-      userId?: string;
       jobId?: string;
       profile?: { subscriptionActive?: boolean; credits?: number };
       previewOnly?: boolean;
@@ -39,23 +62,13 @@ export async function POST(request: Request) {
       deviceFingerprint?: string;
     };
 
-    const {
-      userId,
-      mode,
-      category,
-      visualStyle,
-      durationSeconds,
-      fields,
-      files,
-      previewOnly,
-      useFreeTrial,
-    } = body;
+    const { mode, category, visualStyle, durationSeconds, fields, files } = body;
 
-    const sessionUserId = session?.user?.id;
-    effectiveUserId = sessionUserId ?? userId ?? null;
-    skipBilling = Boolean(previewOnly || useFreeTrial);
+    previewOnly = Boolean(body.previewOnly);
+    useFreeTrial = Boolean(body.useFreeTrial);
+    skipBilling = previewOnly || useFreeTrial;
 
-    if (effectiveUserId && !skipBilling) {
+    if (!skipBilling) {
       try {
         await assertAndAcquireRenderingSlot(effectiveUserId, {
           previewOnly,
@@ -74,12 +87,12 @@ export async function POST(request: Request) {
     }
 
     if (!mode || !category || !visualStyle || !durationSeconds) {
-      if (effectiveUserId && !skipBilling) {
-        await releaseRenderingSlotOnFailure(effectiveUserId, {
-          previewOnly,
-          useFreeTrial,
-        });
-      }
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -87,12 +100,12 @@ export async function POST(request: Request) {
       const consent = fields?.faceConsent?.trim().toUpperCase();
       const hasFaceFile = Boolean(files?.faceReference);
       if (!hasFaceFile || consent !== "YES") {
-        if (effectiveUserId && !skipBilling) {
-          await releaseRenderingSlotOnFailure(effectiveUserId, {
-            previewOnly,
-            useFreeTrial,
-          });
-        }
+        await releaseSlotOnFailure(
+          effectiveUserId,
+          skipBilling,
+          previewOnly,
+          useFreeTrial
+        );
         return NextResponse.json(
           { error: "Real face mode requires Face Photo upload and consent (YES)" },
           { status: 400 }
@@ -113,7 +126,7 @@ export async function POST(request: Request) {
       files?.sourceImage?.name || files?.imageReference?.name || null;
     const creditsUsed = skipBilling ? 0 : CREDITS_PER_RENDER;
 
-    if (effectiveUserId && !skipBilling) {
+    if (!skipBilling) {
       const job = await createGenerationJob({
         userId: effectiveUserId,
         prompt: promptPreview,
@@ -126,19 +139,44 @@ export async function POST(request: Request) {
 
     const proxyPayload: Record<string, unknown> = {
       ...body,
-      userId: effectiveUserId ?? body.userId,
+      userId: effectiveUserId,
       durationSeconds: processedDurationSeconds,
     };
 
-    const proxyResult = await proxyGenerateToFastApi(proxyPayload);
+    let proxyResult: Awaited<ReturnType<typeof proxyGenerateToFastApi>>;
+    try {
+      proxyResult = await proxyGenerateToFastApi(proxyPayload);
+    } catch (proxyError) {
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
+      if (jobId) {
+        await failGenerationJob(jobId);
+      }
+
+      const details =
+        proxyError instanceof Error
+          ? proxyError.message
+          : "Unexpected GPU proxy failure";
+      const failure = buildGpuPipelineFailure(503, details);
+
+      console.error("[generate] GPU proxy exception:", details);
+
+      return NextResponse.json(failure, {
+        status: httpStatusForPipelineFailure(failure, 503),
+      });
+    }
 
     if (!proxyResult.ok) {
-      if (effectiveUserId && !skipBilling) {
-        await releaseRenderingSlotOnFailure(effectiveUserId, {
-          previewOnly,
-          useFreeTrial,
-        });
-      }
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
       if (jobId) {
         await failGenerationJob(jobId);
       }
@@ -148,10 +186,20 @@ export async function POST(request: Request) {
           ? proxyResult.data.error
           : "Generation failed";
 
-      return NextResponse.json(
-        { error: errorMessage, ...proxyResult.data },
-        { status: proxyResult.status }
+      const failure = buildGpuPipelineFailure(
+        proxyResult.status,
+        errorMessage,
+        { timedOut: proxyResult.timedOut }
       );
+
+      console.error(
+        `[generate] GPU pipeline failed (${failure.code ?? "unknown"}):`,
+        errorMessage
+      );
+
+      return NextResponse.json(failure, {
+        status: httpStatusForPipelineFailure(failure, proxyResult.status),
+      });
     }
 
     const videoUrl = String(
@@ -162,24 +210,34 @@ export async function POST(request: Request) {
       await completeGenerationJob(jobId, videoUrl);
     }
 
-    if (effectiveUserId && !skipBilling) {
+    if (!skipBilling) {
       await completeRenderingSlot(effectiveUserId, { previewOnly, useFreeTrial });
     }
 
     return NextResponse.json({
+      status: "success",
       ...proxyResult.data,
       creditsUsed,
       jobId: jobId ?? proxyResult.data.jobId ?? proxyResult.data.job_id,
     });
   } catch (e) {
-    if (effectiveUserId && !skipBilling) {
-      await releaseRenderingSlotOnFailure(effectiveUserId);
-    }
+    await releaseSlotOnFailure(
+      effectiveUserId,
+      skipBilling,
+      previewOnly,
+      useFreeTrial
+    );
     if (jobId) {
       await failGenerationJob(jobId);
     }
-    const message = e instanceof Error ? e.message : "Generation failed";
-    console.error("Generation error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+
+    const details = e instanceof Error ? e.message : "Generation failed";
+    const failure = buildGpuPipelineFailure(500, details);
+
+    console.error("[generate] Unhandled generation error:", details);
+
+    return NextResponse.json(failure, {
+      status: httpStatusForPipelineFailure(failure, 500),
+    });
   }
 }

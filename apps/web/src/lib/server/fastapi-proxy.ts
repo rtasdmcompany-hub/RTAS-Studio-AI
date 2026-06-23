@@ -1,10 +1,7 @@
-const DEFAULT_FASTAPI_URL = "http://localhost:8000";
+import { getServerFastApiUrl } from "@/lib/env";
 
 export function getServerFastApiBase(): string {
-  const url =
-    process.env.FASTAPI_URL?.trim() ||
-    process.env.NEXT_PUBLIC_FASTAPI_URL?.trim();
-  return (url || DEFAULT_FASTAPI_URL).replace(/\/$/, "");
+  return getServerFastApiUrl();
 }
 
 function extractApiErrorMessage(
@@ -29,9 +26,23 @@ function extractApiErrorMessage(
   return fallback;
 }
 
+function isTimeoutError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return (
+    err.name === "TimeoutError" ||
+    err.name === "AbortError" ||
+    /timeout|timed out|aborted/i.test(err.message)
+  );
+}
+
 export async function proxyGenerateToFastApi(
   body: Record<string, unknown>
-): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
+): Promise<{
+  ok: boolean;
+  status: number;
+  data: Record<string, unknown>;
+  timedOut?: boolean;
+}> {
   const url = `${getServerFastApiBase()}/api/generate`;
 
   let res: Response;
@@ -42,11 +53,17 @@ export async function proxyGenerateToFastApi(
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000),
     });
-  } catch {
+  } catch (err) {
+    const timedOut = isTimeoutError(err);
     return {
       ok: false,
-      status: 503,
-      data: { error: "Backend server connection error. Please ensure the API service is running." },
+      status: timedOut ? 504 : 503,
+      timedOut,
+      data: {
+        error: timedOut
+          ? "GPU render exceeded the maximum wait window."
+          : "Backend server connection error. Please ensure the API service is running.",
+      },
     };
   }
 
@@ -57,8 +74,15 @@ export async function proxyGenerateToFastApi(
     if (!res.ok) {
       return {
         ok: false,
-        status: 503,
-        data: { error: "Backend server connection error. Please ensure the API service is running." },
+        status: res.status === 502 || res.status === 504 ? res.status : 503,
+        data: {
+          error:
+            res.status === 504
+              ? "GPU gateway timed out while waiting for the render worker."
+              : res.status === 502
+                ? "GPU gateway returned a bad response."
+                : "Backend server connection error. Please ensure the API service is running.",
+        },
       };
     }
     return {

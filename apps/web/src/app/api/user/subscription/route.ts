@@ -11,10 +11,18 @@ import {
 
 export const runtime = "nodejs";
 
+const AUTH_REQUIRED_BODY = {
+  error: "Authentication required. Please log in to access the studio.",
+} as const;
+
 /** Client syncs Studio subscription/credits after MoR checkout / webhook */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId") ?? "local-user";
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json(AUTH_REQUIRED_BODY, { status: 401 });
+  }
+
+  const userId = session.user.id;
 
   let profile = await getServerProfile(userId);
   const expired = applyCreditExpiry(profile);
@@ -46,12 +54,16 @@ export async function GET(request: Request) {
 
 /** Dev-only studio metrics snapshot */
 export async function POST() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json(AUTH_REQUIRED_BODY, { status: 401 });
+  }
+
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const session = await getServerSession(authOptions);
-  const userId = session?.user?.id ?? "local-user";
+  const userId = session.user.id;
   const renderingState = await getUserRenderingState(userId);
   const recentJobs = await listRecentGenerationJobs(userId, 5);
 

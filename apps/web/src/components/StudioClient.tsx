@@ -27,6 +27,7 @@ import {
   isFalCreditError,
   isReplicateAuthError,
   isReplicateCreditError,
+  isPipelineFailureError,
   FAL_AUTH_ERROR,
   FAL_AUTH_HINT,
   FAL_CREDIT_ERROR,
@@ -118,6 +119,13 @@ type GenUiState = {
 
 type GenPhase = "idle" | "running" | "error" | "success";
 
+type PipelineDiagnostic = {
+  error: string;
+  details: string;
+  code?: string;
+  at: string;
+};
+
 const IDLE_GEN: GenUiState = {
   active: false,
   percent: 0,
@@ -208,6 +216,8 @@ export function StudioClient() {
   const [falGuard, setFalGuard] = useState<FalGuardStatus | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [studioDebugOpen, setStudioDebugOpen] = useState(false);
+  const [pipelineDiagnostic, setPipelineDiagnostic] =
+    useState<PipelineDiagnostic | null>(null);
   const [connectionNoticeTitle, setConnectionNoticeTitle] = useState(
     "API connection issue"
   );
@@ -646,6 +656,19 @@ export function StudioClient() {
     [showCustomerNotice]
   );
 
+  const handleRetryGeneration = useCallback(() => {
+    setPipelineDiagnostic(null);
+    setConnectionError(null);
+    setProcessing(false);
+    genPhaseRef.current = "idle";
+    setGenPhase("idle");
+    setGenUi(IDLE_GEN);
+    setStatusText("Ready to retry generation");
+    if (profile) {
+      void syncFromServer(profile.id);
+    }
+  }, [profile, syncFromServer]);
+
   const runGenerate = useCallback(
     async (opts?: {
       previewOnly?: boolean;
@@ -679,6 +702,7 @@ export function StudioClient() {
 
       setFieldErrors({});
       setConnectionError(null);
+      setPipelineDiagnostic(null);
 
       const isPreview = !!opts?.previewOnly;
       const usePremiumPipeline = hasPremiumAccess(activeProfile, requestedDuration);
@@ -873,6 +897,27 @@ export function StudioClient() {
         }
         return video;
       } catch (e) {
+        if (isPipelineFailureError(e)) {
+          setPipelineDiagnostic({
+            error: e.message,
+            details: e.details,
+            code: e.code,
+            at: new Date().toISOString(),
+          });
+          setStudioDebugOpen(true);
+          genPhaseRef.current = "error";
+          setGenPhase("error");
+          setGenUi((prev) => ({
+            ...prev,
+            active: true,
+            message: e.message,
+          }));
+          setStatusText(e.message);
+          setConnectionError(e.details);
+          showGenerationFailure("GPU pipeline failed", e.message, e.details);
+          return null;
+        }
+
         const msg =
           e instanceof Error ? e.message : "Video generation failed. Please try again.";
 
@@ -1515,7 +1560,9 @@ export function StudioClient() {
     form.files.faceReference?.name ||
     "—";
   const currentGeneratedVideoUrl = activeVideo?.videoUrl ?? "—";
-  const currentGenerationStatus = genPhase;
+  const currentGenerationStatus = pipelineDiagnostic
+    ? `failed — ${pipelineDiagnostic.error}`
+    : genPhase;
 
   const activePlaybackSrc = activeVideo?.videoUrl
     ? resolveVideoPlaybackUrl(activeVideo.videoUrl, {
@@ -1570,7 +1617,8 @@ export function StudioClient() {
   const canGoPrevious = wizardStep > WIZARD_SETUP_STEP && !isLoading;
   const uploadDisabled =
     isLoading || !category || Boolean(generationLimitReached);
-  const showStudioDebugPanel = process.env.NODE_ENV === "development";
+  const showStudioDebugPanel =
+    process.env.NODE_ENV === "development" || pipelineDiagnostic !== null;
   const wizardStepLabel =
     wizardStep === WIZARD_SETUP_STEP
       ? "Mode, category & style"
@@ -1622,7 +1670,7 @@ export function StudioClient() {
       >
         {showStudioDebugPanel ? (
           <aside
-            className={`studio-debug-panel${studioDebugOpen ? " studio-debug-panel--open" : ""}`}
+            className={`studio-debug-panel${studioDebugOpen ? " studio-debug-panel--open" : ""}${pipelineDiagnostic ? " studio-debug-panel--alert" : ""}`}
             aria-label="Studio debug panel"
           >
             <button
@@ -1635,6 +1683,17 @@ export function StudioClient() {
             {studioDebugOpen ? (
               <div className="studio-debug-panel__body">
                 <h3>Studio Metrics</h3>
+                {pipelineDiagnostic ? (
+                  <div className="studio-debug-panel__alert" role="alert">
+                    <strong>{pipelineDiagnostic.error}</strong>
+                    <p>{pipelineDiagnostic.details}</p>
+                    {pipelineDiagnostic.code ? (
+                      <span className="studio-debug-panel__code">
+                        code: {pipelineDiagnostic.code}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
                 <dl className="studio-debug-panel__grid">
                   <div>
                     <dt>renderingQueues</dt>
@@ -1659,11 +1718,32 @@ export function StudioClient() {
                     <dt>generatedVideoUrl</dt>
                     <dd>{currentGeneratedVideoUrl}</dd>
                   </div>
-                  <div>
+                  <div
+                    className={
+                      pipelineDiagnostic ? "studio-debug-panel__row--failed" : undefined
+                    }
+                  >
                     <dt>status</dt>
-                    <dd>{currentGenerationStatus}</dd>
+                    <dd
+                      className={
+                        pipelineDiagnostic
+                          ? "studio-debug-panel__status--failed"
+                          : undefined
+                      }
+                    >
+                      {currentGenerationStatus}
+                    </dd>
                   </div>
                 </dl>
+                {pipelineDiagnostic ? (
+                  <button
+                    type="button"
+                    className="studio-debug-panel__action studio-debug-panel__action--retry"
+                    onClick={handleRetryGeneration}
+                  >
+                    Retry Generation
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </aside>

@@ -123,6 +123,37 @@ export function isFastApiConfigured(): boolean {
   return url.length > 0;
 }
 
+const FASTAPI_URL_MISSING_MESSAGE =
+  "[RTAS Studio] FATAL: FASTAPI_URL is not configured. Set FASTAPI_URL in Vercel environment variables to your internal GPU worker base URL (e.g. https://your-fastapi-host).";
+
+/** Server-side GPU worker URL — required in production; dev falls back to localhost. */
+export function getServerFastApiUrl(): string {
+  const url = readEnv("FASTAPI_URL");
+  if (url.length > 0) {
+    return url.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    const fallback =
+      readEnv("NEXT_PUBLIC_FASTAPI_URL") || "http://localhost:8000";
+    return fallback.replace(/\/$/, "");
+  }
+
+  console.error(FASTAPI_URL_MISSING_MESSAGE);
+  throw new Error(FASTAPI_URL_MISSING_MESSAGE);
+}
+
+/** Fail fast when the production server boots without a GPU worker URL. */
+export function validateProductionServerEnv(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  if (process.env.NEXT_PHASE === "phase-production-build") return;
+
+  if (readEnv("FASTAPI_URL").length > 0) return;
+
+  console.error(FASTAPI_URL_MISSING_MESSAGE);
+  throw new Error(FASTAPI_URL_MISSING_MESSAGE);
+}
+
 export function getSimulationMode(): boolean {
   return !isCloudAiConfigured();
 }
