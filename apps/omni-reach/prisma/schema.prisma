@@ -1,0 +1,80 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// Omni Reach identity — publishing & scheduling product (separate from Studio AI credits).
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String?
+  image         String?
+  provider      String   @default("credentials")
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tier                   String    @default("free")
+  paymentProvider        String?
+  externalCustomerId     String?
+  externalSubscriptionId String?
+
+  subscription TesterSubscription?
+  campaigns    Campaign[]
+  socialTokens SocialToken[]
+}
+
+model TesterSubscription {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planType        String   @default("TESTER")
+  pricePaid       Float    @default(5.00)
+  allowedSeconds  Int      @default(30)
+  secondsUsed     Int      @default(0)
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  isActive        Boolean  @default(true)
+  stripeSessionId String?  @unique
+  createdAt       DateTime @default(now())
+}
+
+model Campaign {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  rawVideoUrl   String
+  videoDuration Int
+  status        CampaignStatus @default(PENDING)
+  scheduledAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model SocialToken {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform     String
+  accessToken  String    @db.Text
+  refreshToken String?   @db.Text
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, platform])
+}
+
+enum CampaignStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
