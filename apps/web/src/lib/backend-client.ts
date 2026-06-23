@@ -1,5 +1,5 @@
 /**
- * RTAS Studio AI — FastAPI client (Next.js ↔ Python backend)
+ * RTAS Studio AI — generation client (browser ↔ credit-guarded Next.js API)
  */
 
 export const BACKEND_CONNECTION_ERROR =
@@ -120,7 +120,6 @@ export async function postUploadToBackend(
   files: Record<string, UploadableFile>,
   jobId?: string
 ): Promise<UploadAssetsResponse> {
-  const base = getFastApiBase();
   const formData = new FormData();
   if (jobId) formData.append("job_id", jobId);
 
@@ -130,7 +129,7 @@ export async function postUploadToBackend(
 
   let res: Response;
   try {
-    res = await fetch(`${base}/api/upload`, {
+    res = await fetch("/api/upload", {
       method: "POST",
       body: formData,
       signal: AbortSignal.timeout(120_000),
@@ -148,21 +147,26 @@ export async function postUploadToBackend(
   }
 
   if (!res.ok) {
-    const detail = data.detail;
-    if (res.status >= 500) throw new BackendConnectionError();
     const msg =
-      typeof detail === "string"
-        ? detail
-        : Array.isArray(detail)
-          ? detail
-              .map((d) =>
-                typeof d === "object" && d && "msg" in d
-                  ? String((d as { msg: string }).msg)
-                  : ""
-              )
-              .filter(Boolean)
-              .join(", ")
-          : String(data.error ?? "Upload failed");
+      typeof data.error === "string" && data.error.trim()
+        ? data.error
+        : typeof data.detail === "string"
+          ? data.detail
+          : Array.isArray(data.detail)
+            ? data.detail
+                .map((d) =>
+                  typeof d === "object" && d && "msg" in d
+                    ? String((d as { msg: string }).msg)
+                    : ""
+                )
+                .filter(Boolean)
+                .join(", ")
+            : "Upload failed";
+
+    if (res.status === 401) {
+      throw new Error(msg || "Unauthorized. Sign in to upload studio assets.");
+    }
+    if (res.status >= 500) throw new BackendConnectionError();
     throw new Error(msg);
   }
 
@@ -455,8 +459,7 @@ export async function fetchBackendHealthStatus(): Promise<BackendHealthStatus> {
 export async function postGenerateToBackend(
   body: GenerateRequestBody
 ): Promise<BackendGenerateResponse> {
-  const base = getFastApiBase();
-  const url = `${base}/api/generate`;
+  const url = "/api/generate";
 
   let res: Response;
   try {
@@ -503,7 +506,9 @@ export async function postGenerateToBackend(
     if (
       res.status === 403 &&
       (msg.toLowerCase().includes("free trial") ||
-        msg.toLowerCase().includes("device/network"))
+        msg.toLowerCase().includes("device/network") ||
+        msg.toLowerCase().includes("generation credits") ||
+        msg.toLowerCase().includes("concurrent rendering"))
     ) {
       throw new Error(msg);
     }

@@ -1,6 +1,6 @@
 export {
   applyPremiumFromWebhook,
-  applyTesterFromWebhook,
+  applyStandardFromWebhook,
   applyPlanFromWebhook,
   cancelPremiumFromWebhook,
 } from "./apply-subscription";

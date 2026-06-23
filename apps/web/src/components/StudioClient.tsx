@@ -70,6 +70,7 @@ import {
   buildVideoTitle,
   collectRequiredFieldErrors,
   createInitialFormState,
+  extractCreativePrompt,
   getWizardGroupAtStep,
   getWizardStepCount,
   pruneFormToVisible,
@@ -99,6 +100,7 @@ import {
 } from "@/lib/duration-limits";
 import { notifyVideoReady } from "@/lib/video-notify";
 import { PreviewGenerationProgress } from "./PreviewGenerationProgress";
+import { ShareVideoModal } from "./ShareVideoModal";
 import { VideoPlayer } from "./VideoPlayer";
 import { VisualStyleSelector } from "./VisualStyleSelector";
 import { useStudioFormBackup } from "@/hooks/useStudioFormBackup";
@@ -156,7 +158,15 @@ function buildGenerationPatienceMessage(
 }
 
 export function StudioClient() {
-  const { profile, setProfile, activatePremium, syncFromServer } = useStudioProfile();
+  const {
+    profile,
+    setProfile,
+    activatePremium,
+    syncFromServer,
+    studioMetrics,
+    generationLimitReached,
+    generationLimitMessage,
+  } = useStudioProfile();
   const [videos, setVideos] = useState<GeneratedVideo[]>([]);
   const [mode, setMode] = useState<GenerationMode | null>(null);
   const [category, setCategory] = useState<VideoCategory | null>(null);
@@ -173,6 +183,7 @@ export function StudioClient() {
   const [genUi, setGenUi] = useState<GenUiState>(IDLE_GEN);
   const [statusText, setStatusText] = useState("Ready to create");
   const [activeVideo, setActiveVideo] = useState<GeneratedVideo | null>(null);
+  const [shareVideo, setShareVideo] = useState<GeneratedVideo | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [paywallMessage, setPaywallMessage] = useState<string | undefined>();
   const [pendingCheckoutPlan, setPendingCheckoutPlan] =
@@ -196,6 +207,7 @@ export function StudioClient() {
   const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const [falGuard, setFalGuard] = useState<FalGuardStatus | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [studioDebugOpen, setStudioDebugOpen] = useState(false);
   const [connectionNoticeTitle, setConnectionNoticeTitle] = useState(
     "API connection issue"
   );
@@ -234,10 +246,10 @@ export function StudioClient() {
 
   const creditsNeeded = creditsForDuration(durationSeconds);
 
-  const maxDurationSeconds = useMemo(
-    () => (profile ? getMaxVideoDurationSeconds(profile) : 30),
-    [profile]
-  );
+  const maxDurationSeconds = useMemo(() => {
+    if (!profile) return 30;
+    return getMaxVideoDurationSeconds(profile);
+  }, [profile]);
 
   const applyBackendHealth = useCallback((status: Awaited<ReturnType<typeof fetchBackendHealthStatus>>) => {
     setBackendOnline(status.online);
@@ -676,6 +688,7 @@ export function StudioClient() {
         ? Math.min(requestedDuration, FREE_TRIAL_DURATION_SECONDS)
         : requestedDuration;
       const capturedTitle = buildVideoTitle(category, mode, activeForm);
+      const capturedPrompt = extractCreativePrompt(activeForm);
 
       const deviceFingerprint = getDeviceFingerprint();
 
@@ -795,7 +808,6 @@ export function StudioClient() {
         const isPaidGeneration =
           (activeProfile.tier === "premium" ||
             activeProfile.tier === "standard" ||
-            activeProfile.tier === "tester" ||
             activeProfile.subscriptionActive) &&
           !isPreview &&
           !isSimulation;
@@ -814,6 +826,7 @@ export function StudioClient() {
           status: "ready",
           videoUrl: playbackUrl,
           simulationMode: isSimulation,
+          creativePrompt: capturedPrompt || backendRes.promptPreview || undefined,
           createdAt: new Date().toISOString(),
         };
 
@@ -1077,6 +1090,7 @@ export function StudioClient() {
           status: "ready",
           videoUrl: compileData.videoUrl,
           simulationMode: false,
+          creativePrompt: extractCreativePrompt(form),
           createdAt: new Date().toISOString(),
         };
 
@@ -1168,6 +1182,14 @@ export function StudioClient() {
       return;
     }
 
+    if (generationLimitReached) {
+      setFormNotice(
+        generationLimitMessage ??
+          "Generation limit reached. Check your credits and active render queue."
+      );
+      return;
+    }
+
     setFieldErrors({});
     setStudioScreen("preview");
     startGenerationUi("Preparing your video…", 2);
@@ -1179,6 +1201,16 @@ export function StudioClient() {
         stopGenerationUi();
         setStudioScreen("create");
         openPaywall(freshProfile, creditsNeeded);
+        return;
+      }
+
+      if (generationLimitReached) {
+        stopGenerationUi();
+        setStudioScreen("create");
+        setFormNotice(
+          generationLimitMessage ??
+            "Generation limit reached. Check your credits and active render queue."
+        );
         return;
       }
 
@@ -1364,7 +1396,7 @@ export function StudioClient() {
   };
 
   const handleSubscribeTester = () => {
-    void proceedToCheckout("tester");
+    window.open("http://localhost:3001", "_blank", "noopener,noreferrer");
   };
 
   const handleClosePaywall = () => {
@@ -1470,8 +1502,20 @@ export function StudioClient() {
   const isPaidUser =
     profile.tier === "premium" ||
     profile.tier === "standard" ||
-    profile.tier === "tester" ||
     profile.subscriptionActive;
+  const effectiveRemainingSeconds = profile?.credits ?? 0;
+  const currentPrompt =
+    form.text.directionPrompt?.trim() ||
+    form.text.prompt?.trim() ||
+    form.text[VIDEO_TITLE_FIELD_ID]?.trim() ||
+    "—";
+  const currentInputImage =
+    form.files.sourceImage?.name ||
+    form.files.imageReference?.name ||
+    form.files.faceReference?.name ||
+    "—";
+  const currentGeneratedVideoUrl = activeVideo?.videoUrl ?? "—";
+  const currentGenerationStatus = genPhase;
 
   const activePlaybackSrc = activeVideo?.videoUrl
     ? resolveVideoPlaybackUrl(activeVideo.videoUrl, {
@@ -1492,6 +1536,26 @@ export function StudioClient() {
     });
   };
 
+  const handleShareVideo = useCallback((video: GeneratedVideo) => {
+    if (video.status !== "ready" || !video.videoUrl) return;
+    setShareVideo(video);
+  }, []);
+
+  const handleSharePublished = useCallback(
+    (videoId: string) => {
+      if (!profile) return;
+      const nextVideos = videos.map((v) =>
+        v.id === videoId ? { ...v, isPublic: true } : v
+      );
+      setVideos(nextVideos);
+      saveVideosForUser(profile.id, nextVideos);
+      if (activeVideo?.id === videoId) {
+        setActiveVideo({ ...activeVideo, isPublic: true });
+      }
+    },
+    [profile, videos, activeVideo]
+  );
+
   const premiumPipeline = hasPremiumAccess(profile, durationSeconds);
   const wizardTotalSteps = getWizardStepCount(category, mode, visualStyle);
   const currentWizardGroup = getWizardGroupAtStep(
@@ -1504,6 +1568,9 @@ export function StudioClient() {
   const isLastWizardStep =
     wizardStep >= WIZARD_FIRST_GROUP_STEP && wizardStep === maxWizardStep;
   const canGoPrevious = wizardStep > WIZARD_SETUP_STEP && !isLoading;
+  const uploadDisabled =
+    isLoading || !category || Boolean(generationLimitReached);
+  const showStudioDebugPanel = process.env.NODE_ENV === "development";
   const wizardStepLabel =
     wizardStep === WIZARD_SETUP_STEP
       ? "Mode, category & style"
@@ -1519,6 +1586,13 @@ export function StudioClient() {
         onSubscribeStandard={handleSubscribeStandard}
         onSubscribePremium={handleSubscribePremium}
         onClose={handleClosePaywall}
+      />
+
+      <ShareVideoModal
+        open={Boolean(shareVideo)}
+        video={shareVideo}
+        onClose={() => setShareVideo(null)}
+        onPublished={handleSharePublished}
       />
 
       <DurationLimitModal
@@ -1546,6 +1620,54 @@ export function StudioClient() {
       <div
         className={`shashka-studio shashka-studio--screen-${studioScreen}${isLoading ? " shashka-studio--locked" : ""}`}
       >
+        {showStudioDebugPanel ? (
+          <aside
+            className={`studio-debug-panel${studioDebugOpen ? " studio-debug-panel--open" : ""}`}
+            aria-label="Studio debug panel"
+          >
+            <button
+              type="button"
+              className="studio-debug-panel__toggle"
+              onClick={() => setStudioDebugOpen((open) => !open)}
+            >
+              {studioDebugOpen ? "Hide Studio Metrics" : "Show Studio Metrics"}
+            </button>
+            {studioDebugOpen ? (
+              <div className="studio-debug-panel__body">
+                <h3>Studio Metrics</h3>
+                <dl className="studio-debug-panel__grid">
+                  <div>
+                    <dt>renderingQueues</dt>
+                    <dd>
+                      {studioMetrics?.renderingQueues ?? 0} /{" "}
+                      {studioMetrics?.maxConcurrentGenerations ?? 3}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>videoGenerationCredits</dt>
+                    <dd>{studioMetrics?.videoGenerationCredits ?? profile.credits}</dd>
+                  </div>
+                  <div>
+                    <dt>prompt</dt>
+                    <dd>{currentPrompt}</dd>
+                  </div>
+                  <div>
+                    <dt>inputImage</dt>
+                    <dd>{currentInputImage}</dd>
+                  </div>
+                  <div>
+                    <dt>generatedVideoUrl</dt>
+                    <dd>{currentGeneratedVideoUrl}</dd>
+                  </div>
+                  <div>
+                    <dt>status</dt>
+                    <dd>{currentGenerationStatus}</dd>
+                  </div>
+                </dl>
+              </div>
+            ) : null}
+          </aside>
+        ) : null}
         <StudioScreenRail
           screen={studioScreen}
           onScreenChange={setStudioScreen}
@@ -1815,6 +1937,14 @@ export function StudioClient() {
                             {formNotice}
                           </p>
                         ) : null}
+                        {generationLimitReached && generationLimitMessage ? (
+                          <p
+                            className="studio-form-notice studio-form-notice--generate"
+                            role="alert"
+                          >
+                            {generationLimitMessage}
+                          </p>
+                        ) : null}
                         <div className="shashka-wizard-actions">
                           <button
                             type="button"
@@ -1827,9 +1957,10 @@ export function StudioClient() {
                           <button
                             type="button"
                             className="shashka-console__generate"
-                            disabled={isLoading || !category}
+                            disabled={uploadDisabled}
                             aria-busy={isLoading}
                             onClick={() => void onGenerateClick()}
+                            title={generationLimitReached ? generationLimitMessage ?? undefined : undefined}
                           >
                             {isLoading ? "Rendering…" : "Generate video"}
                           </button>
@@ -1872,7 +2003,7 @@ export function StudioClient() {
                         <p className="shashka-console__footnote">
                           Est. {creditsNeeded} credits
                           {isPaidUser
-                            ? ` · ${profile?.credits ?? 0} left`
+                            ? ` · ${effectiveRemainingSeconds} left`
                             : " · Subscribe"}
                           {` · ${backendOutputClipCount}/${MIN_CLIPS_TO_COMPILE} backend clips`}
                         </p>
@@ -1955,6 +2086,7 @@ export function StudioClient() {
                 profile={profile}
                 disabled={processing}
                 onSelect={handleSelectVideo}
+                onShare={handleShareVideo}
               />
 
               {isStudioOwner(profile) ? (
@@ -1969,6 +2101,7 @@ export function StudioClient() {
                   onTrialSkip={() => void runGenerate({ previewOnly: true })}
                 />
               ) : null}
+
             </aside>
 
             <div
@@ -1989,6 +2122,20 @@ export function StudioClient() {
                   generationPatienceMessage={generationPatienceMessage}
                 />
               </div>
+              {activeVideo?.status === "ready" && activeVideo.videoUrl && !isGenerating ? (
+                <div className="shashka-preview-share-row">
+                  <button
+                    type="button"
+                    className="btn-share-video"
+                    onClick={() => handleShareVideo(activeVideo)}
+                  >
+                    Share Video
+                  </button>
+                  {activeVideo.isPublic ? (
+                    <span className="shashka-preview-share-note">Public link active</span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
           ) : null}

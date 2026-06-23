@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 title RTAS Studio AI — Dev Stack
 cd /d "%~dp0"
 
@@ -15,14 +16,25 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [1/2] Web app — http://localhost:3000
-start "RTAS Web" cmd /k "cd /d "%~dp0apps\web" && npm run dev:fast"
+where python >nul 2>&1
+if errorlevel 1 (
+  echo ERROR: Python not found. Install Python 3.11+ for the FastAPI backend.
+  pause
+  exit /b 1
+)
+
+echo [1/2] FastAPI backend — http://localhost:8000
+start "RTAS API :8000" cmd /k call ""%~dp0start-api.cmd""
+
+echo [2/2] Next.js web app — http://localhost:3000
+timeout /t 2 /nobreak >nul
+start "RTAS Web :3000" cmd /k call ""%~dp0apps\web\start-web.cmd""
 
 echo.
-echo Web server starting in a new window.
-echo Keep that window open while testing Google login and Studio.
+echo Servers are starting in separate windows. Keep both open while developing.
 echo.
-echo Optional: start backend API separately if generation fails.
-echo   cd apps\backend && uvicorn app.main:app --reload --port 8000
+echo   Web:    http://localhost:3000/auth/login
+echo   Studio: http://localhost:3000/studio
+echo   API:    http://localhost:8000/api/health
 echo.
 pause

@@ -340,6 +340,17 @@ export function scrollToFirstFieldError(fieldId: string): void {
   }
 }
 
+export function extractCreativePrompt(state: StudioFormState): string {
+  const t = state.text;
+  return (
+    t.directionPrompt?.trim() ||
+    t.prompt?.trim() ||
+    t.mainPrompt?.trim() ||
+    t.lyrics?.trim()?.slice(0, 280) ||
+    ""
+  );
+}
+
 export function validateRequiredFields(
   category: VideoCategory,
   mode: GenerationMode,

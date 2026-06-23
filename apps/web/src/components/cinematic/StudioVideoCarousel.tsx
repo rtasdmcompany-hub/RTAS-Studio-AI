@@ -9,6 +9,7 @@ type Props = {
   profile: UserProfile;
   disabled?: boolean;
   onSelect: (video: GeneratedVideo) => void;
+  onShare?: (video: GeneratedVideo) => void;
 };
 
 export function StudioVideoCarousel({
@@ -17,6 +18,7 @@ export function StudioVideoCarousel({
   profile,
   disabled = false,
   onSelect,
+  onShare,
 }: Props) {
   return (
     <section className="shashka-carousel" aria-label="Your videos">
@@ -29,31 +31,48 @@ export function StudioVideoCarousel({
             const active = activeVideoId === v.id;
             const isPreview =
               !profile.subscriptionActive || v.previewOnly;
+            const canShare =
+              v.status === "ready" && Boolean(v.videoUrl) && Boolean(onShare);
             return (
-              <button
+              <div
                 key={v.id}
-                type="button"
                 role="listitem"
-                className={`shashka-carousel__vinyl${active ? " shashka-carousel__vinyl--active" : ""}`}
-                onClick={() => onSelect(v)}
-                disabled={disabled}
-                aria-pressed={active}
+                className={`shashka-carousel__item${active ? " shashka-carousel__item--active" : ""}`}
               >
-                <span className="shashka-carousel__disc" aria-hidden>
-                  <span className="shashka-carousel__disc-groove" />
-                  <span className="shashka-carousel__disc-label">
-                    {v.title.slice(0, 2).toUpperCase()}
+                <button
+                  type="button"
+                  className={`shashka-carousel__vinyl${active ? " shashka-carousel__vinyl--active" : ""}`}
+                  onClick={() => onSelect(v)}
+                  disabled={disabled}
+                  aria-pressed={active}
+                >
+                  <span className="shashka-carousel__disc" aria-hidden>
+                    <span className="shashka-carousel__disc-groove" />
+                    <span className="shashka-carousel__disc-label">
+                      {v.title.slice(0, 2).toUpperCase()}
+                    </span>
                   </span>
-                </span>
-                <span className="shashka-carousel__meta">
-                  <span className="shashka-carousel__title">{v.title}</span>
-                  <span
-                    className={`shashka-carousel__badge${isPreview ? "" : " shashka-carousel__badge--premium"}`}
+                  <span className="shashka-carousel__meta">
+                    <span className="shashka-carousel__title">{v.title}</span>
+                    <span
+                      className={`shashka-carousel__badge${isPreview ? "" : " shashka-carousel__badge--premium"}`}
+                    >
+                      {isPreview ? "Preview" : v.isPublic ? "Public" : "Premium"}
+                    </span>
+                  </span>
+                </button>
+                {canShare && onShare ? (
+                  <button
+                    type="button"
+                    className="shashka-carousel__share-btn"
+                    onClick={() => onShare(v)}
+                    disabled={disabled}
+                    aria-label={`Share ${v.title}`}
                   >
-                    {isPreview ? "Preview" : "Premium"}
-                  </span>
-                </span>
-              </button>
+                    Share Video
+                  </button>
+                ) : null}
+              </div>
             );
           })
         )}

@@ -2,11 +2,20 @@ import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
-import { saveServerProfile, getServerProfile } from "@/lib/server/profile-store";
+import { prisma, isPrismaConfigured } from "@/lib/prisma";
+import { migrateJsonStoresToPrismaIfNeeded } from "@/lib/server/prisma-migrate";
+import {
+  prismaUserToAuthRecord,
+  prismaUserToProfile,
+  profileToPrismaData,
+} from "@/lib/server/user-mappers";
 import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-store";
+import {
+  getServerProfile,
+  saveServerProfile,
+} from "@/lib/server/profile-store";
 
 const STORE_NAME = "auth-users";
-/** Lower rounds = faster signup on slow disks; still fine for dev/local auth. */
 const BCRYPT_ROUNDS = 10;
 
 type AuthUserMap = Record<string, AuthUserRecord>;
@@ -25,6 +34,10 @@ export type AuthUserRecord = {
   createdAt: string;
 };
 
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
 export function isEmailVerified(user: AuthUserRecord): boolean {
   if (user.emailVerified === true) return true;
   if (user.emailVerified === false) return false;
@@ -32,27 +45,20 @@ export function isEmailVerified(user: AuthUserRecord): boolean {
   return true;
 }
 
-export async function markAuthUserEmailVerified(userId: string): Promise<void> {
-  const map = await readAll();
-  const user = map[userId];
-  if (!user) return;
-
-  map[userId] = {
-    ...user,
-    emailVerified: true,
-    emailVerifiedAt: new Date().toISOString(),
-  };
-  await writeAll(map);
+async function ensurePrismaReady() {
+  if (!isPrismaConfigured()) return false;
+  await migrateJsonStoresToPrismaIfNeeded();
+  return true;
 }
 
-async function readAll(): Promise<AuthUserMap> {
+async function readAllJson(): Promise<AuthUserMap> {
   if (authUsersCache) return authUsersCache;
   const map = await readJsonDocument<AuthUserMap>(STORE_NAME, {});
   authUsersCache = map;
   return map;
 }
 
-async function writeAll(map: AuthUserMap) {
+async function writeAllJson(map: AuthUserMap) {
   await writeJsonDocument(STORE_NAME, map);
   authUsersCache = map;
 }
@@ -64,25 +70,69 @@ function findInMap(map: AuthUserMap, email: string): AuthUserRecord | null {
   );
 }
 
-function normalizeEmail(email: string) {
-  return email.trim().toLowerCase();
+export async function markAuthUserEmailVerified(userId: string): Promise<void> {
+  if (await ensurePrismaReady()) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+    });
+    return;
+  }
+
+  const map = await readAllJson();
+  const user = map[userId];
+  if (!user) return;
+
+  map[userId] = {
+    ...user,
+    emailVerified: true,
+    emailVerifiedAt: new Date().toISOString(),
+  };
+  await writeAllJson(map);
 }
 
 export async function findAuthUserByEmail(
   email: string
 ): Promise<AuthUserRecord | null> {
-  const map = await readAll();
+  if (await ensurePrismaReady()) {
+    const user = await prisma.user.findUnique({
+      where: { email: normalizeEmail(email) },
+    });
+    return user ? prismaUserToAuthRecord(user) : null;
+  }
+
+  const map = await readAllJson();
   return findInMap(map, email);
 }
 
 export async function findAuthUserById(
   id: string
 ): Promise<AuthUserRecord | null> {
-  const map = await readAll();
+  if (await ensurePrismaReady()) {
+    const user = await prisma.user.findUnique({ where: { id } });
+    return user ? prismaUserToAuthRecord(user) : null;
+  }
+
+  const map = await readAllJson();
   return map[id] ?? null;
 }
 
 async function ensureStudioProfile(user: AuthUserRecord): Promise<UserProfile> {
+  if (await ensurePrismaReady()) {
+    const existing = await prisma.user.findUnique({ where: { id: user.id } });
+    if (existing) {
+      const profile = prismaUserToProfile(existing);
+      if (profile.name !== user.name) {
+        const updated = await prisma.user.update({
+          where: { id: user.id },
+          data: { name: user.name },
+        });
+        return prismaUserToProfile(updated);
+      }
+      return profile;
+    }
+  }
+
   const existing = await getServerProfile(user.id);
   if (existing.id === user.id && existing.email === user.email) {
     if (existing.name !== user.name) {
@@ -126,7 +176,58 @@ export async function registerCredentialsUser(input: {
     return { ok: false, error: "Name is required." };
   }
 
-  const map = await readAll();
+  const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
+
+  if (await ensurePrismaReady()) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+
+    if (existing?.passwordHash) {
+      return {
+        ok: false,
+        error:
+          "An account with this email already exists. Sign in with your password or continue with Google.",
+      };
+    }
+
+    if (existing) {
+      const updated = await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          name: input.name.trim() || existing.name,
+          passwordHash,
+          emailVerified: false,
+          provider: "credentials",
+        },
+      });
+      await ensureStudioProfile(prismaUserToAuthRecord(updated));
+      return {
+        ok: true,
+        userId: updated.id,
+        email: updated.email,
+        linkedGoogleAccount: existing.provider === "google",
+        needsEmailVerification: true,
+      };
+    }
+
+    const created = await prisma.user.create({
+      data: {
+        email,
+        name: input.name.trim(),
+        passwordHash,
+        provider: "credentials",
+        emailVerified: false,
+      },
+    });
+    await ensureStudioProfile(prismaUserToAuthRecord(created));
+    return {
+      ok: true,
+      userId: created.id,
+      email: created.email,
+      needsEmailVerification: true,
+    };
+  }
+
+  const map = await readAllJson();
   const existing = findInMap(map, email);
 
   if (existing?.passwordHash) {
@@ -137,8 +238,6 @@ export async function registerCredentialsUser(input: {
     };
   }
 
-  const passwordHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);
-
   if (existing) {
     const linked: AuthUserRecord = {
       ...existing,
@@ -147,7 +246,7 @@ export async function registerCredentialsUser(input: {
       emailVerified: false,
     };
     map[existing.id] = linked;
-    await writeAll(map);
+    await writeAllJson(map);
     await ensureStudioProfile(linked);
     return {
       ok: true,
@@ -170,7 +269,7 @@ export async function registerCredentialsUser(input: {
   };
 
   map[id] = user;
-  await writeAll(map);
+  await writeAllJson(map);
   await ensureStudioProfile(user);
 
   return {
@@ -199,8 +298,48 @@ export async function upsertOAuthUser(input: {
   image?: string | null;
 }): Promise<AuthUserRecord> {
   const email = normalizeEmail(input.email);
-  const map = await readAll();
-  const byEmail = await findAuthUserByEmail(email);
+
+  if (await ensurePrismaReady()) {
+    const byEmail = await prisma.user.findUnique({ where: { email } });
+
+    if (byEmail) {
+      const updated = await prisma.user.update({
+        where: { id: byEmail.id },
+        data: {
+          name: input.name || byEmail.name,
+          image: input.image ?? byEmail.image,
+          provider:
+            byEmail.provider === "credentials" ? byEmail.provider : "google",
+          emailVerified: true,
+        },
+      });
+      await ensureStudioProfile(prismaUserToAuthRecord(updated));
+      return prismaUserToAuthRecord(updated);
+    }
+
+    const created = await prisma.user.upsert({
+      where: { email },
+      create: {
+        id: input.id,
+        email,
+        name: input.name || email.split("@")[0],
+        image: input.image ?? null,
+        provider: "google",
+        emailVerified: true,
+        passwordHash: null,
+      },
+      update: {
+        name: input.name || email.split("@")[0],
+        image: input.image ?? null,
+        emailVerified: true,
+      },
+    });
+    await ensureStudioProfile(prismaUserToAuthRecord(created));
+    return prismaUserToAuthRecord(created);
+  }
+
+  const map = await readAllJson();
+  const byEmail = findInMap(map, email);
 
   if (byEmail) {
     const updated: AuthUserRecord = {
@@ -212,7 +351,7 @@ export async function upsertOAuthUser(input: {
       emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date().toISOString(),
     };
     map[byEmail.id] = updated;
-    await writeAll(map);
+    await writeAllJson(map);
     await ensureStudioProfile(updated);
     return updated;
   }
@@ -228,7 +367,7 @@ export async function upsertOAuthUser(input: {
     createdAt: new Date().toISOString(),
   };
   map[user.id] = user;
-  await writeAll(map);
+  await writeAllJson(map);
   await ensureStudioProfile(user);
   return user;
 }

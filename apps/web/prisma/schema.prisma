@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String?
+  image         String?
+  provider      String   @default("credentials")
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Studio profile & SaaS generation limits
+  tier                   String    @default("free")
+  credits                Int       @default(50)
+  concurrentTracks       Int       @default(0)
+  creditsExpireAt        DateTime?
+  subscriptionActive     Boolean   @default(false)
+  subscriptionRenewsAt   DateTime?
+  freeTrialUsed          Boolean   @default(false)
+  hasUsedFreeTrial       Boolean   @default(false)
+  previewSkipsRemaining  Int       @default(3)
+  paymentProvider        String?
+  externalCustomerId     String?
+  externalSubscriptionId String?
+
+  generationJobs GenerationJob[]
+}
+
+model GenerationJob {
+  id                String              @id @default(uuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status            GenerationJobStatus @default(QUEUED)
+  prompt            String?
+  inputImageUrl     String?
+  generatedVideoUrl String?
+  durationSeconds   Int                 @default(0)
+  creditsCharged    Int                 @default(0)
+  isPublic          Boolean             @default(false)
+  shareTitle        String?
+  publishedAt       DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  completedAt       DateTime?
+
+  @@index([userId, status])
+  @@index([isPublic])
+}
+
+enum GenerationJobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}

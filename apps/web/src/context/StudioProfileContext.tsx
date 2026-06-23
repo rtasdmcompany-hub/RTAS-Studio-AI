@@ -21,8 +21,28 @@ import {
   saveProfile,
 } from "@/lib/store";
 
+export type StudioMetricsState = {
+  renderingQueues: number;
+  concurrentTracks: number;
+  maxConcurrentGenerations: number;
+  videoGenerationCredits: number;
+  recentJobs: Array<{
+    id: string;
+    status: string;
+    prompt: string | null;
+    inputImageUrl: string | null;
+    generatedVideoUrl: string | null;
+    durationSeconds: number;
+    creditsCharged: number;
+    createdAt: string;
+  }>;
+};
+
 type StudioProfileContextValue = {
   profile: UserProfile | null;
+  studioMetrics: StudioMetricsState | null;
+  generationLimitReached: boolean;
+  generationLimitMessage: string | null;
   setProfile: (profile: UserProfile) => void;
   refreshProfile: () => void;
   syncFromServer: (userId: string) => Promise<UserProfile | null>;
@@ -32,6 +52,12 @@ type StudioProfileContextValue = {
 const StudioProfileContext = createContext<StudioProfileContextValue | null>(
   null
 );
+
+const GENERATION_LIMIT_MESSAGE =
+  "Maximum concurrent rendering tracks reached. Please wait for active videos to complete.";
+
+const CREDITS_LIMIT_MESSAGE =
+  "Insufficient generation credits. Please upgrade your studio plan.";
 
 function applySessionToProfile(
   base: UserProfile,
@@ -49,6 +75,9 @@ function applySessionToProfile(
 export function StudioProfileProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const [profile, setProfileState] = useState<UserProfile | null>(null);
+  const [studioMetrics, setStudioMetrics] = useState<StudioMetricsState | null>(
+    null
+  );
 
   const refreshProfile = useCallback(() => {
     setProfileState(loadProfile());
@@ -58,7 +87,17 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`/api/user/subscription?userId=${encodeURIComponent(userId)}`);
       if (!res.ok) return null;
-      const server = await res.json();
+      const server = (await res.json()) as {
+        tier: UserProfile["tier"];
+        subscriptionActive: boolean;
+        credits: number;
+        creditsExpireAt: string | null;
+        subscriptionRenewsAt: string | null;
+        paymentProvider?: UserProfile["paymentProvider"];
+        freeTrialUsed: boolean;
+        hasUsedFreeTrial: boolean;
+        studioMetrics: StudioMetricsState;
+      };
       const local = loadProfile();
       const merged = mergeServerProfile(local, {
         ...local,
@@ -74,6 +113,7 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
       const capped = capCreditsForTier(merged);
       saveProfile(capped);
       setProfileState(capped);
+      setStudioMetrics(server.studioMetrics);
       return capped;
     } catch {
       return null;
@@ -89,15 +129,14 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
     }
     saveProfile(loaded);
     setProfileState(loaded);
+    setStudioMetrics(null);
     void syncFromServer(loaded.id);
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("activated") === "1" || params.get("payment") === "success") {
       const rawPlan = params.get("plan");
       const plan: PaidPlanType =
-        rawPlan === "tester" || rawPlan === "standard" || rawPlan === "premium"
-          ? rawPlan
-          : "standard";
+        rawPlan === "standard" || rawPlan === "premium" ? rawPlan : "standard";
       const p = activatePlan(loaded, plan);
       saveProfile(p);
       setProfileState(p);
@@ -119,16 +158,38 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
     return p;
   }, []);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const concurrentTracks =
+      studioMetrics?.concurrentTracks ?? studioMetrics?.renderingQueues ?? 0;
+    const maxTracks = studioMetrics?.maxConcurrentGenerations ?? 3;
+    const credits =
+      studioMetrics?.videoGenerationCredits ?? profile?.credits ?? 0;
+
+    const atConcurrentLimit = !!studioMetrics && concurrentTracks >= maxTracks;
+    const outOfCredits = credits <= 0;
+
+    return {
       profile,
+      studioMetrics,
+      generationLimitReached: atConcurrentLimit || outOfCredits,
+      generationLimitMessage: atConcurrentLimit
+        ? GENERATION_LIMIT_MESSAGE
+        : outOfCredits
+          ? CREDITS_LIMIT_MESSAGE
+          : null,
       setProfile,
       refreshProfile,
       syncFromServer,
       activatePremium,
-    }),
-    [profile, setProfile, refreshProfile, syncFromServer, activatePremium]
-  );
+    };
+  }, [
+    profile,
+    studioMetrics,
+    setProfile,
+    refreshProfile,
+    syncFromServer,
+    activatePremium,
+  ]);
 
   return (
     <StudioProfileContext.Provider value={value}>

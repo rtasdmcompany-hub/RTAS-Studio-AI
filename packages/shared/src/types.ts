@@ -64,6 +64,10 @@ export interface GeneratedVideo {
   thumbnailUrl?: string;
   /** True when backend used simulation / preview sample instead of live render. */
   simulationMode?: boolean;
+  /** Original creative prompt shown on public share pages. */
+  creativePrompt?: string;
+  /** Whether this render has a public share link. */
+  isPublic?: boolean;
   createdAt: string;
 }
 

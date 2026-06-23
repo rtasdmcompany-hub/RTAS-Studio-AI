@@ -1,45 +1,85 @@
 import { NextResponse } from "next/server";
-import { creditsForDuration, FREE_TRIAL_DURATION_SECONDS } from "@rtas/shared";
-import { buildProviderPrompt, providerForStyle, type GenerateBody } from "@/lib/generation";
+import { getServerSession } from "next-auth";
+import { FREE_TRIAL_DURATION_SECONDS } from "@rtas/shared";
+import { type GenerateBody } from "@/lib/generation";
+import { authOptions } from "@/lib/auth/auth-options";
+import { proxyGenerateToFastApi } from "@/lib/server/fastapi-proxy";
+import {
+  assertAndAcquireRenderingSlot,
+  completeGenerationJob,
+  completeRenderingSlot,
+  createGenerationJob,
+  CREDITS_PER_RENDER,
+  failGenerationJob,
+  INSUFFICIENT_CREDITS_MESSAGE,
+  MAX_CONCURRENT_TRACKS_MESSAGE,
+  releaseRenderingSlotOnFailure,
+} from "@/lib/server/studio-generation-guard";
 
-/** Request lock — only one demo generation at a time (mirrors FastAPI /api/generate guard). */
-let generationInProgress = false;
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 /**
- * Demo Next.js handler. Live Fal.ai calls run through FastAPI (apps/backend).
- * Production studio uses postGenerateToBackend → localhost:8000/api/generate.
+ * Credit-guarded generation gateway. All studio renders proxy to FastAPI
+ * server-side so clients cannot bypass SaaS billing controls.
  */
 export async function POST(request: Request) {
-  if (generationInProgress) {
-    console.error("Generation conflict: a generation is already in progress.");
-    return NextResponse.json(
-      { error: "A video generation is already in progress. Please wait for it to finish." },
-      { status: 409 }
-    );
-  }
-
-  generationInProgress = true;
+  let jobId: string | null = null;
+  let effectiveUserId: string | null = null;
+  let skipBilling = false;
 
   try {
-    const body = await request.json();
+    const session = await getServerSession(authOptions);
+    const body = (await request.json()) as GenerateBody & {
+      userId?: string;
+      jobId?: string;
+      profile?: { subscriptionActive?: boolean; credits?: number };
+      previewOnly?: boolean;
+      useFreeTrial?: boolean;
+      deviceFingerprint?: string;
+    };
+
     const {
+      userId,
       mode,
       category,
       visualStyle,
       durationSeconds,
       fields,
       files,
-      identityPipeline,
-      profile,
       previewOnly,
       useFreeTrial,
-    } = body as GenerateBody & {
-      profile?: { subscriptionActive?: boolean; credits?: number };
-      previewOnly?: boolean;
-      useFreeTrial?: boolean;
-    };
+    } = body;
+
+    const sessionUserId = session?.user?.id;
+    effectiveUserId = sessionUserId ?? userId ?? null;
+    skipBilling = Boolean(previewOnly || useFreeTrial);
+
+    if (effectiveUserId && !skipBilling) {
+      try {
+        await assertAndAcquireRenderingSlot(effectiveUserId, {
+          previewOnly,
+          useFreeTrial,
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : INSUFFICIENT_CREDITS_MESSAGE;
+        const status =
+          message === INSUFFICIENT_CREDITS_MESSAGE ||
+          message === MAX_CONCURRENT_TRACKS_MESSAGE
+            ? 403
+            : 500;
+        return NextResponse.json({ error: message }, { status });
+      }
+    }
 
     if (!mode || !category || !visualStyle || !durationSeconds) {
+      if (effectiveUserId && !skipBilling) {
+        await releaseRenderingSlotOnFailure(effectiveUserId, {
+          previewOnly,
+          useFreeTrial,
+        });
+      }
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
@@ -47,6 +87,12 @@ export async function POST(request: Request) {
       const consent = fields?.faceConsent?.trim().toUpperCase();
       const hasFaceFile = Boolean(files?.faceReference);
       if (!hasFaceFile || consent !== "YES") {
+        if (effectiveUserId && !skipBilling) {
+          await releaseRenderingSlotOnFailure(effectiveUserId, {
+            previewOnly,
+            useFreeTrial,
+          });
+        }
         return NextResponse.json(
           { error: "Real face mode requires Face Photo upload and consent (YES)" },
           { status: 400 }
@@ -54,49 +100,86 @@ export async function POST(request: Request) {
       }
     }
 
-    const req: GenerateBody = {
-      mode,
-      category,
-      visualStyle,
-      durationSeconds,
-      fields: fields ?? {},
-      files,
-      identityPipeline,
+    const processedDurationSeconds = useFreeTrial
+      ? Math.min(durationSeconds, FREE_TRIAL_DURATION_SECONDS)
+      : durationSeconds;
+
+    const promptPreview =
+      fields?.directionPrompt?.trim() ||
+      fields?.prompt?.trim() ||
+      fields?.mainPrompt?.trim() ||
+      null;
+    const inputImageName =
+      files?.sourceImage?.name || files?.imageReference?.name || null;
+    const creditsUsed = skipBilling ? 0 : CREDITS_PER_RENDER;
+
+    if (effectiveUserId && !skipBilling) {
+      const job = await createGenerationJob({
+        userId: effectiveUserId,
+        prompt: promptPreview,
+        inputImageUrl: inputImageName ? `local://${inputImageName}` : null,
+        durationSeconds: processedDurationSeconds,
+        creditsCharged: creditsUsed,
+      });
+      jobId = job?.id ?? null;
+    }
+
+    const proxyPayload: Record<string, unknown> = {
+      ...body,
+      userId: effectiveUserId ?? body.userId,
+      durationSeconds: processedDurationSeconds,
     };
 
-    const prompt = buildProviderPrompt(req);
-    const provider = providerForStyle(visualStyle, identityPipeline);
-    const creditsUsed = useFreeTrial ? 0 : creditsForDuration(durationSeconds);
+    const proxyResult = await proxyGenerateToFastApi(proxyPayload);
 
-    const demoVideoUrl =
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    if (!proxyResult.ok) {
+      if (effectiveUserId && !skipBilling) {
+        await releaseRenderingSlotOnFailure(effectiveUserId, {
+          previewOnly,
+          useFreeTrial,
+        });
+      }
+      if (jobId) {
+        await failGenerationJob(jobId);
+      }
+
+      const errorMessage =
+        typeof proxyResult.data.error === "string"
+          ? proxyResult.data.error
+          : "Generation failed";
+
+      return NextResponse.json(
+        { error: errorMessage, ...proxyResult.data },
+        { status: proxyResult.status }
+      );
+    }
+
+    const videoUrl = String(
+      proxyResult.data.videoUrl ?? proxyResult.data.video_url ?? ""
+    );
+
+    if (jobId && videoUrl) {
+      await completeGenerationJob(jobId, videoUrl);
+    }
+
+    if (effectiveUserId && !skipBilling) {
+      await completeRenderingSlot(effectiveUserId, { previewOnly, useFreeTrial });
+    }
 
     return NextResponse.json({
-      ok: true,
-      jobId: `job_${Date.now()}`,
-      provider,
-      identityPipeline: identityPipeline ?? null,
-      promptPreview: prompt.slice(0, 200),
+      ...proxyResult.data,
       creditsUsed,
-      previewOnly: !!previewOnly,
-      canDownload:
-        !previewOnly &&
-        !!profile?.subscriptionActive &&
-        (profile?.credits ?? 0) > 0,
-      videoUrl: demoVideoUrl,
-      durationSeconds: useFreeTrial
-        ? Math.min(durationSeconds, FREE_TRIAL_DURATION_SECONDS)
-        : durationSeconds,
-      message:
-        process.env.RUNWAY_API_KEY || process.env.KLING_API_KEY
-          ? "Queued for AI provider"
-          : "Demo mode: add API keys in .env.local for real generation",
+      jobId: jobId ?? proxyResult.data.jobId ?? proxyResult.data.job_id,
     });
   } catch (e) {
+    if (effectiveUserId && !skipBilling) {
+      await releaseRenderingSlotOnFailure(effectiveUserId);
+    }
+    if (jobId) {
+      await failGenerationJob(jobId);
+    }
     const message = e instanceof Error ? e.message : "Generation failed";
-    console.error("Fal API Error:", message);
+    console.error("Generation error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
-  } finally {
-    generationInProgress = false;
   }
 }

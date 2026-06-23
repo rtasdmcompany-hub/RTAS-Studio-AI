@@ -1753,6 +1753,70 @@
   color: var(--shashka-lavender);
 }
 
+.shashka-carousel__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 7.5rem;
+}
+
+.shashka-carousel__item--active .shashka-carousel__share-btn {
+  border-color: rgba(201, 162, 39, 0.55);
+}
+
+.shashka-carousel__share-btn {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(165, 148, 253, 0.35);
+  background: rgba(26, 29, 46, 0.85);
+  color: var(--shashka-lavender);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.shashka-carousel__share-btn:hover:not(:disabled) {
+  border-color: rgba(201, 162, 39, 0.65);
+  background: rgba(36, 40, 58, 0.95);
+}
+
+.shashka-carousel__share-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.shashka-preview-share-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+.btn-share-video {
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  background: linear-gradient(135deg, rgba(184, 146, 42, 0.25), rgba(240, 216, 120, 0.12));
+  color: var(--accent2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-share-video:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201, 162, 39, 0.2);
+}
+
+.shashka-preview-share-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 /* Lock veil during diagnostic */
 .shashka-lock-veil {
   position: fixed;
