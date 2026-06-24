@@ -19,7 +19,11 @@
     "db:push": "npm run db:push -w @rtas/web",
     "db:migrate": "npm run db:migrate -w @rtas/web",
     "lint": "npm run lint -w @rtas/web",
-    "mobile": "npm run start -w @rtas/mobile"
+    "mobile:sync": "npm run sync -w @rtas/rtas-mobile",
+    "mobile:android": "npm run open:android -w @rtas/rtas-mobile",
+    "mobile:ios": "npm run open:ios -w @rtas/rtas-mobile",
+    "mobile:assets": "npm run assets:generate -w @rtas/rtas-mobile",
+    "mobile:assets:check": "npm run assets:check -w @rtas/rtas-mobile"
   },
   "engines": {
     "node": "20.x"

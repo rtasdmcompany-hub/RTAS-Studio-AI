@@ -1,0 +1,24 @@
+node_modules/
+.DS_Store
+*.log
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+
+# Auto-staged @capacitor/assets inputs (generated from icons/ + splash/ masters)
+assets/logo.png
+assets/logo-dark.png
+assets/logo.svg
+assets/logo-dark.svg
+assets/icon-only.png
+assets/icon-only.svg
+assets/splash.png
+assets/splash.svg
+assets/splash-dark.png
+assets/splash-dark.svg
