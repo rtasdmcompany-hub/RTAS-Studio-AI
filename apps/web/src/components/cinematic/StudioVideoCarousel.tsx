@@ -6,7 +6,7 @@ import type { UserProfile } from "@rtas/shared";
 type Props = {
   videos: GeneratedVideo[];
   activeVideoId: string | null | undefined;
-  profile: UserProfile;
+  profile: UserProfile | null;
   disabled?: boolean;
   onSelect: (video: GeneratedVideo) => void;
   onShare?: (video: GeneratedVideo) => void;
@@ -30,7 +30,7 @@ export function StudioVideoCarousel({
           videos.map((v) => {
             const active = activeVideoId === v.id;
             const isPreview =
-              !profile.subscriptionActive || v.previewOnly;
+              !profile?.subscriptionActive || v.previewOnly;
             const canShare =
               v.status === "ready" && Boolean(v.videoUrl) && Boolean(onShare);
             return (

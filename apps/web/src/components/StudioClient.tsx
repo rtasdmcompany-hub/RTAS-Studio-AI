@@ -1545,9 +1545,9 @@ export function StudioClient() {
     Boolean(connectionError) && isStudioOwner(profile);
 
   const isPaidUser =
-    profile.tier === "premium" ||
-    profile.tier === "standard" ||
-    profile.subscriptionActive;
+    profile?.tier === "premium" ||
+    profile?.tier === "standard" ||
+    Boolean(profile?.subscriptionActive);
   const effectiveRemainingSeconds = profile?.credits ?? 0;
   const currentPrompt =
     form.text.directionPrompt?.trim() ||
@@ -1603,7 +1603,9 @@ export function StudioClient() {
     [profile, videos, activeVideo]
   );
 
-  const premiumPipeline = hasPremiumAccess(profile, durationSeconds);
+  const premiumPipeline = profile
+    ? hasPremiumAccess(profile, durationSeconds)
+    : false;
   const wizardTotalSteps = getWizardStepCount(category, mode, visualStyle);
   const currentWizardGroup = getWizardGroupAtStep(
     wizardStep,
@@ -1624,6 +1626,14 @@ export function StudioClient() {
       ? "Mode, category & style"
       : currentWizardGroup?.label ?? "Create";
   const wizardProgressPct = Math.round(((wizardStep + 1) / wizardTotalSteps) * 100);
+
+  if (!profile) {
+    return (
+      <div className="shashka-studio shashka-studio--loading" aria-busy="true">
+        <p className="mobile-shell__message">Loading studio…</p>
+      </div>
+    );
+  }
 
   return (
     <>

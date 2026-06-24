@@ -24,8 +24,19 @@ function checkFfmpegAvailable(): Promise<boolean> {
   return new Promise((resolve) => {
     const cmd = process.platform === "win32" ? "ffmpeg" : "ffmpeg";
     const child = spawn(cmd, ["-version"], { windowsHide: true });
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => resolve(code === 0));
+    const timeout = setTimeout(() => {
+      child.kill();
+      resolve(false);
+    }, 8_000);
+
+    child.on("error", () => {
+      clearTimeout(timeout);
+      resolve(false);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      resolve(code === 0);
+    });
   });
 }
 
