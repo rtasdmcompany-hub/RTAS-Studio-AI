@@ -10,6 +10,15 @@ import {
   isCompileSourceClip,
   listOutputClipFiles,
 } from "@/lib/compile-paths";
+import { isServerlessRuntime } from "@/lib/server/data-dir";
+
+function compileJsonError(
+  error: string,
+  status = 500,
+  extra?: Record<string, unknown>
+) {
+  return NextResponse.json({ ok: false, error, ...extra }, { status });
+}
 
 function checkFfmpegAvailable(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -93,132 +102,168 @@ function runVideoStitcher(
 
 /** Status for Compile button — reads apps/backend/data/outputs clip count. */
 export async function GET() {
-  const paths = getCompilePaths();
-  await ensureOutputsDir(paths.outputsDir);
-
-  const [clips, ffmpegAvailable] = await Promise.all([
-    listOutputClipFiles(paths.outputsDir),
-    checkFfmpegAvailable(),
-  ]);
-
-  let stitcherReady = false;
   try {
-    await fs.access(paths.stitcherScript);
-    stitcherReady = true;
-  } catch {
-    stitcherReady = false;
-  }
+    if (isServerlessRuntime()) {
+      return NextResponse.json({
+        ok: true,
+        clipCount: 0,
+        minClips: MIN_COMPILE_CLIPS,
+        canCompile: false,
+        stitcherReady: false,
+        ffmpegAvailable: false,
+        serverless: true,
+        message: "Video compile runs on the GPU worker host, not serverless edge.",
+      });
+    }
 
-  return NextResponse.json({
-    ok: true,
-    clipCount: clips.length,
-    minClips: MIN_COMPILE_CLIPS,
-    canCompile:
-      clips.length >= MIN_COMPILE_CLIPS && ffmpegAvailable && stitcherReady,
-    outputsDir: paths.outputsDir,
-    stitcherScript: paths.stitcherScript,
-    stitcherReady,
-    ffmpegAvailable,
-  });
+    const paths = getCompilePaths();
+    await ensureOutputsDir(paths.outputsDir);
+
+    const [clips, ffmpegAvailable] = await Promise.all([
+      listOutputClipFiles(paths.outputsDir),
+      checkFfmpegAvailable(),
+    ]);
+
+    let stitcherReady = false;
+    try {
+      await fs.access(paths.stitcherScript);
+      stitcherReady = true;
+    } catch {
+      stitcherReady = false;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      clipCount: clips.length,
+      minClips: MIN_COMPILE_CLIPS,
+      canCompile:
+        clips.length >= MIN_COMPILE_CLIPS && ffmpegAvailable && stitcherReady,
+      outputsDir: paths.outputsDir,
+      stitcherScript: paths.stitcherScript,
+      stitcherReady,
+      ffmpegAvailable,
+    });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Compile status unavailable";
+    console.error("[compile] GET error:", message);
+    return compileJsonError(message, 500, {
+      clipCount: 0,
+      minClips: MIN_COMPILE_CLIPS,
+      canCompile: false,
+      stitcherReady: false,
+      ffmpegAvailable: false,
+    });
+  }
 }
 
 /** Merge output clips into one MP4 via apps/backend/video_stitcher.py. */
 export async function POST(request: Request) {
-  const paths = getCompilePaths();
-  await ensureOutputsDir(paths.outputsDir);
-
-  let body: { clipFiles?: string[]; targetDurationSec?: number } = {};
   try {
-    body = (await request.json()) as typeof body;
-  } catch {
-    /* optional body — legacy compile-all mode */
-  }
+    if (isServerlessRuntime()) {
+      return compileJsonError(
+        "Video compile is not available on serverless hosting. Run stitch on the GPU worker host.",
+        503,
+        { serverless: true }
+      );
+    }
 
-  const targetDurationSec = body.targetDurationSec ?? 300;
-  const explicitClips = (body.clipFiles ?? []).filter(isCompileSourceClip);
-  const clips =
-    explicitClips.length > 0
-      ? explicitClips
-      : await listOutputClipFiles(paths.outputsDir);
+    const paths = getCompilePaths();
+    await ensureOutputsDir(paths.outputsDir);
 
-  const minRequired =
-    explicitClips.length > 0
-      ? Math.max(2, explicitClips.length)
-      : MIN_COMPILE_CLIPS;
+    let body: { clipFiles?: string[]; targetDurationSec?: number } = {};
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      /* optional body — legacy compile-all mode */
+    }
 
-  if (clips.length < minRequired) {
-    return NextResponse.json(
-      {
-        error: `Need at least ${minRequired} clips to stitch (found ${clips.length}).`,
-        clipCount: clips.length,
-        minClips: minRequired,
-        outputsDir: paths.outputsDir,
-      },
-      { status: 400 }
-    );
-  }
+    const targetDurationSec = body.targetDurationSec ?? 300;
+    const explicitClips = (body.clipFiles ?? []).filter(isCompileSourceClip);
+    const clips =
+      explicitClips.length > 0
+        ? explicitClips
+        : await listOutputClipFiles(paths.outputsDir);
 
-  const ffmpegAvailable = await checkFfmpegAvailable();
-  if (!ffmpegAvailable) {
-    const installHint =
-      process.platform === "win32"
-        ? "choco install ffmpeg -y"
-        : "sudo apt-get update && sudo apt-get install -y ffmpeg";
-    return NextResponse.json(
-      {
-        error: "FFmpeg is not installed or not on PATH.",
+    const minRequired =
+      explicitClips.length > 0
+        ? Math.max(2, explicitClips.length)
+        : MIN_COMPILE_CLIPS;
+
+    if (clips.length < minRequired) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Need at least ${minRequired} clips to stitch (found ${clips.length}).`,
+          clipCount: clips.length,
+          minClips: minRequired,
+          outputsDir: paths.outputsDir,
+        },
+        { status: 400 }
+      );
+    }
+
+    const ffmpegAvailable = await checkFfmpegAvailable();
+    if (!ffmpegAvailable) {
+      const installHint =
+        process.platform === "win32"
+          ? "choco install ffmpeg -y"
+          : "sudo apt-get update && sudo apt-get install -y ffmpeg";
+      return compileJsonError("FFmpeg is not installed or not on PATH.", 500, {
         installHint,
-      },
-      { status: 500 }
-    );
-  }
+      });
+    }
 
-  try {
-    await fs.access(paths.stitcherScript);
-  } catch {
-    return NextResponse.json(
-      { error: "video_stitcher.py not found in apps/backend." },
-      { status: 500 }
-    );
-  }
+    try {
+      await fs.access(paths.stitcherScript);
+    } catch {
+      return compileJsonError(
+        "video_stitcher.py not found in apps/backend.",
+        500
+      );
+    }
 
-  const outputName = `compiled_5min_${Date.now()}.mp4`;
-  const outputPath = path.join(paths.outputsDir, outputName);
+    const outputName = `compiled_5min_${Date.now()}.mp4`;
+    const outputPath = path.join(paths.outputsDir, outputName);
 
-  let result: Awaited<ReturnType<typeof runVideoStitcher>>;
-  try {
-    result = await runVideoStitcher(
-      paths.stitcherScript,
-      outputPath,
-      paths.outputsDir,
-      {
-        inputFiles: explicitClips.length > 0 ? clips : undefined,
-        targetDurationSec,
-      }
-    );
+    let result: Awaited<ReturnType<typeof runVideoStitcher>>;
+    try {
+      result = await runVideoStitcher(
+        paths.stitcherScript,
+        outputPath,
+        paths.outputsDir,
+        {
+          inputFiles: explicitClips.length > 0 ? clips : undefined,
+          targetDurationSec,
+        }
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to run video stitcher";
+      console.error("Compile stitcher spawn error:", message);
+      return compileJsonError(message, 500);
+    }
+
+    if (!result.ok) {
+      console.error("Video stitcher error:", result.error ?? "stitch failed");
+      return compileJsonError(result.error ?? "Video stitching failed", 500);
+    }
+
+    const videoUrl = getCompiledVideoUrl(outputName);
+
+    return NextResponse.json({
+      ok: true,
+      message: `Compiled ${result.clip_count ?? clips.length} clips into a ${Math.round(targetDurationSec / 60)}-minute video.`,
+      videoUrl,
+      clipCount: result.clip_count ?? clips.length,
+      outputFile: outputName,
+      outputsDir: paths.outputsDir,
+      targetDurationSec,
+    });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to run video stitcher";
-    console.error("Compile stitcher spawn error:", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    const message =
+      err instanceof Error ? err.message : "Compile request failed";
+    console.error("[compile] POST error:", message);
+    return compileJsonError(message, 500);
   }
-
-  if (!result.ok) {
-    console.error("Video stitcher error:", result.error ?? "stitch failed");
-    return NextResponse.json(
-      { error: result.error ?? "Video stitching failed" },
-      { status: 500 }
-    );
-  }
-
-  const videoUrl = getCompiledVideoUrl(outputName);
-
-  return NextResponse.json({
-    ok: true,
-    message: `Compiled ${result.clip_count ?? clips.length} clips into a ${Math.round(targetDurationSec / 60)}-minute video.`,
-    videoUrl,
-    clipCount: result.clip_count ?? clips.length,
-    outputFile: outputName,
-    outputsDir: paths.outputsDir,
-    targetDurationSec,
-  });
 }

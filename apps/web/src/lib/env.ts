@@ -124,34 +124,53 @@ export function isFastApiConfigured(): boolean {
 }
 
 const FASTAPI_URL_MISSING_MESSAGE =
-  "[RTAS Studio] FATAL: FASTAPI_URL is not configured. Set FASTAPI_URL in Vercel environment variables to your internal GPU worker base URL (e.g. https://your-fastapi-host).";
+  "[RTAS Studio] FASTAPI_URL is not configured. Set FASTAPI_URL in Vercel environment variables to your internal GPU worker base URL (e.g. https://your-fastapi-host).";
 
-/** Server-side GPU worker URL — required in production; dev falls back to localhost. */
-export function getServerFastApiUrl(): string {
+export type ServerFastApiUrlState =
+  | { ok: true; url: string }
+  | { ok: false; error: string; code: "FASTAPI_URL_NOT_CONFIGURED" };
+
+/** Resolve server GPU worker URL without throwing — callers return JSON errors per request. */
+export function resolveServerFastApiUrl(): ServerFastApiUrlState {
   const url = readEnv("FASTAPI_URL");
   if (url.length > 0) {
-    return url.replace(/\/$/, "");
+    return { ok: true, url: url.replace(/\/$/, "") };
   }
 
   if (process.env.NODE_ENV !== "production") {
     const fallback =
       readEnv("NEXT_PUBLIC_FASTAPI_URL") || "http://localhost:8000";
-    return fallback.replace(/\/$/, "");
+    return { ok: true, url: fallback.replace(/\/$/, "") };
   }
 
-  console.error(FASTAPI_URL_MISSING_MESSAGE);
-  throw new Error(FASTAPI_URL_MISSING_MESSAGE);
+  return {
+    ok: false,
+    error: FASTAPI_URL_MISSING_MESSAGE,
+    code: "FASTAPI_URL_NOT_CONFIGURED",
+  };
 }
 
-/** Fail fast when the production server boots without a GPU worker URL. */
+export function isServerFastApiUrlConfigured(): boolean {
+  return resolveServerFastApiUrl().ok;
+}
+
+/** Server-side GPU worker URL — dev falls back to localhost; production returns "" when unset. */
+export function getServerFastApiUrl(): string {
+  const resolved = resolveServerFastApiUrl();
+  if (resolved.ok) return resolved.url;
+  console.error(resolved.error);
+  return "";
+}
+
+/** Log missing GPU worker URL at boot without crashing the Next.js runtime. */
 export function validateProductionServerEnv(): void {
   if (process.env.NODE_ENV !== "production") return;
   if (process.env.NEXT_PHASE === "phase-production-build") return;
 
-  if (readEnv("FASTAPI_URL").length > 0) return;
+  const resolved = resolveServerFastApiUrl();
+  if (resolved.ok) return;
 
   console.error(FASTAPI_URL_MISSING_MESSAGE);
-  throw new Error(FASTAPI_URL_MISSING_MESSAGE);
 }
 
 export function getSimulationMode(): boolean {

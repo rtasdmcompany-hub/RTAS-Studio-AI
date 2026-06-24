@@ -1,7 +1,14 @@
-import { getServerFastApiUrl } from "@/lib/env";
+import { resolveServerFastApiUrl } from "@/lib/env";
 
-export function getServerFastApiBase(): string {
-  return getServerFastApiUrl();
+const FASTAPI_NOT_CONFIGURED_RESPONSE = {
+  error:
+    "GPU worker is not configured. Set FASTAPI_URL in server environment variables.",
+  code: "FASTAPI_URL_NOT_CONFIGURED" as const,
+};
+
+export function getServerFastApiBase(): string | null {
+  const resolved = resolveServerFastApiUrl();
+  return resolved.ok ? resolved.url : null;
 }
 
 function extractApiErrorMessage(
@@ -43,7 +50,16 @@ export async function proxyGenerateToFastApi(
   data: Record<string, unknown>;
   timedOut?: boolean;
 }> {
-  const url = `${getServerFastApiBase()}/api/generate`;
+  const base = getServerFastApiBase();
+  if (!base) {
+    return {
+      ok: false,
+      status: 503,
+      data: FASTAPI_NOT_CONFIGURED_RESPONSE,
+    };
+  }
+
+  const url = `${base}/api/generate`;
 
   let res: Response;
   try {
@@ -106,7 +122,16 @@ export async function proxyGenerateToFastApi(
 export async function proxyUploadToFastApi(
   formData: FormData
 ): Promise<{ ok: boolean; status: number; data: Record<string, unknown> }> {
-  const url = `${getServerFastApiBase()}/api/upload`;
+  const base = getServerFastApiBase();
+  if (!base) {
+    return {
+      ok: false,
+      status: 503,
+      data: FASTAPI_NOT_CONFIGURED_RESPONSE,
+    };
+  }
+
+  const url = `${base}/api/upload`;
 
   let res: Response;
   try {

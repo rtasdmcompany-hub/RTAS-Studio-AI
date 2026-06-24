@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { isServerlessRuntime } from "@/lib/server/data-dir";
 
 /** Minimum clips in apps/backend/data/outputs before Compile is enabled. */
 export const MIN_COMPILE_CLIPS = 10;
@@ -12,6 +13,15 @@ export type CompilePaths = {
 
 /** Resolve backend paths from Next.js app cwd (apps/web → apps/backend). */
 export function getCompilePaths(): CompilePaths {
+  if (isServerlessRuntime()) {
+    const backendRoot = path.join("/tmp", "rtas-compile");
+    return {
+      backendRoot,
+      outputsDir: path.join(backendRoot, "data", "outputs"),
+      stitcherScript: path.join(backendRoot, "video_stitcher.py"),
+    };
+  }
+
   const backendRoot = path.resolve(process.cwd(), "..", "backend");
   return {
     backendRoot,
