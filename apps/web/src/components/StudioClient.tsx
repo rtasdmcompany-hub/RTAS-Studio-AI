@@ -1182,6 +1182,26 @@ export function StudioClient() {
     ]
   );
 
+  const handleShareVideo = useCallback((video: GeneratedVideo) => {
+    if (video.status !== "ready" || !video.videoUrl) return;
+    setShareVideo(video);
+  }, []);
+
+  const handleSharePublished = useCallback(
+    (videoId: string) => {
+      if (!profile) return;
+      const nextVideos = videos.map((v) =>
+        v.id === videoId ? { ...v, isPublic: true } : v
+      );
+      setVideos(nextVideos);
+      saveVideosForUser(profile.id, nextVideos);
+      if (activeVideo?.id === videoId) {
+        setActiveVideo({ ...activeVideo, isPublic: true });
+      }
+    },
+    [profile, videos, activeVideo]
+  );
+
   const onGenerateClick = async () => {
     if (!profile) {
       setFormNotice("Please sign in to generate videos.");
@@ -1527,8 +1547,6 @@ export function StudioClient() {
     }
   };
 
-  if (!profile) return <p style={{ padding: "2rem" }}>Loading…</p>;
-
   const isGenerating = processing && genPhase === "running";
   const generationPatienceMessage = isGenerating
     ? buildGenerationPatienceMessage(
@@ -1582,26 +1600,6 @@ export function StudioClient() {
       }),
     });
   };
-
-  const handleShareVideo = useCallback((video: GeneratedVideo) => {
-    if (video.status !== "ready" || !video.videoUrl) return;
-    setShareVideo(video);
-  }, []);
-
-  const handleSharePublished = useCallback(
-    (videoId: string) => {
-      if (!profile) return;
-      const nextVideos = videos.map((v) =>
-        v.id === videoId ? { ...v, isPublic: true } : v
-      );
-      setVideos(nextVideos);
-      saveVideosForUser(profile.id, nextVideos);
-      if (activeVideo?.id === videoId) {
-        setActiveVideo({ ...activeVideo, isPublic: true });
-      }
-    },
-    [profile, videos, activeVideo]
-  );
 
   const premiumPipeline = profile
     ? hasPremiumAccess(profile, durationSeconds)

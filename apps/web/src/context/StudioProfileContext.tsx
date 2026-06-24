@@ -74,7 +74,10 @@ function applySessionToProfile(
 
 export function StudioProfileProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
-  const [profile, setProfileState] = useState<UserProfile | null>(null);
+  const [profile, setProfileState] = useState<UserProfile | null>(() => {
+    if (typeof window === "undefined") return null;
+    return applyCreditExpiry(loadProfile());
+  });
   const [studioMetrics, setStudioMetrics] = useState<StudioMetricsState | null>(
     null
   );
