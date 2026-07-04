@@ -44,7 +44,7 @@ export function RotatingShowcaseVideoBackground() {
           muted
           loop
           playsInline
-          preload={index <= 1 ? "auto" : "metadata"}
+          preload={index === activeIndex ? "auto" : "none"}
           onLoadedData={(event) => tryPlay(event.currentTarget)}
           onCanPlay={(event) => tryPlay(event.currentTarget)}
         />

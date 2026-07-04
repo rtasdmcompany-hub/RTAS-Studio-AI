@@ -16,7 +16,14 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
     session?.user?.emailVerified === false;
 
   if (status === "loading" && pathname && AUTH_GUEST_ONLY_PATHS.some((p) => pathname.startsWith(p))) {
-    return <span className="auth-header-loading">…</span>;
+    return (
+      <span
+        className="inline-block h-8 w-20 animate-pulse rounded-lg bg-white/10"
+        aria-busy="true"
+        aria-label="Loading account actions"
+        role="status"
+      />
+    );
   }
 
   if (session?.user && !forceGuest) {

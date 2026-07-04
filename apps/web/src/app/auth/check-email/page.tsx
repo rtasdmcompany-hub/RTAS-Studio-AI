@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import { CheckEmailClient } from "@/components/auth/CheckEmailClient";
+import { AuthSkeleton } from "@/components/ui/skeletons";
 
 export default function CheckEmailPage() {
   return (
-    <Suspense fallback={<p className="auth-loading">Loading…</p>}>
+    <Suspense fallback={<AuthSkeleton />}>
       <CheckEmailClient />
     </Suspense>
   );

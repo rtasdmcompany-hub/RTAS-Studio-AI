@@ -102,6 +102,7 @@ import {
 import { notifyVideoReady } from "@/lib/video-notify";
 import { PreviewGenerationProgress } from "./PreviewGenerationProgress";
 import { ShareVideoModal } from "./ShareVideoModal";
+import { StudioSkeleton } from "@/components/ui/skeletons";
 import { VideoPlayer } from "./VideoPlayer";
 import { VisualStyleSelector } from "./VisualStyleSelector";
 import { useStudioFormBackup } from "@/hooks/useStudioFormBackup";
@@ -1626,11 +1627,7 @@ export function StudioClient() {
   const wizardProgressPct = Math.round(((wizardStep + 1) / wizardTotalSteps) * 100);
 
   if (!profile) {
-    return (
-      <div className="shashka-studio shashka-studio--loading" aria-busy="true">
-        <p className="mobile-shell__message">Loading studio…</p>
-      </div>
-    );
+    return <StudioSkeleton />;
   }
 
   return (

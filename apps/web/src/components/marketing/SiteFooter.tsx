@@ -6,22 +6,32 @@ import {
   GROUP_NAME,
   PRODUCT_NAME,
 } from "@rtas/shared";
+import {
+  FOOTER_BRAND_LOGO_PATHS,
+  FOOTER_BRAND_LOGO_SIZE,
+} from "@/lib/brand-assets";
 
 const FOOTER_BRANDS = [
   {
     name: PRODUCT_NAME,
-    logo: "/footer-logo-studio-ai.png",
+    logo: FOOTER_BRAND_LOGO_PATHS.studioAi,
     alt: `${PRODUCT_NAME} logo`,
+    width: FOOTER_BRAND_LOGO_SIZE.width,
+    height: FOOTER_BRAND_LOGO_SIZE.height,
   },
   {
     name: COMPANY_NAME,
-    logo: "/footer-logo-digital-marketing.png",
+    logo: FOOTER_BRAND_LOGO_PATHS.digitalMarketing,
     alt: `${COMPANY_NAME} logo`,
+    width: FOOTER_BRAND_LOGO_SIZE.width,
+    height: FOOTER_BRAND_LOGO_SIZE.height,
   },
   {
     name: GROUP_NAME,
-    logo: "/footer-logo-group.png",
+    logo: FOOTER_BRAND_LOGO_PATHS.group,
     alt: `${GROUP_NAME} logo`,
+    width: FOOTER_BRAND_LOGO_SIZE.width,
+    height: FOOTER_BRAND_LOGO_SIZE.height,
   },
 ] as const;
 
@@ -35,8 +45,9 @@ export function SiteFooter() {
               <Image
                 src={brand.logo}
                 alt={brand.alt}
-                width={34}
-                height={34}
+                width={brand.width}
+                height={brand.height}
+                loading="lazy"
                 className="rtas-footer__brand-logo"
               />
               <p className="rtas-footer__brand-name">{brand.name}</p>

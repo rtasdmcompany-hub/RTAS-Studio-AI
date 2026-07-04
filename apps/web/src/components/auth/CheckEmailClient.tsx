@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BrandLockup } from "@/components/BrandLockup";
+import { AuthLinkSkeleton } from "@/components/ui/skeletons";
 import { AuthFlowGuard } from "./AuthFlowGuard";
 
 const DEV_VERIFY_KEY = "rtas_dev_verify_url";
@@ -211,9 +212,7 @@ export function CheckEmailClient() {
           </p>
         )}
 
-        {loadingLink && !devVerificationUrl && (
-          <p className="auth-loading">Preparing confirmation link…</p>
-        )}
+        {loadingLink && !devVerificationUrl && <AuthLinkSkeleton />}
 
         {showOnPageConfirm && (
           <>

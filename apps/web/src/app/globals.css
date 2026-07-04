@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "../styles/shashka-studio.css";
 @import "../styles/marketing.css";
 

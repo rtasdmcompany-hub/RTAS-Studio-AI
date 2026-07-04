@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { AuthSkeleton, StudioSkeleton } from "@/components/ui/skeletons";
 
 type Mode = "signup" | "login" | "check-email";
 
@@ -43,11 +44,11 @@ export function AuthFlowGuard({
   }, [callbackPath, mode, shouldLeaveLogin, status]);
 
   if (mode === "login" && status === "loading") {
-    return <p className="auth-loading">Loading…</p>;
+    return <AuthSkeleton />;
   }
 
   if (shouldLeaveLogin) {
-    return <p className="auth-loading">Opening your workspace…</p>;
+    return <StudioSkeleton />;
   }
 
   return <>{children}</>;

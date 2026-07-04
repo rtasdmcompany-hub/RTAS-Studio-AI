@@ -7,6 +7,7 @@ import {
 } from "@rtas/shared";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { LandingCategoryShowcase } from "@/components/marketing/LandingCategoryShowcase";
+import { ShowcaseVideos } from "@/components/marketing/ShowcaseVideos";
 import {
   SHOWCASE_HERO_HEADLINE,
   SHOWCASE_HERO_TAGLINE,
@@ -64,6 +65,8 @@ const VALUE_GRID = [
 export default function HomePage() {
   return (
     <MarketingLayout>
+      {/* Landing-only cinematic backdrop — deferred, code-split, never blocks first paint */}
+      <ShowcaseVideos />
       {/* Hero — 5 category videos (100% visible) + headline overlay */}
       <section id="categories" className="rtas-hero-showcase">
         <div className="rtas-hero-showcase__videos">

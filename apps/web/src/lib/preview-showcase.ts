@@ -18,7 +18,7 @@ export const LOCAL_SHOWCASE_CATEGORY_VIDEOS = [
   "/showcase/islamic.mp4",
 ] as const;
 
-/** Returns null — site uses GlobalShowcaseVideoBackground in root layout. */
+/** Returns null — landing page renders ShowcaseVideos; other routes have no video backdrop. */
 export function getPageBackgroundVideo(_pathname: string): string | null {
   return null;
 }

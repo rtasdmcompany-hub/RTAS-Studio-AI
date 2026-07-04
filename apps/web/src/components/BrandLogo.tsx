@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import {
   BRAND_FAVICON_PATH,
   BRAND_LOGO_PATH,
+  BRAND_LOGO_SIZES,
 } from "@/lib/brand-assets";
 
 type Props = {
@@ -11,6 +13,9 @@ type Props = {
   width?: number;
   height?: number;
   className?: string;
+  /** Above-the-fold header logos — improves LCP */
+  priority?: boolean;
+  loading?: "lazy" | "eager";
 };
 
 export function BrandLogo({
@@ -18,22 +23,26 @@ export function BrandLogo({
   width,
   height,
   className = "",
+  priority = false,
+  loading,
 }: Props) {
   const src =
     variant === "icon" || variant === "mark"
       ? BRAND_FAVICON_PATH
       : BRAND_LOGO_PATH;
-  const w = width ?? (variant === "full" ? 72 : variant === "icon" ? 32 : 44);
-  const h = height ?? w;
+  const defaults = BRAND_LOGO_SIZES[variant];
+  const w = width ?? defaults.width;
+  const h = height ?? defaults.height;
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       src={src}
       alt="RTAS Studio AI"
       width={w}
       height={h}
       className={`brand-logo brand-logo--${variant} ${className}`.trim()}
+      priority={priority}
+      loading={priority ? undefined : (loading ?? "lazy")}
     />
   );
 }

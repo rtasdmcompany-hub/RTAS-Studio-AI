@@ -8,6 +8,8 @@ type Props = {
   logoVariant?: "mark" | "icon";
   logoSize?: number;
   className?: string;
+  priority?: boolean;
+  loading?: "lazy" | "eager";
 };
 
 /** Logo mark + RTAS STUDIO AI wordmark (standard brand lockup). */
@@ -16,11 +18,19 @@ export function BrandLockup({
   logoVariant = "mark",
   logoSize,
   className = "",
+  priority,
+  loading = "lazy",
 }: Props) {
   const iconSize = logoSize ?? (logoVariant === "mark" ? 44 : 52);
   const content = (
     <>
-      <BrandLogo variant={logoVariant} width={iconSize} height={iconSize} />
+      <BrandLogo
+        variant={logoVariant}
+        width={iconSize}
+        height={iconSize}
+        priority={priority}
+        loading={loading}
+      />
       <span className="rtas-header__brand-text">
         <span className="rtas-header__wordmark">RTAS</span>
         <span className="rtas-header__product">Studio AI</span>
