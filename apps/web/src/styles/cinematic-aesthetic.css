@@ -1,0 +1,323 @@
+/**
+ * Cinematic urban studio atmosphere — mesh gradients, glass, glow, micro-interactions.
+ * Loaded after marketing/studio styles; does not alter lazy-load, auth, or image logic.
+ */
+
+:root {
+  --bg: #09090b;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface2: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.06);
+  --cinematic-purple: #581c87;
+  --cinematic-gold: #b45309;
+  --cinematic-purple-glow: rgba(168, 85, 247, 0.4);
+  --cinematic-gold-glow: rgba(232, 197, 71, 0.35);
+  --transition-smooth: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* —— Animated concert mesh backdrop —— */
+.cinematic-atmosphere {
+  background-color: #09090b;
+  isolation: isolate;
+}
+
+.cinematic-atmosphere::before,
+.cinematic-atmosphere::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cinematic-atmosphere::before {
+  background: #09090b;
+}
+
+.cinematic-atmosphere::after {
+  background:
+    radial-gradient(ellipse 85% 65% at 18% 22%, rgba(88, 28, 135, 0.38), transparent 58%),
+    radial-gradient(ellipse 75% 55% at 82% 78%, rgba(180, 83, 9, 0.28), transparent 52%),
+    radial-gradient(ellipse 55% 45% at 52% 48%, rgba(88, 28, 135, 0.14), transparent 68%),
+    radial-gradient(ellipse 40% 35% at 70% 15%, rgba(180, 83, 9, 0.12), transparent 60%);
+  animation: cinematic-mesh-drift 32s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes cinematic-mesh-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.88;
+  }
+  50% {
+    transform: translate(-1.5%, 1.2%) scale(1.035);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(1.8%, -1%) scale(1.02);
+    opacity: 0.92;
+  }
+}
+
+/* —— Premium glass surfaces —— */
+.cinematic-glass,
+.cinematic-glass-panel {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.cinematic-glass-panel {
+  border-radius: 1rem;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.cinematic-heading-gradient {
+  color: transparent;
+  background-image: linear-gradient(
+    125deg,
+    #f8fafc 0%,
+    #fde68a 38%,
+    #e8c547 52%,
+    #c084fc 88%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.rtas-header,
+.rtas-header--studio {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    background var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    border-color var(--transition-smooth);
+}
+
+.video-content-panel,
+.video-text-highlight,
+.auth-card {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    border-color var(--transition-smooth);
+}
+
+/* —— Gradient typography —— */
+.rtas-hero-showcase__headline h1,
+.rtas-workflow h2,
+.rtas-value h2,
+.rtas-final-cta h2,
+.legal-brand h1,
+.rtas-profile-wrap h1,
+.rtas-howto-page h1,
+.rtas-pricing-page h1 {
+  color: transparent;
+  background-image: linear-gradient(
+    125deg,
+    #f8fafc 0%,
+    #fde68a 38%,
+    #e8c547 52%,
+    #c084fc 88%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 2px 12px rgba(88, 28, 135, 0.25));
+}
+
+.rtas-hero-showcase__headline h1 {
+  text-shadow: none;
+}
+
+/* —— RTAS brand glow —— */
+.rtas-header__brand {
+  transition: transform var(--transition-smooth), filter var(--transition-smooth);
+}
+
+.rtas-header__brand:hover {
+  transform: scale(1.02);
+}
+
+.rtas-header__brand .brand-logo {
+  filter:
+    drop-shadow(0 0 6px rgba(168, 85, 247, 0.45))
+    drop-shadow(0 0 14px rgba(232, 197, 71, 0.22));
+  transition: filter var(--transition-smooth);
+}
+
+.rtas-header__brand:hover .brand-logo {
+  filter:
+    drop-shadow(0 0 10px rgba(168, 85, 247, 0.65))
+    drop-shadow(0 0 22px rgba(232, 197, 71, 0.38));
+}
+
+.rtas-header__wordmark {
+  text-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+}
+
+.rtas-header__product {
+  color: #c4b5fd !important;
+  text-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+/* —— CTA cyber glow —— */
+.rtas-btn-lavender,
+.rtas-header__cta,
+.rtas-workflow__cta,
+.btn-primary.auth-submit {
+  box-shadow:
+    0 0 20px rgba(168, 85, 247, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.35);
+  transition:
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    background var(--transition-smooth),
+    filter var(--transition-smooth);
+}
+
+.rtas-btn-lavender:hover,
+.rtas-header__cta:hover,
+.rtas-workflow__cta:hover,
+.btn-primary.auth-submit:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow:
+    0 0 28px rgba(168, 85, 247, 0.55),
+    0 0 40px rgba(180, 83, 9, 0.22),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.05);
+}
+
+.rtas-btn-ghost,
+.rtas-header__link,
+.rtas-header__mobile-link {
+  transition:
+    color var(--transition-smooth),
+    border-color var(--transition-smooth),
+    background var(--transition-smooth),
+    transform var(--transition-smooth),
+    text-shadow var(--transition-smooth);
+}
+
+.rtas-header__link:hover,
+.rtas-header__link--active,
+.rtas-header__mobile-link:hover,
+.rtas-header__mobile-link--active {
+  color: #fff;
+  text-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
+}
+
+.rtas-btn-ghost:hover {
+  transform: translateY(-1px);
+  border-color: rgba(232, 197, 71, 0.45);
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+}
+
+/* —— Interactive cards —— */
+.rtas-value__card,
+.rtas-pipeline-step,
+.profile-card,
+.rtas-category-card,
+.rtas-footer__brand-row {
+  transition:
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    border-color var(--transition-smooth);
+}
+
+.rtas-value__card:hover,
+.rtas-pipeline-step:hover,
+.profile-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: rgba(168, 85, 247, 0.35) !important;
+  box-shadow:
+    0 0 24px rgba(168, 85, 247, 0.18),
+    0 20px 48px rgba(0, 0, 0, 0.45);
+}
+
+.rtas-category-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  border-color: rgba(232, 197, 71, 0.35) !important;
+  box-shadow: 0 0 20px rgba(180, 83, 9, 0.2);
+}
+
+a:not(.rtas-btn-lavender):not(.rtas-btn-ghost):not(.rtas-header__brand):hover {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
+  transition: text-shadow var(--transition-smooth), color var(--transition-smooth);
+}
+
+/* —— Studio glass panels —— */
+.shashka-holo-widget,
+.create-panel-unified,
+.shashka-preview-frame,
+.credits-pill {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    box-shadow var(--transition-smooth),
+    border-color var(--transition-smooth);
+}
+
+.shashka-holo-widget:hover {
+  border-color: rgba(168, 85, 247, 0.25);
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.12),
+    0 16px 40px rgba(0, 0, 0, 0.42);
+}
+
+.shashka-holo-widget h2,
+.create-panel-unified__bar h2 {
+  color: transparent;
+  background-image: linear-gradient(90deg, #f1f5f9, #e8c547);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.rtas-header--studio {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 24px rgba(88, 28, 135, 0.15);
+}
+
+/* —— Footer glass —— */
+.rtas-footer {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-atmosphere::after {
+    animation: none;
+  }
+
+  .rtas-value__card:hover,
+  .rtas-pipeline-step:hover,
+  .profile-card:hover,
+  .rtas-category-card:hover,
+  .rtas-btn-lavender:hover,
+  .rtas-header__brand:hover {
+    transform: none;
+  }
+}

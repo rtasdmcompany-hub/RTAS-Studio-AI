@@ -28,7 +28,7 @@ export function GlassSkeletonPanel({
 }: GlassSkeletonPanelProps) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 bg-white/5 p-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)] backdrop-blur-xl ${className}`.trim()}
+      className={`rounded-2xl border border-white/10 cinematic-glass-panel p-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)] backdrop-blur-xl ${className}`.trim()}
       aria-busy="true"
       aria-label={ariaLabel}
       role="status"

@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-shell">
+        <div className="app-shell cinematic-atmosphere">
           <div className="app-shell__content">
             <AppProviders>{children}</AppProviders>
           </div>
