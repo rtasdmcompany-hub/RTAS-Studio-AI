@@ -5,6 +5,7 @@ export type HowToCategoryGuide = {
   title: string;
   media: { type: "video" | "image"; src: string; alt: string };
   summary: string;
+  valueTags: string[];
   bestFor: string[];
   recommended: {
     mode: string;
@@ -17,43 +18,65 @@ export type HowToCategoryGuide = {
 
 export const UNIVERSAL_STEPS = [
   {
-    num: "1",
-    title: "Sign in and open Studio",
-    detail: "Create a free account or sign in with Google, then open Studio from the header.",
+    num: "01",
+    tag: "Secure access",
+    tagVariant: "purple" as const,
+    title: "Step 1: Authenticate & Initialize Studio",
+    detail:
+      "Create your workspace with Secure OAuth (Google) or verified email credentials. Once authenticated, launch Studio from the header to initialize your session, sync credits, and unlock the full cinematic pipeline.",
   },
   {
-    num: "2",
-    title: "Choose mode, category, style, and title",
-    detail: "Select Prompt or Image mode, your video category, Real / Avatar / Cartoon style, and a project title.",
+    num: "02",
+    tag: "Pipeline setup",
+    tagVariant: "gold" as const,
+    title: "Step 2: Configure Your Production Pipeline",
+    detail:
+      "Select Prompt or Image mode, choose your video category, set Real / Avatar / Cartoon visual style, and name your project. Each choice calibrates the Audio-Driven Cinematic Engine for your deliverable.",
   },
   {
-    num: "3",
-    title: "Complete the wizard",
-    detail: "Each category shows different fields — lyrics, script, characters, and more. Required fields must be filled before Next is enabled.",
+    num: "03",
+    tag: "Guided wizard",
+    tagVariant: "purple" as const,
+    title: "Step 3: Complete the Guided Creation Wizard",
+    detail:
+      "Category-specific fields appear progressively — lyrics, scripts, character sheets, and direction prompts. Required inputs must validate before the wizard advances to render configuration.",
   },
   {
-    num: "4",
-    title: "Generate and preview",
-    detail: "Click Generate video, watch the progress bar, then review the full video on the Preview screen.",
+    num: "04",
+    tag: "Render & QA",
+    tagVariant: "gold" as const,
+    title: "Step 4: Launch Render & Quality Preview",
+    detail:
+      "Trigger Generate video to start GPU-backed rendering with live progress telemetry. Review the full master on the Preview screen before export — verify motion, identity lock, and lyric sync.",
   },
   {
-    num: "5",
-    title: "Download with Premium",
-    detail: "Free trial shows a watermarked preview. Upgrade for a clean commercial download.",
+    num: "05",
+    tag: "Commercial export",
+    tagVariant: "purple" as const,
+    title: "Step 5: Export with Commercial License",
+    detail:
+      "Free trial delivers a watermarked evaluation render. Upgrade to Tester, Standard, or Premium for clean commercial downloads, full HD/4K output, and licensed distribution rights.",
   },
 ] as const;
 
 export const STUDIO_FLOW = [
-  { label: "Mode", options: "Prompt (text to video) · Image (photo to video)" },
   {
-    label: "Category",
+    label: "Input mode",
+    options: "Prompt (text-to-video) · Image (photo-to-video reference lock)",
+  },
+  {
+    label: "Content category",
     options: "Song · Religious · Business · Cartoon · Story · Podcast",
   },
   {
-    label: "Visual style",
-    options: "Real (face lock) · Avatar · Cartoon",
+    label: "Visual identity",
+    options:
+      "Real — 100% Consistent Real-Face Mode · Avatar · Cartoon stylization",
   },
-  { label: "Title and wizard", options: "Project name, length, fields, Generate" },
+  {
+    label: "Wizard & render",
+    options: "Project metadata, duration, category fields, Generate",
+  },
 ] as const;
 
 export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
@@ -61,29 +84,49 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     id: "song",
     title: "Song / Rap / Music Video",
     media: { type: "video", src: "/showcase/rap.mp4", alt: "Rap music video example" },
-    summary: "Lyric-synced music videos for rap, pop, and performance clips with optional audio upload.",
-    bestFor: ["Rap and hip-hop clips", "Pop and acoustic songs", "Lyric videos for YouTube and Reels"],
+    summary:
+      "Deploy the Audio-Driven Cinematic Engine for rap, pop, and performance clips — with Lyric-Synced Motion Timelines and optional master audio upload for broadcast-grade timing.",
+    valueTags: [
+      "Audio-Driven Cinematic Engine",
+      "Lyric-Synced Motion Timelines",
+      "100% Consistent Real-Face Mode",
+    ],
+    bestFor: [
+      "Rap and hip-hop performance clips",
+      "Pop and acoustic release promos",
+      "Lyric videos for YouTube, Reels, and TikTok",
+    ],
     recommended: {
-      mode: "Prompt mode — paste lyrics and music style",
-      visualStyle: "Real or Avatar for performers; Cartoon for animated lyric videos",
-      length: "15–60 seconds for social; up to 3 minutes for full song clips",
+      mode: "Prompt mode — paste lyrics and music-style direction",
+      visualStyle:
+        "Real or Avatar for performers; enable Identity Shielding for on-camera artists",
+      length: "15–60 seconds for social; up to 3 minutes for full-song segments",
     },
     steps: [
-      { title: "Select Song category", detail: "Studio setup → Category → Song Video." },
-      { title: "Paste lyrics", detail: "Add full lyrics in the Lyrics box, including chorus lines." },
-      { title: "Music style", detail: "Examples: trap, acoustic, drill, soft pop." },
       {
-        title: "Optional audio and image",
-        detail: "Upload MP3/WAV for timing; add a reference image for cover art look.",
+        title: "Initialize Song category",
+        detail: "Studio setup → Category → Song Video to activate lyric-sync pipelines.",
       },
       {
-        title: "Direction prompt",
-        detail: "Describe camera moves, mood, city lights, slow motion, and pacing.",
+        title: "Load Lyric-Synced Motion Timelines",
+        detail: "Paste full lyrics in the Lyrics field, including chorus and bridge markers.",
+      },
+      {
+        title: "Calibrate music style",
+        detail: "Define genre tags: trap, drill, acoustic, soft pop — drives scene pacing.",
+      },
+      {
+        title: "Attach audio reference (optional)",
+        detail: "Upload MP3/WAV to anchor the Audio-Driven Cinematic Engine to your master.",
+      },
+      {
+        title: "Direct cinematic motion",
+        detail: "Specify camera paths, mood, neon concert energy, slow motion, and cut rhythm.",
       },
     ],
     tips: [
-      "Use Real style with a clear face photo if the singer must look like you.",
-      "Keep first test videos under 30 seconds to save credits.",
+      "Enable Real style with Identity Shielding and a front-facing photo for performer lock.",
+      "Keep first renders under 30 seconds to optimize credit consumption during testing.",
     ],
   },
   {
@@ -95,131 +138,158 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
       alt: "Religious faith-based video example",
     },
     summary:
-      "Faith-based videos for any tradition — prayers, hymns, holidays, parables, and teachings.",
+      "Produce reverent, globally accessible faith content with tone-controlled direction prompts and optional Real-Face Mode for speakers and community leaders.",
+    valueTags: ["Tone-Controlled Direction", "Real-Face Mode", "Multi-Tradition Scripts"],
     bestFor: [
       "Prayer and worship visuals",
-      "Holiday and festival posts",
-      "Short faith reminders and stories",
+      "Holiday and festival campaigns",
+      "Short faith reminders and parables",
     ],
     recommended: {
-      mode: "Prompt mode with a clear script or reading",
-      visualStyle: "Real or Avatar for speakers; calm Cartoon for children",
-      length: "15–60 seconds for social clips",
+      mode: "Prompt mode with structured script or sacred reading",
+      visualStyle: "Real or Avatar for speakers; calm Cartoon for youth audiences",
+      length: "15–60 seconds for social distribution",
     },
     steps: [
       { title: "Select Religious category", detail: "Category → Religious Video." },
       {
-        title: "Topic",
+        title: "Define thematic focus",
         detail: "Examples: gratitude, forgiveness, holiday, daily reflection, parable.",
       },
       {
-        title: "Script or reading",
-        detail: "Sacred text, prayer, hymn lyrics, or narration for your faith tradition.",
+        title: "Input script or reading",
+        detail: "Sacred text, prayer, hymn lyrics, or narration aligned to your tradition.",
       },
-      { title: "Tone", detail: "Calm, uplifting, educational, or celebratory." },
+      { title: "Set emotional tone", detail: "Calm, uplifting, educational, or celebratory." },
       {
-        title: "Direction",
-        detail: "Soft light, respectful visuals, minimal text overlays.",
+        title: "Apply respectful direction",
+        detail: "Soft light, dignified visuals, minimal intrusive overlays.",
       },
     ],
     tips: [
       "Use wording that is accurate and respectful for your faith community.",
-      "Calm tone with 30-second length works well for social status clips.",
+      "30-second calm-tone clips perform strongly on social status formats.",
     ],
   },
   {
     id: "cartoon",
     title: "Kids Cartoon",
     media: { type: "video", src: "/showcase/cartoon.mp4", alt: "Kids cartoon animation example" },
-    summary: "Animated stories for children with simple characters and age-friendly plots.",
-    bestFor: ["Kids moral stories", "Learning clips", "Fun episode shorts"],
+    summary:
+      "Launch stylized animation pipelines for age-appropriate storytelling with character-locked prompts and family-safe visual defaults.",
+    valueTags: ["Stylized Animation Pipeline", "Character Lock Prompts", "Age-Safe Defaults"],
+    bestFor: ["Kids moral stories", "Edutainment clips", "Serialized episode shorts"],
     recommended: {
-      mode: "Prompt mode",
-      visualStyle: "Cartoon (required)",
-      length: "15–60 seconds per episode clip",
+      mode: "Prompt mode with structured narrative",
+      visualStyle: "Cartoon (required for animated output)",
+      length: "15–60 seconds per episode segment",
     },
     steps: [
       { title: "Select Cartoon category", detail: "Category → Kids Cartoon." },
-      { title: "Characters", detail: "Name each character and describe their look." },
-      { title: "Story", detail: "Describe beginning, problem, and happy ending." },
-      { title: "Age group", detail: "Examples: ages 3–6 or 7–10." },
+      { title: "Define character roster", detail: "Name each character and describe visual traits." },
+      { title: "Outline story arc", detail: "Beginning, conflict, and resolution in clear beats." },
+      { title: "Set audience age band", detail: "Examples: ages 3–6 or 7–10 for tone calibration." },
       {
-        title: "Style reference",
-        detail: "Upload a drawing or screenshot to match colors and style.",
+        title: "Upload style reference",
+        detail: "Optional drawing or screenshot to match palette and line weight.",
       },
     ],
     tips: [
-      "Select Visual style → Cartoon before generating.",
-      "Use short sentences in the story box for clearer animation.",
+      "Confirm Visual style → Cartoon before initiating render.",
+      "Use short sentences in the story field for clearer scene segmentation.",
     ],
   },
   {
     id: "podcast",
     title: "Podcast Clip",
     media: { type: "video", src: "/showcase/solo.mp4", alt: "Podcast talking-head example" },
-    summary: "Talking-head clips from your podcast with a studio-style background.",
-    bestFor: ["YouTube Shorts from podcasts", "Episode teasers", "Quote clips for social"],
+    summary:
+      "Convert long-form audio into studio-grade talking-head clips with 100% Consistent Real-Face Mode and Identity Shielding for host recognition across episodes.",
+    valueTags: [
+      "Real-Face Mode",
+      "Identity Shielding",
+      "Talking-Head Studio Pipeline",
+    ],
+    bestFor: [
+      "YouTube Shorts from podcast archives",
+      "Episode launch teasers",
+      "Quote clips for social distribution",
+    ],
     recommended: {
-      mode: "Prompt mode",
-      visualStyle: "Real (face lock) or Avatar",
+      mode: "Prompt mode with structured talking points",
+      visualStyle: "Real (face lock) or Avatar spokesperson",
       length: "15–60 second highlight clip",
     },
     steps: [
       { title: "Select Podcast category", detail: "Category → Podcast." },
-      { title: "Host name", detail: "Name shown on screen or in the intro." },
-      { title: "Episode title", detail: "Short title for this clip." },
-      { title: "Talking points", detail: "Three to five key topics for the host to cover." },
-      { title: "Background", detail: "Studio, dark room, or minimal desk setup." },
+      { title: "Register host identity", detail: "Display name for on-screen attribution." },
+      { title: "Set episode title", detail: "Short headline for this clip or series entry." },
+      {
+        title: "Load talking points",
+        detail: "Three to five key topics the host covers in this segment.",
+      },
+      { title: "Configure set design", detail: "Studio desk, dark room, or minimal branded backdrop." },
     ],
     tips: [
-      "Real style requires a clear front face photo and typing YES for consent.",
-      "Upload cover art for a branded lower-thirds look.",
+      "Real style requires a clear front-face photo and YES consent for Identity Shielding.",
+      "Upload cover art for branded lower-thirds and episode continuity.",
     ],
   },
   {
     id: "business",
     title: "Business / Commercial Ad",
     media: { type: "video", src: "/showcase/commercial.mp4", alt: "Commercial ad example" },
-    summary: "Product promos, brand ads, and call-to-action videos for business.",
-    bestFor: ["Product launches", "Sale announcements", "Brand Reels"],
+    summary:
+      "Ship conversion-focused ad creatives with product-accurate Image mode references and CTA-optimized script structures for global campaigns.",
+    valueTags: ["Product-Accurate Image Mode", "CTA Script Engine", "Commercial License Ready"],
+    bestFor: ["Product launches", "Performance marketing ads", "Brand Reels and paid social"],
     recommended: {
-      mode: "Prompt or Image mode with a product photo",
-      visualStyle: "Real or Avatar spokesperson; Image mode for product shots",
+      mode: "Prompt or Image mode with product photography",
+      visualStyle: "Real or Avatar spokesperson; Image mode for SKU-accurate shots",
       length: "15–30 seconds for ads; up to 1 minute for explainers",
     },
     steps: [
       { title: "Select Business category", detail: "Category → Business Ad." },
-      { title: "Brand name", detail: "Your company or product name." },
-      { title: "Offer or CTA", detail: "Example: 50% off — order today." },
-      { title: "Ad script", detail: "Voiceover and on-screen text in one box." },
-      { title: "Product image", detail: "Upload a product photo for accurate visuals." },
+      { title: "Register brand entity", detail: "Company or product name for on-screen identity." },
+      { title: "Define offer & CTA", detail: "Example: 50% off — order today at yourstore.com." },
+      { title: "Author ad script", detail: "Unified voiceover and on-screen copy in one field." },
+      { title: "Upload product asset", detail: "Reference photo for accurate product visualization." },
     ],
     tips: [
-      "Image mode works well when you already have a product photo.",
-      "Place your call to action in the last three seconds of the script.",
+      "Image mode excels when SKU photography already exists in your asset library.",
+      "Place the primary CTA in the final three seconds of the script.",
     ],
   },
   {
     id: "story",
     title: "Story / Short Film",
     media: { type: "video", src: "/showcase/solo.mp4", alt: "Cinematic story example" },
-    summary: "Narrative shorts — drama, comedy, and thriller with plot-driven prompts.",
-    bestFor: ["Micro-drama", "Comedy skits", "Thriller teasers"],
+    summary:
+      "Direct narrative micro-films with plot-driven prompts, cinematic direction controls, and optional Real-Face Mode for character continuity across scenes.",
+    valueTags: [
+      "Cinematic Direction Controls",
+      "Plot-Driven Segmentation",
+      "Real-Face Mode",
+    ],
+    bestFor: ["Micro-drama", "Comedy skits", "Thriller and teaser trailers"],
     recommended: {
-      mode: "Prompt mode",
+      mode: "Prompt mode with structured three-act plot",
       visualStyle: "Real, Avatar, or Cartoon depending on genre",
-      length: "30 seconds to 3 minutes depending on your plan",
+      length: "30 seconds to 3 minutes depending on plan tier",
     },
     steps: [
       { title: "Select Story category", detail: "Category → Story." },
-      { title: "Genre", detail: "Drama, comedy, romance, thriller, and more." },
-      { title: "Plot", detail: "Beginning, conflict, and ending in clear paragraphs." },
-      { title: "Scene image", detail: "Optional reference still for look and location." },
-      { title: "Direction prompt", detail: "Cinematic camera, lighting, and pacing notes." },
+      { title: "Set genre", detail: "Drama, comedy, romance, thriller, and more." },
+      { title: "Outline plot structure", detail: "Beginning, conflict, and resolution in distinct paragraphs." },
+      { title: "Upload scene reference", detail: "Optional still for location look and color grade." },
+      {
+        title: "Apply cinematic direction",
+        detail: "Camera movement, lighting, pacing — golden hour, handheld, anamorphic.",
+      },
     ],
     tips: [
-      "Break long plots into short scenes for clearer 15-second segments.",
-      "Use the direction prompt for film look — golden hour, handheld, and so on.",
+      "Segment long plots into 15-second beats for clearer scene generation.",
+      "Use direction prompts to enforce a consistent film look across cuts.",
     ],
   },
 ];

@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { PRODUCT_NAME } from "@rtas/shared";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import {
+  InnerPageContainer,
+  InnerPageSection,
+} from "@/components/marketing/InnerPageLayout";
 
 const WORKFLOW_STEPS = [
   {
@@ -26,33 +30,35 @@ const WORKFLOW_STEPS = [
 export default function AboutPage() {
   return (
     <MarketingLayout>
-      <section className="rtas-about-page video-content-panel">
-        <p className="rtas-eyebrow">How it works</p>
-        <h1>One studio. Three beats.</h1>
-        <p className="rtas-about-page__lead">
-          From first lyric to final export — {PRODUCT_NAME} keeps compose, render,
-          and publish in a single cinematic workspace built for global creators.
-        </p>
+      <InnerPageContainer>
+        <InnerPageSection className="rtas-about-page text-center">
+          <p className="rtas-eyebrow">How it works</p>
+          <h1 className="text-zinc-100">One studio. Three beats.</h1>
+          <p className="rtas-about-page__lead">
+            From first lyric to final export — {PRODUCT_NAME} keeps compose, render,
+            and publish in a single cinematic workspace built for global creators.
+          </p>
 
-        <div className="rtas-about-page__pipeline">
-          {WORKFLOW_STEPS.map((step) => (
-            <article key={step.id} className="rtas-pipeline-step">
-              <span className="rtas-pipeline-step__num">{step.step}</span>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
-            </article>
-          ))}
-        </div>
+          <div className="rtas-about-page__pipeline">
+            {WORKFLOW_STEPS.map((step) => (
+              <article key={step.id} className="rtas-pipeline-step">
+                <span className="rtas-pipeline-step__num">{step.step}</span>
+                <h3 className="text-zinc-100">{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            ))}
+          </div>
 
-        <div className="rtas-about-page__actions">
-          <Link href="/studio" className="rtas-btn-lavender">
-            Open Studio <span aria-hidden>→</span>
-          </Link>
-          <Link href="/pricing" className="rtas-btn-ghost">
-            View pricing
-          </Link>
-        </div>
-      </section>
+          <div className="rtas-about-page__actions">
+            <Link href="/studio" className="rtas-btn-lavender">
+              Open Studio <span aria-hidden>→</span>
+            </Link>
+            <Link href="/pricing" className="rtas-btn-ghost">
+              View pricing
+            </Link>
+          </div>
+        </InnerPageSection>
+      </InnerPageContainer>
     </MarketingLayout>
   );
 }

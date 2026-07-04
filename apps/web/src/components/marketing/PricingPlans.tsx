@@ -4,23 +4,48 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import {
-  PREMIUM_CREDITS,
-  PREMIUM_PRICE_USD,
-  STANDARD_CREDITS,
-  STANDARD_PRICE_USD,
-  TESTER_CREDITS,
-  TESTER_DURATION_DAYS,
-  TESTER_PRICE_USD,
-  type PaidPlanType,
-} from "@rtas/shared";
+import type { PaidPlanType } from "@rtas/shared";
 import { loadProfile, saveProfile } from "@/lib/store";
 import { startCheckout } from "@/lib/checkout-client";
+import { PRICING_TIERS, planDisplayName } from "@/lib/pricing-tiers";
 import {
-  planLabelFor,
   PricingCheckoutModal,
   type PricingCheckoutModalState,
 } from "@/components/marketing/PricingCheckoutModal";
+
+function FeatureChecklist({
+  features,
+}: {
+  features: (typeof PRICING_TIERS)[number]["features"];
+}) {
+  return (
+    <dl className="rtas-pricing-tier__matrix" aria-label="Plan feature comparison">
+      {features.map((row) => (
+        <div
+          key={row.label}
+          className={`rtas-pricing-tier__matrix-row${
+            row.included ? "" : " rtas-pricing-tier__matrix-row--muted"
+          }`}
+        >
+          <dt>{row.label}</dt>
+          <dd>
+            <span
+              className={`rtas-pricing-tier__check${
+                row.included
+                  ? " rtas-pricing-tier__check--yes"
+                  : " rtas-pricing-tier__check--no"
+              }`}
+              aria-hidden
+            >
+              {row.included ? "✓" : "—"}
+            </span>
+            {row.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export function PricingPlans() {
   const router = useRouter();
@@ -70,8 +95,8 @@ export function PricingPlans() {
       if (result.activated) {
         setModal({
           kind: "success",
-          planLabel: planLabelFor(plan),
-          message: result.message ?? `${planLabelFor(plan)} plan is active.`,
+          planLabel: planDisplayName(plan),
+          message: result.message ?? `${planDisplayName(plan)} is active.`,
           demo: Boolean(result.demo),
         });
         return;
@@ -108,82 +133,46 @@ export function PricingPlans() {
 
   return (
     <>
-      <section id="plans" className="rtas-pricing-grid">
-        <article className="rtas-price-card">
-          <h2>Tester</h2>
-          <p className="rtas-price-card__price">
-            ${TESTER_PRICE_USD} <span>one-time</span>
-          </p>
-          <ul>
-            <li>
-              <strong>{TESTER_CREDITS} seconds</strong> of video ({TESTER_DURATION_DAYS}-day access)
-            </li>
-            <li>Full studio workflow — lyrics, identity &amp; scenes</li>
-            <li>Quick quality — perfect for your first test clip</li>
-            <li>See how RTAS works before committing monthly</li>
-          </ul>
-          <button
-            type="button"
-            className="rtas-btn-lavender rtas-price-card__cta"
-            disabled={busy !== null}
-            onClick={() => void runCheckout("tester")}
+      <section id="plans" className="rtas-pricing-matrix">
+        {PRICING_TIERS.map((tier) => (
+          <article
+            key={tier.plan}
+            className={`rtas-pricing-tier${
+              tier.featured ? " rtas-pricing-tier--featured" : ""
+            }`}
           >
-            {busy === "tester" ? "Starting…" : `Get Tester — $${TESTER_PRICE_USD}`}
-          </button>
-        </article>
+            {tier.featured ? (
+              <span className="rtas-pricing-tier__badge">Most Popular</span>
+            ) : null}
 
-        <article className="rtas-price-card rtas-price-card--featured">
-          <span className="rtas-price-card__badge">Most popular</span>
-          <h2>Standard</h2>
-          <p className="rtas-price-card__price">
-            ${STANDARD_PRICE_USD}
-            <span>/month</span>
-          </p>
-          <ul>
-            <li>
-              <strong>{STANDARD_CREDITS} seconds</strong> every month (≈33 minutes)
-            </li>
-            <li>HD output for social posts, ads &amp; brand content</li>
-            <li>Commercial rights on all paid exports</li>
-            <li>Face-lock &amp; multi-scene music videos</li>
-            <li>Best for creators publishing every week</li>
-          </ul>
-          <button
-            type="button"
-            className="rtas-btn-lavender rtas-price-card__cta"
-            disabled={busy !== null}
-            onClick={() => void runCheckout("standard")}
-          >
-            {busy === "standard" ? "Starting…" : `Get Standard — $${STANDARD_PRICE_USD}/mo`}
-          </button>
-        </article>
+            <p className="rtas-pricing-tier__subtitle">{tier.subtitle}</p>
+            <h2 className="rtas-pricing-tier__name">{tier.name}</h2>
+            <p className="rtas-pricing-tier__price">
+              ${tier.price}
+              <span>{tier.priceSuffix}</span>
+            </p>
+            <p className="rtas-pricing-tier__credits">{tier.creditsLabel}</p>
 
-        <article className="rtas-price-card">
-          <h2>Premium 4K</h2>
-          <p className="rtas-price-card__price">
-            ${PREMIUM_PRICE_USD}
-            <span>/month</span>
-          </p>
-          <ul>
-            <li>
-              <strong>{PREMIUM_CREDITS} seconds</strong> every month (≈33 minutes)
-            </li>
-            <li>Cinematic <strong>4K</strong> — film-grade colour &amp; detail</li>
-            <li>Advanced identity-lock for consistent faces across scenes</li>
-            <li>Longest scenes &amp; richest visual quality</li>
-            <li>Built for music videos, ads &amp; premium brand films</li>
-          </ul>
-          <button
-            type="button"
-            className="rtas-btn-lavender rtas-price-card__cta"
-            disabled={busy !== null}
-            onClick={() => void runCheckout("premium")}
-          >
-            {busy === "premium" ? "Starting…" : `Get Premium — $${PREMIUM_PRICE_USD}/mo`}
-          </button>
-        </article>
+            <ul className="rtas-pricing-tier__highlights">
+              {tier.highlights.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
 
-        <p className="rtas-pricing-note">
+            <FeatureChecklist features={tier.features} />
+
+            <button
+              type="button"
+              className="rtas-btn-lavender rtas-pricing-tier__cta"
+              disabled={busy !== null}
+              onClick={() => void runCheckout(tier.plan)}
+            >
+              {busy === tier.plan ? "Starting…" : tier.ctaLabel}
+            </button>
+          </article>
+        ))}
+
+        <p className="rtas-pricing-matrix__note">
           After payment you&apos;ll return to Studio with credits ready.{" "}
           <Link href="/studio">Go to workspace</Link>
         </p>

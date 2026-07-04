@@ -1,6 +1,7 @@
 export * from "./types";
 export * from "./categories";
 export * from "./credits";
+export * from "./legal/types";
 export * from "./legal/terms";
 export * from "./legal/privacy";
 export * from "./legal/cookies";

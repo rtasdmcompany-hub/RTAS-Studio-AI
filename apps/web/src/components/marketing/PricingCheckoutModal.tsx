@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { PaidPlanType } from "@rtas/shared";
+import { planDisplayName } from "@/lib/pricing-tiers";
 
 export type PricingCheckoutModalState =
   | {
@@ -73,7 +74,5 @@ export function PricingCheckoutModal({ state, onClose }: Props) {
 }
 
 export function planLabelFor(plan: PaidPlanType): string {
-  if (plan === "tester") return "Tester";
-  if (plan === "premium") return "Premium 4K";
-  return "Standard";
+  return planDisplayName(plan);
 }

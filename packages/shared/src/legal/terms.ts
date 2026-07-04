@@ -1,67 +1,87 @@
+import {
+  PREMIUM_PRICE_USD,
+  STANDARD_PRICE_USD,
+  TESTER_PRICE_USD,
+} from "../credits";
+import type { LegalSection } from "./types";
+
 export const COMPANY_NAME = "RTAS DIGITAL MARKETING COMPANY";
 export const GROUP_NAME = "RTAS GROUP OF COMPANIES";
 export const PRODUCT_NAME = "RTAS STUDIO AI";
-export const PREMIUM_PRICE_DISPLAY = "$89/month";
 
-export const LEGAL_LAST_UPDATED = "June 2026";
+export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is a proprietary software division under ${GROUP_NAME}. The Service is developed, operated, and licensed by ${COMPANY_NAME} on behalf of the Group.`;
 
-export const TERMS_SECTIONS = [
+export const LEGAL_LAST_UPDATED = "July 2026";
+
+export const TERMS_INTRO = `${LEGAL_ENTITY_STATEMENT} These Terms of Service ("Terms") govern your access to and use of the ${PRODUCT_NAME} platform, including web applications, APIs, generated media, and related support services (collectively, the "Service"). By creating an account, purchasing credits or a subscription, or otherwise using the Service, you enter a binding agreement with ${COMPANY_NAME}. If you do not agree, you must discontinue use immediately.`;
+
+export const TERMS_SECTIONS: LegalSection[] = [
   {
-    title: "1. Ownership & Proprietary Software",
-    body: `${PRODUCT_NAME} is proprietary software owned exclusively by ${COMPANY_NAME}, operating under the umbrella of ${GROUP_NAME}. All rights in the software, branding, user interface, workflows, and underlying technology are reserved unless expressly granted in these Terms. No ownership interest in the Service is transferred to you except as stated below.`,
+    title: "1. Corporate Entity & Proprietary Software",
+    body: `${LEGAL_ENTITY_STATEMENT} All intellectual property in the Service — including source code, models orchestration, user interfaces, workflows, branding, documentation, and derivative tooling — is owned exclusively by ${COMPANY_NAME} and its affiliates within ${GROUP_NAME}. Except for the limited licenses expressly granted in these Terms, no title or ownership interest is transferred to you. Reverse engineering, redistribution, or creation of competing services from the Service is prohibited unless permitted by mandatory law.`,
   },
   {
-    title: "2. Agreement to Terms",
-    body: `By accessing or using ${PRODUCT_NAME} ("Service"), you agree to these Terms of Service and our Privacy Policy. If you do not agree, you must not use the Service.`,
+    title: "2. Agreement to Terms & Eligibility",
+    body: `By accessing the Service you confirm that you are at least the age of digital consent in your jurisdiction (typically 16–18, or 13 with verifiable parental consent where applicable), that you have authority to bind any organization on whose behalf you register, and that you agree to these Terms, our Privacy Policy, and Cookie Policy. Enterprise or agency accounts must ensure end-user compliance.`,
   },
   {
-    title: "3. Service Description",
-    body: `The Service provides AI-assisted video generation from text prompts, images, and related inputs. Output quality depends on third-party AI providers and your subscription tier.`,
+    title: "3. Service Description & AI Processing",
+    body: `${PRODUCT_NAME} provides AI-assisted video generation from text, lyrics, images, voice, and related inputs, including identity-preservation ("Identity-Lock") workflows. Output quality, latency, and availability depend on your subscription tier, fair-use limits, and third-party model providers. We may modify features, models, or capacity with reasonable notice where practicable.`,
   },
   {
-    title: "4. Subscription & Credits (Premium)",
-    body: `The standard Premium plan is ${PREMIUM_PRICE_DISPLAY} (USD), which includes two thousand (2000) generation credits per billing period unless otherwise stated. One (1) credit equals one (1) second of generated video. Unused credits expire at the end of each billing period; early renewal before expiry rolls remaining credits into the next period per in-app rules.`,
+    title: "4. Subscription Plans, Credits & Billing Cycles",
+    body: `Paid tiers include Creator Starter (Pay-As-You-Go, USD ${TESTER_PRICE_USD} one-time evaluation access), Pro Studio Tier (USD ${STANDARD_PRICE_USD}/month), and Production Enterprise (USD ${PREMIUM_PRICE_USD}/month), each granting generation credits where one (1) credit equals one (1) second of rendered video unless otherwise stated at checkout. Monthly credits reset at the end of each billing period; early renewal may roll unused credits forward per in-app rules. Prices are listed in United States Dollars unless your checkout session displays local currency via our payment partners.`,
+    bullets: [
+      "Creator Starter: evaluation-tier output (including watermarked exports where applicable).",
+      "Pro Studio Tier: 1080p HD masters, clean exports, and commercial download licensing.",
+      "Production Enterprise: 4K cinematic masters with priority+ Identity-Lock queuing.",
+    ],
   },
   {
-    title: "5. Commercial Rights — Active Subscribers",
-    body: `Upon maintaining an active, paid Premium subscription, commercial exploitation rights in AI-generated outputs you lawfully create through the Service transfer fully to you, subject to: (a) your compliance with these Terms; (b) your ownership of or license to all input materials (including likeness, voice, music, and trademarks); and (c) applicable law and third-party AI provider policies. ${COMPANY_NAME} grants no rights beyond this scope.`,
+    title: "5. Payment Terms & Refund Policies Managed via Worldwide Merchant Networks",
+    body: `Card, wallet, and local payment methods are processed by independent Merchant-of-Record ("MoR") partners — including Paddle, Lemon Squeezy, and comparable worldwide merchant networks — that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting support@rtasdigital.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference.`,
   },
   {
-    title: "6. Free Tier, Previews & Watermarked Content",
-    body: `Users on the Free Tier or those who generate watermarked "Preview" content without an active subscription receive only a limited, revocable license to view such content privately within the Service. Unsubscribed and watermarked previews are strictly restricted from commercial distribution, public performance, broadcast, resale, or any monetized use. You may not remove, obscure, or circumvent preview watermarks. Screen recordings containing watermarks remain subject to these restrictions.`,
+    title: "6. Commercial Licensing & Download Rights",
+    body: `Active paid subscribers on Pro Studio Tier or Production Enterprise receive a worldwide, non-exclusive license to commercially exploit AI-generated outputs they lawfully create through the Service, including public performance, advertising, and client delivery, provided: (a) you comply with these Terms; (b) you own or hold valid licenses for all inputs (likeness, voice, music, trademarks, and training data); and (c) you respect third-party AI provider acceptable-use policies. Creator Starter and non-subscribed preview outputs remain for private evaluation only unless upgraded. ${COMPANY_NAME} grants no rights beyond this scope.`,
   },
   {
-    title: "7. Your Content & Representations",
-    body: `You retain ownership of content you lawfully upload. You grant ${COMPANY_NAME} a limited license to process uploads solely to operate the Service. You represent that you have all necessary rights for uploaded material and generated outputs you publish.`,
+    title: "7. Free Previews, Watermarks & Evaluation Content",
+    body: `Watermarked or preview-tier exports are licensed solely for private review within the Service. You may not remove, obscure, or circumvent watermarks, commercially distribute preview content, broadcast it, or monetize screen recordings containing evaluation marks. Upgrading to a paid tier with clean-export entitlements is required before public or commercial release.`,
   },
   {
-    title: "8. AI Output Disclaimer",
-    body: `AI output may contain errors or unintended resemblance to third-party works. "Real Face" modes use identity-preservation tooling but do not guarantee perfect likeness. You are responsible for reviewing all output before publication.`,
+    title: "8. User Content, Representations & IP Indemnity",
+    body: `You retain ownership of lawful uploads. You grant ${COMPANY_NAME} a limited, worldwide license to host, process, transmit, and transform uploads solely to operate, secure, and improve the Service. You represent that your inputs and published outputs do not infringe third-party rights, violate publicity or privacy laws, or breach platform policies. You agree to indemnify ${COMPANY_NAME} and ${GROUP_NAME} affiliates against claims arising from your content or misuse, to the extent permitted by law.`,
   },
   {
-    title: "9. Prohibited Uses",
-    body: `You may not use the Service for illegal activity, non-consensual deepfakes, hate speech, exploitation of minors, fraud, or infringement of third-party rights. We may suspend accounts and cooperate with authorities where required.`,
+    title: "9. AI Output Disclaimer & Identity-Lock Limitations",
+    body: `Generative AI may produce inaccurate, offensive, or unintended resemblance to third-party works or persons. Identity-Lock and face-preservation tooling improve consistency but do not guarantee perfect likeness or legal clearance for commercial likeness use. You are solely responsible for reviewing, clearing, and approving all outputs before publication or monetization.`,
   },
   {
-    title: "10. International Payments (Merchant of Record)",
-    body: `International card and local payment processing may be provided by Merchant-of-Record partners such as Paddle or Lemon Squeezy, which handle tax, invoicing, and compliant checkout in many jurisdictions. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the provider) is subject to the processor's payout schedule. Prices are shown in USD unless stated otherwise.`,
+    title: "10. Prohibited Uses & Acceptable Use Policy",
+    body: `You may not use the Service for illegal activity, non-consensual deepfakes, harassment, hate speech, exploitation of minors, malware distribution, sanctions evasion, or infringement of intellectual property or personality rights. We may suspend or terminate accounts, preserve evidence, and cooperate with law enforcement or regulatory authorities where required.`,
+    bullets: [
+      "No generation of sexual content involving minors or non-consenting individuals.",
+      "No impersonation intended to defraud, deceive, or harm identifiable persons.",
+      "No automated scraping or API abuse beyond documented rate limits.",
+    ],
   },
   {
-    title: "11. Refunds",
-    body: `Except where required by mandatory consumer law, subscription fees are non-refundable once a billing period has started. Billing disputes should be raised through the payment provider receipt or support@rtasdigital.com.`,
+    title: "11. Privacy, Data Processing & Cross-Border Transfers",
+    body: `Personal data is processed as described in our Privacy Policy. By using the Service you acknowledge that data may be transferred to the United States, European Union, United Kingdom, Pakistan, and other regions where we or subprocessors operate, subject to appropriate safeguards where required by GDPR, UK GDPR, or comparable frameworks.`,
   },
   {
-    title: "12. Limitation of Liability",
-    body: `To the maximum extent permitted by law, ${COMPANY_NAME} and ${GROUP_NAME} affiliates shall not be liable for indirect, incidental, or consequential damages. Aggregate liability shall not exceed fees paid by you in the twelve (12) months preceding the claim.`,
+    title: "12. International Compliance, Governing Law & Dispute Resolution",
+    body: `These Terms are governed by the laws applicable to ${COMPANY_NAME}'s registered jurisdiction, without regard to conflict-of-law rules, except where mandatory consumer protections in your country of residence require otherwise. Nothing in these Terms limits non-waivable rights under EU, UK, Australian, Canadian, or other consumer-protection statutes. Disputes should first be addressed to support@rtasdigital.com; where arbitration or courts are permitted, you agree to individual resolution and waive class actions to the extent enforceable.`,
   },
   {
-    title: "13. Governing Law",
-    body: `These Terms are governed by the laws applicable to ${COMPANY_NAME}'s registered jurisdiction, without regard to conflict-of-law principles, except where mandatory consumer protections in your country require otherwise.`,
+    title: "13. Limitation of Liability & Warranty Disclaimer",
+    body: `THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE." TO THE MAXIMUM EXTENT PERMITTED BY LAW, ${COMPANY_NAME} AND ${GROUP_NAME} AFFILIATES DISCLAIM IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. NEITHER ${COMPANY_NAME} NOR ITS AFFILIATES SHALL BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR LOST PROFITS. AGGREGATE LIABILITY SHALL NOT EXCEED THE FEES YOU PAID TO ${COMPANY_NAME} IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.`,
   },
   {
-    title: "14. Contact",
-    body: `Legal & billing: support@rtasdigital.com · ${COMPANY_NAME} · ${GROUP_NAME}.`,
+    title: "14. Modifications, Termination & Contact",
+    body: `We may update these Terms with notice via the Service or email for material changes. Continued use after the effective date constitutes acceptance. We may terminate or suspend access for breach, non-payment, or legal requirement. Upon termination, licenses to evaluation content end; provisions that by nature should survive will remain in effect. Legal, billing, and compliance inquiries: support@rtasdigital.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
   },
 ];
 
-export const COPYRIGHT_NOTICE = `© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved. ${PRODUCT_NAME} is proprietary software of ${GROUP_NAME}.`;
+export const COPYRIGHT_NOTICE = `© ${new Date().getFullYear()} ${COMPANY_NAME}. All rights reserved. ${PRODUCT_NAME} is a proprietary software division under ${GROUP_NAME}.`;

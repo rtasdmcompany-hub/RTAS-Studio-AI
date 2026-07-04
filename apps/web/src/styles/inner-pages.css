@@ -1,0 +1,568 @@
+/**
+ * Unified inner-route layout — glass sections, zinc typography, legacy panel reset.
+ */
+
+.inner-page-container {
+  width: 100%;
+}
+
+.inner-page-section :is(h3, h4, strong.inner-page-heading) {
+  color: rgb(244 244 245);
+}
+
+.inner-page-section :is(h1, h2) {
+  color: transparent;
+}
+
+.inner-page-section :is(p, li, dd, .legal-subtitle, .legal-meta, .legal-lead) {
+  color: rgb(161 161 170);
+}
+
+.inner-page-section .rtas-eyebrow {
+  color: rgb(161 161 170);
+}
+
+.inner-page-section a:not(.rtas-btn-lavender):not(.rtas-btn-ghost) {
+  color: rgb(196 181 253);
+}
+
+/* Strip legacy flat gray panels — layout lives in InnerPageSection */
+.inner-page-container .rtas-howto-page,
+.inner-page-container .legal-shell--marketing,
+.inner-page-container .rtas-about-page,
+.inner-page-container .rtas-pricing-page,
+.inner-page-container .rtas-pricing-hero,
+.inner-page-container .rtas-pricing-faq {
+  width: 100%;
+  max-width: none;
+  min-height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.rtas-marketing-main:has(.inner-page-container) {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.inner-page-section .rtas-howto-category,
+.inner-page-section .rtas-howto-step,
+.inner-page-section .rtas-howto-flow__item,
+.inner-page-section .rtas-howto-callout,
+.inner-page-section .rtas-howto-jump,
+.inner-page-section .rtas-price-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.inner-page-section .rtas-howto-category {
+  margin-bottom: 0;
+}
+
+.inner-page-section .rtas-pipeline-step {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.inner-page-section .rtas-pricing-grid {
+  max-width: none;
+  padding: 0;
+}
+
+.inner-page-section .rtas-faq-grid > div {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.inner-page-section .rtas-faq-grid h3 {
+  color: rgb(244 244 245);
+  margin-bottom: 0.35rem;
+}
+
+.legal-shell--marketing.inner-page-legal {
+  text-align: center;
+}
+
+.inner-page-section.legal-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.inner-page-section .legal-prose {
+  text-align: left;
+}
+
+.legal-prose-shell {
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 48px rgba(0, 0, 0, 0.35);
+}
+
+.inner-page-section .legal-prose-shell .legal-prose {
+  max-width: none;
+  margin: 0;
+}
+
+.inner-page-section .legal-prose h3 {
+  color: rgb(244 244 245);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.01em;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-clip: unset;
+}
+
+.inner-page-section .legal-prose h3:first-of-type {
+  margin-top: 1.25rem;
+}
+
+.inner-page-section .legal-prose p,
+.inner-page-section .legal-prose li {
+  color: rgb(212 212 216);
+}
+
+.inner-page-section .legal-prose .legal-lead {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  margin-bottom: 0.5rem;
+}
+
+.inner-page-section .legal-prose section {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.inner-page-section .legal-prose section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.inner-page-section .legal-prose ul {
+  margin-top: 0.65rem;
+  padding-left: 1.25rem;
+}
+
+.inner-page-section .legal-prose li {
+  margin-top: 0.35rem;
+}
+
+.inner-page-section .legal-prose section {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.inner-page-section .legal-prose h2 {
+  color: rgb(244 244 245);
+}
+
+.inner-page-section .legal-nav--inline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* —— How-to: vertical timeline & value tags —— */
+.rtas-howto-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rtas-howto-timeline__item {
+  display: grid;
+  grid-template-columns: 3.25rem 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.rtas-howto-timeline__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.35rem;
+}
+
+.rtas-howto-timeline__node {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #0a0a0a;
+  background: linear-gradient(135deg, #e8c547 0%, #a855f7 100%);
+  box-shadow:
+    0 0 18px rgba(168, 85, 247, 0.45),
+    0 0 10px rgba(232, 197, 71, 0.35);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.rtas-howto-timeline__line {
+  flex: 1;
+  width: 2px;
+  min-height: 1.5rem;
+  margin: 0.35rem 0;
+  background: linear-gradient(
+    180deg,
+    rgba(168, 85, 247, 0.65) 0%,
+    rgba(232, 197, 71, 0.45) 100%
+  );
+  border-radius: 999px;
+}
+
+.rtas-howto-timeline__panel {
+  margin-bottom: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.rtas-howto-timeline__panel:hover {
+  transform: translateX(4px);
+  border-color: rgba(168, 85, 247, 0.35);
+  box-shadow:
+    0 0 20px rgba(168, 85, 247, 0.15),
+    0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.rtas-howto-timeline__panel h3 {
+  margin: 0.55rem 0 0.4rem;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.rtas-howto-timeline__panel p {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.rtas-howto-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.rtas-howto-tag--purple {
+  color: #e9d5ff;
+  background: rgba(88, 28, 135, 0.45);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+
+.rtas-howto-tag--gold {
+  color: #fef3c7;
+  background: rgba(180, 83, 9, 0.35);
+  border: 1px solid rgba(232, 197, 71, 0.4);
+  box-shadow: 0 0 12px rgba(232, 197, 71, 0.2);
+}
+
+.rtas-howto-value-tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0.85rem;
+  padding: 0;
+}
+
+.rtas-howto-value-tags .rtas-howto-tag {
+  font-size: 0.58rem;
+}
+
+@media (max-width: 640px) {
+  .rtas-howto-timeline__item {
+    grid-template-columns: 2.75rem 1fr;
+    gap: 0.75rem;
+  }
+
+  .rtas-howto-timeline__node {
+    width: 2.15rem;
+    height: 2.15rem;
+    font-size: 0.65rem;
+  }
+
+  .rtas-howto-timeline__panel {
+    padding: 1rem;
+  }
+
+  .rtas-howto-timeline__panel h3 {
+    font-size: 0.95rem;
+  }
+}
+
+/* —— Pricing conversion matrix —— */
+.inner-page-section .rtas-pricing-tier__name {
+  color: rgb(244 244 245);
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-clip: unset;
+}
+
+.rtas-pricing-matrix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.rtas-pricing-matrix__note {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.82rem;
+  color: rgb(161 161 170);
+  margin: 0.5rem 0 0;
+}
+
+.rtas-pricing-matrix__note a {
+  color: rgb(196 181 253);
+}
+
+.rtas-pricing-tier {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.35rem;
+  border-radius: 1rem;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    border-color 0.28s ease;
+}
+
+.rtas-pricing-tier:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 24px rgba(168, 85, 247, 0.12),
+    0 28px 56px rgba(0, 0, 0, 0.45);
+}
+
+.rtas-pricing-tier--featured {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)) padding-box,
+    linear-gradient(135deg, #e8c547 0%, #a855f7 48%, #581c87 100%) border-box;
+  box-shadow:
+    0 0 36px rgba(168, 85, 247, 0.28),
+    0 0 20px rgba(232, 197, 71, 0.18),
+    0 28px 56px rgba(0, 0, 0, 0.45);
+}
+
+.rtas-pricing-tier--featured:hover {
+  box-shadow:
+    0 0 44px rgba(168, 85, 247, 0.38),
+    0 0 28px rgba(232, 197, 71, 0.25),
+    0 32px 64px rgba(0, 0, 0, 0.5);
+}
+
+.rtas-pricing-tier__badge {
+  position: absolute;
+  top: -0.7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.28rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a0a0a;
+  background: linear-gradient(135deg, #fde68a 0%, #e8c547 35%, #c084fc 100%);
+  box-shadow:
+    0 0 18px rgba(232, 197, 71, 0.45),
+    0 0 14px rgba(168, 85, 247, 0.35);
+  white-space: nowrap;
+}
+
+.rtas-pricing-tier__subtitle {
+  margin: 0.35rem 0 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(161 161 170);
+}
+
+.rtas-pricing-tier__name {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: rgb(244 244 245);
+  line-height: 1.25;
+}
+
+.rtas-pricing-tier__price {
+  margin: 0;
+  font-size: 2.15rem;
+  font-weight: 800;
+  color: rgb(244 244 245);
+  line-height: 1.1;
+}
+
+.rtas-pricing-tier__price span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(161 161 170);
+  margin-left: 0.15rem;
+}
+
+.rtas-pricing-tier__credits {
+  margin: 0.45rem 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgb(196 181 253);
+}
+
+.rtas-pricing-tier__highlights {
+  list-style: none;
+  margin: 0 0 1.15rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgb(161 161 170);
+}
+
+.rtas-pricing-tier__highlights li {
+  padding-left: 1rem;
+  position: relative;
+}
+
+.rtas-pricing-tier__highlights li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: rgb(168 85 247);
+}
+
+.rtas-pricing-tier__matrix {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1 1 auto;
+}
+
+.rtas-pricing-tier__matrix-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.2rem;
+}
+
+.rtas-pricing-tier__matrix-row dt {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(161 161 170);
+}
+
+.rtas-pricing-tier__matrix-row dd {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgb(228 228 231);
+}
+
+.rtas-pricing-tier__matrix-row--muted dd {
+  color: rgb(161 161 170);
+}
+
+.rtas-pricing-tier__check {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.rtas-pricing-tier__check--yes {
+  color: #0a0a0a;
+  background: linear-gradient(135deg, #e8c547, #a855f7);
+}
+
+.rtas-pricing-tier__check--no {
+  color: rgb(161 161 170);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rtas-pricing-tier__cta {
+  width: 100%;
+  margin-top: auto;
+}
+
+@media (max-width: 960px) {
+  .rtas-pricing-matrix {
+    grid-template-columns: 1fr;
+    max-width: 28rem;
+    margin: 0 auto;
+  }
+
+  .rtas-pricing-tier--featured {
+    order: -1;
+  }
+}

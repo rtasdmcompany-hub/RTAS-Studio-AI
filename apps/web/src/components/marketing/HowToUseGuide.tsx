@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
-import { PRODUCT_NAME } from "@rtas/shared";
 import {
   CATEGORY_GUIDES,
   STUDIO_FLOW,
   UNIVERSAL_STEPS,
 } from "@/lib/how-to-use-content";
+import {
+  InnerPageContainer,
+  InnerPageSection,
+} from "@/components/marketing/InnerPageLayout";
 
 function GuideMedia({
   media,
@@ -51,13 +54,14 @@ function GuideMedia({
 
 export function HowToUseGuide() {
   return (
-    <article className="rtas-howto-page video-content-panel">
-      <header className="rtas-howto-page__hero">
-        <p className="rtas-eyebrow">User guide</p>
-        <h1>How to use {PRODUCT_NAME}</h1>
+    <InnerPageContainer>
+      <InnerPageSection className="rtas-howto-page__hero text-center">
+        <p className="rtas-eyebrow">Product documentation</p>
+        <h1 className="text-zinc-100">Studio Workflow Guide</h1>
         <p className="rtas-howto-page__lead">
-          Step-by-step instructions with visuals for Song, Religious, Cartoon, Podcast,
-          Business, and Story videos. Follow along and create in Studio.
+          Enterprise-grade instructions for every video category — from secure authentication
+          through render, preview, and licensed export. Built for international creators shipping
+          music videos, ads, faith content, and narrative shorts at scale.
         </p>
         <div className="rtas-howto-page__actions">
           <Link href="/studio" className="rtas-btn-lavender">
@@ -67,54 +71,67 @@ export function HowToUseGuide() {
             Jump to categories
           </a>
         </div>
-      </header>
+      </InnerPageSection>
 
-      <section className="rtas-howto-section" aria-labelledby="howto-universal">
-        <h2 id="howto-universal">Quick start — 5 steps</h2>
+      <InnerPageSection className="rtas-howto-section" aria-labelledby="howto-universal">
+        <h2 id="howto-universal" className="text-zinc-100">
+          Production launch sequence
+        </h2>
         <p className="rtas-howto-section__intro">
-          These steps apply to every category. Start here, then open the guide for your
-          video type below.
+          Five standardized steps every creator follows — regardless of category. Complete this
+          sequence once, then dive into your specialized pipeline below.
         </p>
-        <ol className="rtas-howto-steps">
-          {UNIVERSAL_STEPS.map((step) => (
-            <li key={step.num} className="rtas-howto-step">
-              <span className="rtas-howto-step__num" aria-hidden>
-                {step.num}
-              </span>
-              <div className="rtas-howto-step__body">
-                <h3>{step.title}</h3>
+        <ol className="rtas-howto-timeline">
+          {UNIVERSAL_STEPS.map((step, index) => (
+            <li key={step.num} className="rtas-howto-timeline__item">
+              <div className="rtas-howto-timeline__rail" aria-hidden>
+                <span className="rtas-howto-timeline__node">{step.num}</span>
+                {index < UNIVERSAL_STEPS.length - 1 ? (
+                  <span className="rtas-howto-timeline__line" />
+                ) : null}
+              </div>
+              <div className="rtas-howto-timeline__panel">
+                <span
+                  className={`rtas-howto-tag rtas-howto-tag--${step.tagVariant}`}
+                >
+                  {step.tag}
+                </span>
+                <h3 className="text-zinc-100">{step.title}</h3>
                 <p>{step.detail}</p>
               </div>
             </li>
           ))}
         </ol>
-      </section>
+      </InnerPageSection>
 
-      <section className="rtas-howto-section" aria-labelledby="howto-flow">
-        <h2 id="howto-flow">Studio setup flow</h2>
+      <InnerPageSection className="rtas-howto-section" aria-labelledby="howto-flow">
+        <h2 id="howto-flow" className="text-zinc-100">
+          Studio configuration pipeline
+        </h2>
         <p className="rtas-howto-section__intro">
-          After opening Studio, complete each section in order. The next section appears
-          when the current one is complete.
+          After authentication, configure inputs in sequence. Each stage unlocks the next — ensuring
+          validated metadata before GPU render begins.
         </p>
         <div className="rtas-howto-flow">
           {STUDIO_FLOW.map((item, index) => (
             <div key={item.label} className="rtas-howto-flow__item">
               <span className="rtas-howto-flow__badge">{index + 1}</span>
               <div>
-                <strong>{item.label}</strong>
+                <strong className="text-zinc-100">{item.label}</strong>
                 <p>{item.options}</p>
               </div>
             </div>
           ))}
         </div>
         <div className="rtas-howto-callout">
-          <strong>Real style tip:</strong> To appear on screen yourself, upload a clear
-          front-facing photo and type <code>YES</code> in the consent field.
+          <strong className="text-zinc-100">Identity Shielding tip:</strong> To appear on screen
+          yourself, upload a clear front-facing photo and confirm consent with{" "}
+          <code>YES</code> — this activates 100% Consistent Real-Face Mode across scenes.
         </div>
-      </section>
+      </InnerPageSection>
 
-      <nav className="rtas-howto-jump" id="categories" aria-label="Category guides">
-        <h2>Category guides</h2>
+      <InnerPageSection className="rtas-howto-jump" id="categories" aria-label="Category guides">
+        <h2 className="text-zinc-100">Category production guides</h2>
         <ul className="rtas-howto-jump__list">
           {CATEGORY_GUIDES.map((guide) => (
             <li key={guide.id}>
@@ -122,10 +139,10 @@ export function HowToUseGuide() {
             </li>
           ))}
         </ul>
-      </nav>
+      </InnerPageSection>
 
       {CATEGORY_GUIDES.map((guide) => (
-        <section
+        <InnerPageSection
           key={guide.id}
           id={`guide-${guide.id}`}
           className="rtas-howto-category"
@@ -138,10 +155,19 @@ export function HowToUseGuide() {
             </div>
 
             <div className="rtas-howto-category__content">
-              <h2 id={`guide-title-${guide.id}`}>{guide.title}</h2>
+              <h2 id={`guide-title-${guide.id}`} className="text-zinc-100">
+                {guide.title}
+              </h2>
+              <ul className="rtas-howto-value-tags" aria-label="Product capabilities">
+                {guide.valueTags.map((tag) => (
+                  <li key={tag} className="rtas-howto-tag rtas-howto-tag--gold">
+                    {tag}
+                  </li>
+                ))}
+              </ul>
               <p>{guide.summary}</p>
 
-              <h3>Best for</h3>
+              <h3 className="text-zinc-100">Best for</h3>
               <ul className="rtas-howto-tags">
                 {guide.bestFor.map((item) => (
                   <li key={item}>{item}</li>
@@ -149,18 +175,18 @@ export function HowToUseGuide() {
               </ul>
 
               <div className="rtas-howto-reco">
-                <h3>Recommended settings</h3>
+                <h3 className="text-zinc-100">Recommended settings</h3>
                 <dl>
                   <div>
-                    <dt>Mode</dt>
+                    <dt className="text-zinc-100">Mode</dt>
                     <dd>{guide.recommended.mode}</dd>
                   </div>
                   <div>
-                    <dt>Visual style</dt>
+                    <dt className="text-zinc-100">Visual style</dt>
                     <dd>{guide.recommended.visualStyle}</dd>
                   </div>
                   <div>
-                    <dt>Length</dt>
+                    <dt className="text-zinc-100">Length</dt>
                     <dd>{guide.recommended.length}</dd>
                   </div>
                 </dl>
@@ -169,13 +195,13 @@ export function HowToUseGuide() {
           </div>
 
           <div className="rtas-howto-category__steps">
-            <h3>Step-by-step for this category</h3>
+            <h3 className="text-zinc-100">Production checklist</h3>
             <ol className="rtas-howto-mini-steps">
               {guide.steps.map((step, index) => (
                 <li key={step.title}>
                   <span className="rtas-howto-mini-steps__num">{index + 1}</span>
                   <div>
-                    <strong>{step.title}</strong>
+                    <strong className="text-zinc-100">{step.title}</strong>
                     <p>{step.detail}</p>
                   </div>
                 </li>
@@ -184,7 +210,7 @@ export function HowToUseGuide() {
           </div>
 
           <div className="rtas-howto-tips">
-            <h3>Tips</h3>
+            <h3 className="text-zinc-100">Tips</h3>
             <ul>
               {guide.tips.map((tip) => (
                 <li key={tip}>{tip}</li>
@@ -195,11 +221,11 @@ export function HowToUseGuide() {
           <Link href="/studio" className="rtas-btn-lavender rtas-howto-category__cta">
             Create in Studio →
           </Link>
-        </section>
+        </InnerPageSection>
       ))}
 
-      <footer className="rtas-howto-page__footer">
-        <h2>Need help?</h2>
+      <InnerPageSection className="rtas-howto-page__footer text-center">
+        <h2 className="text-zinc-100">Need help?</h2>
         <p>
           Use live chat in the bottom-right corner or email{" "}
           <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>.
@@ -212,7 +238,7 @@ export function HowToUseGuide() {
             Start creating
           </Link>
         </div>
-      </footer>
-    </article>
+      </InnerPageSection>
+    </InnerPageContainer>
   );
 }
