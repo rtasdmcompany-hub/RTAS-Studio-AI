@@ -24,13 +24,18 @@ def stitch_clips_with_audio(
     if not clip_paths:
         raise VideoStitchError("No video clips to stitch")
 
+    missing = [p.name for p in clip_paths if not p.is_file()]
+    if missing:
+        raise VideoStitchError(f"Missing clip file(s) for stitch: {', '.join(missing)}")
+
+    ordered = list(clip_paths)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     work_dir = output_path.parent / f"{output_path.stem}_stitch_work"
     work_dir.mkdir(parents=True, exist_ok=True)
 
     concat_list = work_dir / "concat.txt"
     concat_lines = "\n".join(
-        f"file '{p.resolve().as_posix()}'" for p in clip_paths if p.is_file()
+        f"file '{p.resolve().as_posix()}'" for p in ordered if p.is_file()
     )
     concat_list.write_text(concat_lines, encoding="utf-8")
 

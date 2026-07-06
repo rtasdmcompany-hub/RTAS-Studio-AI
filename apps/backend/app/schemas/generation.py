@@ -61,6 +61,8 @@ class GenerateRequest(BaseModel):
     use_free_trial: bool = Field(False, alias="useFreeTrial")
     device_fingerprint: Optional[str] = Field(None, alias="deviceFingerprint")
     user_id: Optional[str] = Field(None, alias="userId")
+    status_callback_url: Optional[str] = Field(None, alias="statusCallbackUrl")
+    pipeline_job_id: Optional[str] = Field(None, alias="pipelineJobId")
 
     model_config = {"populate_by_name": True}
 
@@ -82,6 +84,15 @@ class ProcessingStep(BaseModel):
     stage_index: int = Field(alias="stageIndex")
 
     model_config = {"populate_by_name": True, "by_alias": True}
+
+
+class GenerateAsyncResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, ser_json_by_alias=True)
+
+    ok: bool = True
+    job_id: str = Field(alias="jobId")
+    status: str = "queued"
+    message: str = "Generation queued on GPU worker"
 
 
 class GenerateResponse(BaseModel):

@@ -119,6 +119,9 @@ class GenerationJobInput:
     selected_cost_per_second: float | None = None
     selection_reason: str | None = None
     credit_weight: float = 1.0
+    status_callback_url: str | None = None
+    pipeline_job_id: str | None = None
+    pipeline_progress: object | None = field(default=None, repr=False)
 
     @property
     def face_reference_path(self) -> Path | None:
@@ -233,6 +236,8 @@ def ingest_payload(body: GenerateRequest, job_id: str | None = None) -> Generati
         output_path=job_output_path(jid),
     )
     job.compiled_prompt = _compile_prompt(job, body)
+    job.status_callback_url = body.status_callback_url
+    job.pipeline_job_id = body.pipeline_job_id
     return job
 
 
@@ -322,6 +327,13 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
     reload_settings()
     assert_generate_request_allowed(body)
     job = ingest_payload(body, job_id=body.job_id)
+    if body.status_callback_url and body.pipeline_job_id:
+        from app.services.job_progress import PipelineProgressReporter
+
+        job.pipeline_progress = PipelineProgressReporter(
+            body.status_callback_url,
+            body.pipeline_job_id,
+        )
     assert_output_prompt_allowed(job.compiled_prompt)
     steps = build_processing_steps(body)
     preview_only, can_download, credits_used, _ = resolve_output_flags(body)

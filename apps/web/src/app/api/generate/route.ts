@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { FREE_TRIAL_DURATION_SECONDS } from "@rtas/shared";
+import { FREE_TRIAL_DURATION_SECONDS, computeSegmentPlan } from "@rtas/shared";
 import { type GenerateBody } from "@/lib/generation";
 import { authOptions } from "@/lib/auth/auth-options";
 import { proxyGenerateToFastApi } from "@/lib/server/fastapi-proxy";
+import {
+  shouldUseAsyncPipeline,
+  triggerAsyncGpuPipeline,
+} from "@/lib/server/async-pipeline";
+import { isPrismaConfigured } from "@/lib/prisma";
 import {
   buildGpuPipelineFailure,
   httpStatusForPipelineFailure,
@@ -15,9 +20,11 @@ import {
   createGenerationJob,
   CREDITS_PER_RENDER,
   failGenerationJob,
+  finalizeGenerationJobFailure,
   INSUFFICIENT_CREDITS_MESSAGE,
   MAX_CONCURRENT_TRACKS_MESSAGE,
   releaseRenderingSlotOnFailure,
+  updateGenerationJobPipeline,
 } from "@/lib/server/studio-generation-guard";
 
 export const runtime = "nodejs";
@@ -124,15 +131,30 @@ export async function POST(request: Request) {
       null;
     const inputImageName =
       files?.sourceImage?.name || files?.imageReference?.name || null;
+    const backendJobId =
+      typeof body.jobId === "string" && body.jobId.trim()
+        ? body.jobId.trim()
+        : null;
     const creditsUsed = skipBilling ? 0 : CREDITS_PER_RENDER;
+    const useAsyncPipeline =
+      isPrismaConfigured() &&
+      shouldUseAsyncPipeline({
+        durationSeconds: processedDurationSeconds,
+        previewOnly,
+        useFreeTrial,
+      });
 
     if (!skipBilling) {
+      const segmentPlan = computeSegmentPlan(processedDurationSeconds);
       const job = await createGenerationJob({
         userId: effectiveUserId,
         prompt: promptPreview,
         inputImageUrl: inputImageName ? `local://${inputImageName}` : null,
         durationSeconds: processedDurationSeconds,
         creditsCharged: creditsUsed,
+        chunkTotal: useAsyncPipeline ? segmentPlan.segmentCount : null,
+        backendJobId,
+        status: useAsyncPipeline ? "QUEUED" : "GENERATING_CHUNKS",
       });
       jobId = job?.id ?? null;
     }
@@ -141,7 +163,50 @@ export async function POST(request: Request) {
       ...body,
       userId: effectiveUserId,
       durationSeconds: processedDurationSeconds,
+      jobId: backendJobId ?? jobId ?? body.jobId,
+      pipelineJobId: jobId ?? body.jobId,
     };
+
+    if (useAsyncPipeline && jobId) {
+      const queued = await triggerAsyncGpuPipeline(proxyPayload, jobId);
+      if (!queued.ok) {
+        await releaseSlotOnFailure(
+          effectiveUserId,
+          skipBilling,
+          previewOnly,
+          useFreeTrial
+        );
+        await finalizeGenerationJobFailure(
+          jobId,
+          queued.error ?? "Failed to queue GPU worker"
+        );
+        return NextResponse.json(
+          { error: queued.error ?? "Failed to queue long render" },
+          { status: 503 }
+        );
+      }
+
+      await updateGenerationJobPipeline({
+        jobId,
+        status: "generating_chunks",
+        chunkTotal: computeSegmentPlan(processedDurationSeconds).segmentCount,
+        chunksCompleted: 0,
+      });
+
+      return NextResponse.json(
+        {
+          status: "queued",
+          pipelineStatus: "generating_chunks",
+          jobId,
+          pollUrl: `/api/generate/jobs/${jobId}`,
+          message:
+            "Long render queued — segments generate in parallel on the GPU worker",
+          durationSeconds: processedDurationSeconds,
+          creditsUsed,
+        },
+        { status: 202 }
+      );
+    }
 
     let proxyResult: Awaited<ReturnType<typeof proxyGenerateToFastApi>>;
     try {

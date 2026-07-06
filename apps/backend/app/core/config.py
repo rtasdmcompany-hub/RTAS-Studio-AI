@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # AI provider credentials (empty string → unset → simulation fallback)
     replicate_api_token: str | None = None
     ai_backend_secret: str | None = None
+    generation_webhook_secret: str | None = Field(
+        default=None, validation_alias="RTAS_GENERATION_WEBHOOK_SECRET"
+    )
     comfyui_api_url: str | None = None
     comfyui_api_key: str | None = None
     fal_key: str | None = Field(
@@ -101,6 +104,7 @@ class Settings(BaseSettings):
         "runway_api_key",
         "kling_api_key",
         "ai_backend_secret",
+        "generation_webhook_secret",
         mode="before",
     )
     @classmethod

@@ -208,6 +208,8 @@ export type BackendGenerateResponse = {
   durationSeconds: number;
   message: string;
   simulationMode?: boolean;
+  /** Long renders return HTTP 202 — client polls /api/generate/jobs/:id */
+  pipelineQueued?: boolean;
 };
 
 export class BackendConnectionError extends Error {
@@ -391,7 +393,90 @@ function normalizeResponse(data: Record<string, unknown>): BackendGenerateRespon
     durationSeconds: Number(data.durationSeconds ?? data.duration_seconds ?? 30),
     message: String(data.message ?? "Generation complete"),
     simulationMode: Boolean(data.simulationMode ?? data.simulation_mode ?? false),
+    pipelineQueued: Boolean(data.pipelineQueued ?? data.pipeline_queued),
   };
+}
+
+async function pollPipelineJob(
+  jobId: string,
+  onProgress: ProgressHandler
+): Promise<BackendGenerateResponse> {
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const maxAttempts = 720;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let res: Response;
+    try {
+      res = await fetch(`/api/generate/jobs/${jobId}`, { cache: "no-store" });
+    } catch {
+      throw new BackendConnectionError();
+    }
+
+    const data = (await res.json()) as Record<string, unknown>;
+    if (!res.ok) {
+      throw new Error(
+        typeof data.error === "string" ? data.error : "Pipeline poll failed"
+      );
+    }
+
+    const status = String(
+      data.pipelineStatus ?? data.status ?? "queued"
+    ).toLowerCase();
+    const total = Number(data.chunkTotal ?? 0);
+    const done = Number(data.chunksCompleted ?? 0);
+
+    if (status === "generating_chunks" && total > 0) {
+      const percent = Math.min(88, Math.round((done / total) * 78) + 10);
+      onProgress({
+        percent,
+        message: `Rendering segment ${done}/${total} on GPU worker…`,
+        stageIndex: 1,
+      });
+    } else if (status === "compiling_media") {
+      onProgress({
+        percent: 93,
+        message: "Stitching segments into final master…",
+        stageIndex: 2,
+      });
+    } else if (status === "completed") {
+      const videoUrl = String(data.generatedVideoUrl ?? "");
+      onProgress({
+        percent: 100,
+        message: "Video ready",
+        stageIndex: 3,
+      });
+      return {
+        ok: true,
+        jobId,
+        steps: [],
+        provider: "fal",
+        promptPreview: String(data.prompt ?? ""),
+        creditsUsed: Number(data.creditsCharged ?? 0),
+        previewOnly: false,
+        canDownload: true,
+        videoUrl,
+        durationSeconds: Number(data.durationSeconds ?? 30),
+        message: "Long render complete",
+        simulationMode: false,
+      };
+    } else if (status === "failed") {
+      throw new Error(
+        String(data.errorMessage ?? "Long render failed on GPU worker")
+      );
+    } else {
+      onProgress({
+        percent: 8,
+        message: String(data.statusLabel ?? "Queued on GPU worker…"),
+        stageIndex: 0,
+      });
+    }
+
+    await delay(5000);
+  }
+
+  throw new Error(
+    "Render timed out while waiting for multiclip pipeline completion"
+  );
 }
 
 /** Quick health probe (optional UI indicator) */
@@ -554,6 +639,20 @@ export async function postGenerateToBackend(
     throw new Error(msg);
   }
 
+  if (res.status === 202) {
+    return normalizeResponse({
+      ...data,
+      ok: true,
+      pipelineQueued: true,
+      videoUrl: "",
+      steps: [],
+      message:
+        typeof data.message === "string"
+          ? data.message
+          : "Long render queued on GPU worker",
+    });
+  }
+
   return normalizeResponse(data);
 }
 
@@ -596,6 +695,15 @@ export async function runBackendGeneration(
   }
 
   const response = await postGenerateToBackend(requestBody);
+
+  if (response.pipelineQueued) {
+    onProgress({
+      percent: 10,
+      message: response.message || "Long render queued — generating segments…",
+      stageIndex: 0,
+    });
+    return pollPipelineJob(response.jobId, onProgress);
+  }
 
   if (!response.steps?.length) {
     onProgress({

@@ -108,7 +108,8 @@ class FalProvider(BaseAIProvider):
             if target_seconds > _MAX_DURATION:
                 from app.services.fal_multiclip import generate_multiclip_fal
 
-                return await generate_multiclip_fal(job)
+                progress = getattr(job, "pipeline_progress", None)
+                return await generate_multiclip_fal(job, progress=progress)
 
             endpoint, arguments = _build_fal_request(job)
             arguments = _sanitize_fal_arguments(arguments)

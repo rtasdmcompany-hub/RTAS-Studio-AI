@@ -9,4 +9,5 @@ export * from "./identity-pipeline";
 export * from "./studio-fields";
 export * from "./payments";
 export * from "./fal-funding";
+export * from "./pipeline-status";
 export * from "./video-pipeline";

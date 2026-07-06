@@ -1,7 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 
 from app.core.config import reload_settings, settings
-from app.schemas.generation import GenerateRequest, GenerateResponse
+from app.schemas.generation import (
+    GenerateAsyncResponse,
+    GenerateRequest,
+    GenerateResponse,
+)
 from app.services.ai_service import LiveGenerationError, run_generation
 from app.services.content_moderation import (
     CONTENT_POLICY_MESSAGE,
@@ -146,6 +150,93 @@ async def create_generation(body: GenerateRequest, request: Request) -> Generate
         simulation_mode=result.simulation_mode,
         asset_path=asset_path,
         storage_key=storage_key,
+    )
+
+
+async def _run_generation_background(body: GenerateRequest) -> None:
+    """Long-running multiclip pipeline — must not block the HTTP response."""
+    from app.services.job_progress import PipelineProgressReporter
+
+    progress: PipelineProgressReporter | None = None
+    if body.status_callback_url and body.pipeline_job_id:
+        progress = PipelineProgressReporter(
+            body.status_callback_url,
+            body.pipeline_job_id,
+        )
+
+    try:
+        await acquire_generation_slot()
+        await run_generation(body)
+    except LiveGenerationError as exc:
+        if progress:
+            await progress.failed(exc.message)
+        print(f"Async generation failed: {exc.message}", flush=True)
+    except Exception as exc:
+        if progress:
+            await progress.failed(str(exc))
+        print(f"Async generation error: {exc}", flush=True)
+    finally:
+        await release_generation_slot()
+
+
+@router.post(
+    "/async",
+    response_model=GenerateAsyncResponse,
+    response_model_by_alias=True,
+    status_code=202,
+)
+async def create_generation_async(
+    body: GenerateRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> GenerateAsyncResponse:
+    """
+    Queue a long render on the GPU worker without blocking the gateway (avoids 504).
+    Pipeline status is PATCHed to statusCallbackUrl while chunks render and stitch.
+    """
+    try:
+        assert_generate_request_allowed(body)
+    except ContentPolicyViolation as exc:
+        log_content_policy_violation(
+            user_id=body.user_id,
+            device_fingerprint=body.device_fingerprint,
+            ip_address=_client_ip(request),
+            category=body.category,
+            job_id=body.job_id,
+            matched_terms=exc.matched,
+            reason=exc.reason,
+            route="/api/generate/async",
+            preview_only=body.preview_only,
+        )
+        raise HTTPException(status_code=403, detail=CONTENT_POLICY_MESSAGE) from exc
+
+    if body.visual_style == "real":
+        consent = (body.fields.get("faceConsent") or "").strip().upper()
+        has_face = "faceReference" in body.files
+        if consent != "YES" or not has_face:
+            raise HTTPException(
+                status_code=400,
+                detail="Real face mode requires faceReference file and faceConsent YES",
+            )
+
+    reload_settings()
+    if (
+        settings.fal_configured
+        and settings.fal_live_enabled
+        and not body.preview_only
+    ):
+        try:
+            assert_fal_live_allowed(body.user_id)
+        except ValueError as exc:
+            msg = str(exc)
+            raise HTTPException(status_code=503, detail=msg) from exc
+
+    background_tasks.add_task(_run_generation_background, body)
+    job_id = body.pipeline_job_id or body.job_id or "pending"
+    return GenerateAsyncResponse(
+        job_id=job_id,
+        status="queued",
+        message="Long render queued — track status via pipeline job grid",
     )
 
 

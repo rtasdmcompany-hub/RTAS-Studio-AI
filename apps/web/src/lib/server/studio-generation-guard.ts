@@ -155,10 +155,30 @@ export async function releaseRenderingSlotOnFailure(
   }
 }
 
+type GenerationJobStatus =
+  | "QUEUED"
+  | "GENERATING_CHUNKS"
+  | "COMPILING_MEDIA"
+  | "COMPLETED"
+  | "FAILED";
+
 type GenerationJobRecord = {
   id: string;
-  status: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  status: GenerationJobStatus;
+  userId?: string;
 };
+
+function mapPipelineStatusToPrisma(
+  status: string
+): GenerationJobStatus | null {
+  const normalized = status.toLowerCase().replace(/-/g, "_");
+  if (normalized === "queued") return "QUEUED";
+  if (normalized === "generating_chunks") return "GENERATING_CHUNKS";
+  if (normalized === "compiling_media") return "COMPILING_MEDIA";
+  if (normalized === "completed") return "COMPLETED";
+  if (normalized === "failed") return "FAILED";
+  return null;
+}
 
 export async function createGenerationJob(input: {
   userId: string;
@@ -166,20 +186,136 @@ export async function createGenerationJob(input: {
   inputImageUrl?: string | null;
   durationSeconds: number;
   creditsCharged?: number;
+  backendJobId?: string | null;
+  chunkTotal?: number | null;
+  status?: GenerationJobStatus;
 }): Promise<GenerationJobRecord | null> {
   if (!isPrismaConfigured()) return null;
 
   return prisma.generationJob.create({
     data: {
       userId: input.userId,
-      status: "PROCESSING",
+      status: input.status ?? "QUEUED",
       prompt: input.prompt ?? null,
       inputImageUrl: input.inputImageUrl ?? null,
       durationSeconds: input.durationSeconds,
       creditsCharged: input.creditsCharged ?? CREDITS_PER_RENDER,
+      backendJobId: input.backendJobId ?? null,
+      chunkTotal: input.chunkTotal ?? null,
+      chunksCompleted: 0,
     },
-    select: { id: true, status: true },
+    select: { id: true, status: true, userId: true },
   });
+}
+
+export async function updateGenerationJobPipeline(input: {
+  jobId: string;
+  status: string;
+  chunksCompleted?: number;
+  chunkTotal?: number;
+  chunkManifest?: unknown;
+  generatedVideoUrl?: string;
+  errorMessage?: string;
+  backendJobId?: string;
+}): Promise<GenerationJobRecord | null> {
+  if (!isPrismaConfigured()) return null;
+
+  const prismaStatus = mapPipelineStatusToPrisma(input.status);
+  if (!prismaStatus) return null;
+
+  const data: Record<string, unknown> = {
+    status: prismaStatus,
+  };
+
+  if (input.chunksCompleted !== undefined) {
+    data.chunksCompleted = input.chunksCompleted;
+  }
+  if (input.chunkTotal !== undefined) {
+    data.chunkTotal = input.chunkTotal;
+  }
+  if (input.chunkManifest !== undefined) {
+    data.chunkManifest = input.chunkManifest;
+  }
+  if (input.generatedVideoUrl !== undefined) {
+    data.generatedVideoUrl = input.generatedVideoUrl;
+  }
+  if (input.errorMessage !== undefined) {
+    data.errorMessage = input.errorMessage;
+  }
+  if (input.backendJobId !== undefined) {
+    data.backendJobId = input.backendJobId;
+  }
+  if (prismaStatus === "COMPLETED" || prismaStatus === "FAILED") {
+    data.completedAt = new Date();
+  }
+
+  return prisma.generationJob.update({
+    where: { id: input.jobId },
+    data,
+    select: { id: true, status: true, userId: true },
+  });
+}
+
+export async function getGenerationJobForUser(jobId: string, userId: string) {
+  if (!isPrismaConfigured()) return null;
+
+  return prisma.generationJob.findFirst({
+    where: { id: jobId, userId },
+    select: {
+      id: true,
+      status: true,
+      prompt: true,
+      generatedVideoUrl: true,
+      durationSeconds: true,
+      creditsCharged: true,
+      chunkTotal: true,
+      chunksCompleted: true,
+      chunkManifest: true,
+      errorMessage: true,
+      backendJobId: true,
+      createdAt: true,
+      completedAt: true,
+    },
+  });
+}
+
+export async function finalizeGenerationJobSuccess(
+  jobId: string,
+  generatedVideoUrl: string
+): Promise<void> {
+  if (!isPrismaConfigured()) return;
+
+  const job = await prisma.generationJob.update({
+    where: { id: jobId },
+    data: {
+      status: "COMPLETED",
+      generatedVideoUrl,
+      completedAt: new Date(),
+      errorMessage: null,
+    },
+    select: { userId: true },
+  });
+
+  await completeRenderingSlot(job.userId);
+}
+
+export async function finalizeGenerationJobFailure(
+  jobId: string,
+  errorMessage?: string
+): Promise<void> {
+  if (!isPrismaConfigured()) return;
+
+  const job = await prisma.generationJob.update({
+    where: { id: jobId },
+    data: {
+      status: "FAILED",
+      completedAt: new Date(),
+      errorMessage: errorMessage ?? "Video generation failed",
+    },
+    select: { userId: true },
+  });
+
+  await releaseRenderingSlotOnFailure(job.userId);
 }
 
 export async function completeGenerationJob(
@@ -194,11 +330,15 @@ export async function completeGenerationJob(
       status: "COMPLETED",
       generatedVideoUrl,
       completedAt: new Date(),
+      errorMessage: null,
     },
   });
 }
 
-export async function failGenerationJob(jobId: string): Promise<void> {
+export async function failGenerationJob(
+  jobId: string,
+  errorMessage?: string
+): Promise<void> {
   if (!isPrismaConfigured()) return;
 
   await prisma.generationJob.update({
@@ -206,6 +346,7 @@ export async function failGenerationJob(jobId: string): Promise<void> {
     data: {
       status: "FAILED",
       completedAt: new Date(),
+      errorMessage: errorMessage ?? "Video generation failed",
     },
   });
 }
