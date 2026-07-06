@@ -1,4 +1,3 @@
-import { SiteHeader } from "@/components/SiteHeader";
 import { CookieConsent } from "./CookieConsent";
 import { LiveChatWidget } from "./LiveChatWidget";
 import { BackToTop } from "./BackToTop";
@@ -15,7 +14,6 @@ export function MarketingLayout({ children, showChrome = true }: Props) {
 
   return (
     <div className="rtas-marketing-shell">
-      <SiteHeader />
       <main className="rtas-marketing-main">{children}</main>
       <SiteFooter />
       <BackToTop />

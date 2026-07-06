@@ -2964,11 +2964,11 @@ a.btn-download:hover {
 .auth-user-pill {
   font-size: 0.8rem;
   color: var(--muted);
-  padding: 0.35rem 0.65rem;
+  padding: 0.35rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface2);
-  max-width: 120px;
+  max-width: 11rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

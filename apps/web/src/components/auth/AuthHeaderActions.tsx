@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { headerUserLabel, profileDisplayName } from "@/lib/user-display-name";
 
 type Variant = "studio" | "landing";
 
@@ -27,10 +28,11 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
   }
 
   if (session?.user && !forceGuest) {
-    const label = session.user.name?.split(" ")[0] ?? "Account";
+    const label = headerUserLabel(session.user);
+    const fullName = profileDisplayName(session.user);
     return (
       <>
-        <span className="auth-user-pill" title={session.user.email ?? undefined}>
+        <span className="auth-user-pill" title={fullName}>
           {label}
         </span>
         <Link href="/profile" className="btn-ghost rtas-header__profile-link">

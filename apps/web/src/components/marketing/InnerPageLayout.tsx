@@ -2,7 +2,7 @@ import type { ElementType, HTMLAttributes, ReactNode } from "react";
 
 /** Shared horizontal rhythm for marketing inner routes. */
 export const INNER_PAGE_CONTAINER_CLASS =
-  "inner-page-container max-w-6xl mx-auto px-4 pt-24 pb-12 flex flex-col gap-8";
+  "inner-page-container max-w-6xl mx-auto px-4 pt-28 pb-16 flex flex-col gap-8";
 
 /** Premium glass section shell for inner routes. */
 export const INNER_PAGE_SECTION_CLASS =

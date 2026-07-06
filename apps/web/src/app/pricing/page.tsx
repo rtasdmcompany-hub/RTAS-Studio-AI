@@ -28,7 +28,7 @@ export default function PricingPage() {
           </p>
         </InnerPageSection>
 
-        <InnerPageSection className="rtas-pricing-page">
+        <InnerPageSection className="rtas-pricing-plans-section">
           <PricingPlans />
         </InnerPageSection>
 

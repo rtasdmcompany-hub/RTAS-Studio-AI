@@ -10,8 +10,14 @@
   color: rgb(244 244 245);
 }
 
-.inner-page-section :is(h1, h2) {
-  color: transparent;
+/* Solid headings — avoid invisible transparent text without gradient clip */
+.inner-page-section :is(h1, h2).text-zinc-100 {
+  color: rgb(244 244 245);
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-image: none;
+  background-clip: unset;
+  filter: none;
 }
 
 .inner-page-section :is(p, li, dd, .legal-subtitle, .legal-meta, .legal-lead) {
@@ -30,7 +36,7 @@
 .inner-page-container .rtas-howto-page,
 .inner-page-container .legal-shell--marketing,
 .inner-page-container .rtas-about-page,
-.inner-page-container .rtas-pricing-page,
+.inner-page-container .rtas-pricing-plans-section,
 .inner-page-container .rtas-pricing-hero,
 .inner-page-container .rtas-pricing-faq {
   width: 100%;
@@ -44,6 +50,23 @@
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+}
+
+.inner-page-section.rtas-pricing-plans-section {
+  min-height: auto;
+  max-height: none;
+  display: block;
+  overflow: visible;
+}
+
+.inner-page-section.rtas-pricing-hero h1,
+.inner-page-section.rtas-pricing-faq h2 {
+  color: rgb(244 244 245);
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  background-image: none;
+  background-clip: unset;
+  filter: none;
 }
 
 .rtas-marketing-main:has(.inner-page-container) {
