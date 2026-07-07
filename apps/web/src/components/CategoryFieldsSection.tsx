@@ -247,7 +247,7 @@ export function CategoryFieldsSection({
       />
 
       <p className="section-label">
-        {mode === "image" ? "Image mode" : "Prompt mode"}
+        {mode === "image" ? "Image mode" : "Visual scene"}
       </p>
       {modeAndCategoryFields
         .filter((f) => f.id === "mainPrompt" || f.id === "sourceImage")

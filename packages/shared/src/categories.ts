@@ -285,11 +285,13 @@ export const IMAGE_MODE_FIELDS: CategoryField[] = [
 export const PROMPT_MODE_FIELDS: CategoryField[] = [
   {
     id: "mainPrompt",
-    label: "Main Prompt",
-    shortLabel: "Prompt",
+    label: "Visual Scene Description",
+    shortLabel: "Visual Scene Description",
     type: "textarea",
     required: true,
-    placeholder: "Describe the full scene…",
+    placeholder: "Describe the visual scene here...",
+    helpText:
+      "What the camera should show — action, setting, mood, and pacing. Pre-filled from your earlier prompt or lyrics when empty.",
   },
 ];
 

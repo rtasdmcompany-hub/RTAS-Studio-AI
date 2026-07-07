@@ -294,6 +294,7 @@ export function collectRequiredFieldErrors(
 const FIELD_LABEL_OVERRIDES: Record<string, string> = {
   videoTitle: "Video Title",
   directionPrompt: "Directional Prompt",
+  mainPrompt: "Visual Scene Description",
   faceConsent: "Face consent — type YES",
   faceReference: "Face Photo",
   sourceImage: "Source Image",
@@ -338,6 +339,29 @@ export function scrollToFirstFieldError(fieldId: string): void {
       el.focus({ preventScroll: true });
     }
   }
+}
+
+export const DURATION_PROMPT_GROUP_ID = "duration-prompt";
+
+/** Earlier wizard text used to pre-fill Visual Scene Description when empty. */
+const VISUAL_SCENE_SOURCE_FIELD_IDS = [
+  "directionPrompt",
+  "lyrics",
+  "script",
+  "adScript",
+  "story",
+  "plot",
+  "talkingPoints",
+  "topic",
+] as const;
+
+export function buildVisualSceneAutoFill(state: StudioFormState): string {
+  const t = state.text;
+  for (const fieldId of VISUAL_SCENE_SOURCE_FIELD_IDS) {
+    const value = t[fieldId]?.trim();
+    if (value) return value;
+  }
+  return "";
 }
 
 export function extractCreativePrompt(state: StudioFormState): string {

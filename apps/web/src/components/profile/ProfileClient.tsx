@@ -23,6 +23,7 @@ import { shouldConfirmEarlyResubscribe } from "@/lib/monetization";
 import { startCheckout } from "@/lib/checkout-client";
 import { EarlyResubscribeModal } from "@/components/EarlyResubscribeModal";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { ProfileAssetGallery } from "@/components/gallery/ProfileAssetGallery";
 
 type Props = {
   initialProfile: UserProfile;
@@ -63,7 +64,7 @@ export function ProfileClient({ initialProfile }: Props) {
         setProfile(current);
       })
       .catch(() => {});
-  }, [initialProfile]);
+  }, [initialProfile.id]);
 
   const runCheckout = async (
     plan: PaidPlanType,
@@ -105,7 +106,7 @@ export function ProfileClient({ initialProfile }: Props) {
 
   return (
     <MarketingLayout>
-      <div className="rtas-profile-wrap profile-page video-content-panel">
+      <div className="rtas-profile-wrap rtas-profile-wrap--with-gallery profile-page video-content-panel">
         <EarlyResubscribeModal
           open={showEarlyResubscribe}
           remainingCredits={profile.credits}
@@ -195,6 +196,8 @@ export function ProfileClient({ initialProfile }: Props) {
           <Link href="/cookies">Cookies</Link>
           <Link href="/pricing#plans">Pricing</Link>
         </footer>
+
+        <ProfileAssetGallery userId={profile.id} />
       </div>
     </MarketingLayout>
   );

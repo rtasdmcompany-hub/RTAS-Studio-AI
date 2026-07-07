@@ -52,6 +52,11 @@ import {
   saveProfile,
   saveVideosForUser,
 } from "@/lib/store";
+import { useUserVideoGallery } from "@/hooks/useUserVideoGallery";
+import {
+  mergeServerAssetsWithLocal,
+  userVideoAssetToGeneratedVideo,
+} from "@/lib/gallery-display";
 import { resolveVideoPlaybackUrl } from "@/lib/video-playback";
 import {
   CUSTOMER_CLOUD_MAINTENANCE,
@@ -69,8 +74,10 @@ import {
   buildGeneratePayload,
   buildMissingFieldsMessage,
   buildVideoTitle,
+  buildVisualSceneAutoFill,
   collectRequiredFieldErrors,
   createInitialFormState,
+  DURATION_PROMPT_GROUP_ID,
   extractCreativePrompt,
   getWizardGroupAtStep,
   getWizardStepCount,
@@ -177,6 +184,14 @@ export function StudioClient() {
     generationLimitMessage,
   } = useStudioProfile();
   const [videos, setVideos] = useState<GeneratedVideo[]>([]);
+  const serverGallery = useUserVideoGallery(profile?.id, {
+    pageSize: 12,
+    pollActive: true,
+  });
+  const carouselItems = useMemo(
+    () => mergeServerAssetsWithLocal(serverGallery.items, videos),
+    [serverGallery.items, videos]
+  );
   const [mode, setMode] = useState<GenerationMode | null>(null);
   const [category, setCategory] = useState<VideoCategory | null>(null);
   const [visualStyle, setVisualStyle] = useState<VisualStyle | null>(null);
@@ -228,6 +243,7 @@ export function StudioClient() {
   const previewPanelRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const genPhaseRef = useRef<GenPhase>("idle");
+  const durationPromptAutoFillStepRef = useRef<number | null>(null);
 
   const scrollToProgress = useCallback(() => {
     const target = progressRef.current ?? previewPanelRef.current;
@@ -557,6 +573,29 @@ export function StudioClient() {
     }, 500);
     return () => window.clearTimeout(timer);
   }, [wizardStep, setupComplete]);
+
+  useEffect(() => {
+    if (!category || !mode || mode !== "prompt" || !visualStyle) return;
+    const group = getWizardGroupAtStep(wizardStep, category, mode, visualStyle);
+    if (group?.id !== DURATION_PROMPT_GROUP_ID) {
+      durationPromptAutoFillStepRef.current = null;
+      return;
+    }
+    if (durationPromptAutoFillStepRef.current === wizardStep) return;
+    if (form.text.mainPrompt?.trim()) {
+      durationPromptAutoFillStepRef.current = wizardStep;
+      return;
+    }
+    const autoFill = buildVisualSceneAutoFill(form);
+    if (autoFill) {
+      setForm((prev) => ({
+        ...prev,
+        text: { ...prev.text, mainPrompt: autoFill },
+      }));
+      rememberTextField("mainPrompt", autoFill);
+    }
+    durationPromptAutoFillStepRef.current = wizardStep;
+  }, [wizardStep, category, mode, visualStyle, form, rememberTextField]);
 
   const stopGenerationUi = useCallback(() => {
     setProcessing(false);
@@ -2166,12 +2205,20 @@ export function StudioClient() {
               />
 
               <StudioVideoCarousel
-                videos={videos}
+                items={carouselItems}
                 activeVideoId={activeVideo?.id}
                 profile={profile}
                 disabled={processing}
-                onSelect={handleSelectVideo}
-                onShare={handleShareVideo}
+                onSelect={(item) =>
+                  handleSelectVideo(
+                    userVideoAssetToGeneratedVideo(item, profile?.id)
+                  )
+                }
+                onShare={(item) =>
+                  handleShareVideo(
+                    userVideoAssetToGeneratedVideo(item, profile?.id)
+                  )
+                }
               />
 
               {isStudioOwner(profile) ? (
