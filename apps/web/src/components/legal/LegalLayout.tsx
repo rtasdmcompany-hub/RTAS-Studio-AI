@@ -30,7 +30,7 @@ export function LegalLayout({ title, subtitle, children }: Props) {
             </Link>
             <div className="legal-brand">
               <BrandLockup logoVariant="icon" logoSize={64} />
-              <h1 className="text-zinc-100">{title}</h1>
+              <h1 className="text-white">{title}</h1>
               {subtitle && <p className="legal-subtitle">{subtitle}</p>}
             </div>
             <p className="legal-meta">

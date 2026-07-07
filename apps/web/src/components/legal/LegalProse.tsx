@@ -8,8 +8,8 @@ type Props = {
 export function LegalProse({ intro, sections }: Props) {
   return (
     <div className="legal-prose-shell">
-      <article className="prose prose-invert max-w-4xl text-left leading-relaxed text-zinc-300 legal-prose">
-        <p className="legal-lead !text-zinc-300">{intro}</p>
+      <article className="prose prose-invert max-w-4xl text-left leading-relaxed text-zinc-50 legal-prose">
+        <p className="legal-lead !text-zinc-50">{intro}</p>
         {sections.map((section) => (
           <section key={section.title} aria-labelledby={slugId(section.title)}>
             <h3 id={slugId(section.title)}>{section.title}</h3>

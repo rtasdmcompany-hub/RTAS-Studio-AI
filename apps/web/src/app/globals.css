@@ -6,14 +6,16 @@
 @import "../styles/marketing.css";
 @import "../styles/cinematic-aesthetic.css";
 @import "../styles/inner-pages.css";
+@import "../styles/asset-gallery.css";
+@import "../styles/high-contrast-text.css";
 
 :root {
   --bg: #0a0b10;
   --surface: #12141f;
   --surface2: #1a1d2e;
   --border: #2a2f45;
-  --text: #f0f2f8;
-  --muted: #9aa3b8;
+  --text: #ffffff;
+  --muted: #e4e4e7;
   --accent: #c9a227;
   --accent2: #e8c547;
   --danger: #e85d5d;

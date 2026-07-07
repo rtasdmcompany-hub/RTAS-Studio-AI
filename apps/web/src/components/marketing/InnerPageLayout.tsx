@@ -6,7 +6,7 @@ export const INNER_PAGE_CONTAINER_CLASS =
 
 /** Premium glass section shell for inner routes. */
 export const INNER_PAGE_SECTION_CLASS =
-  "inner-page-section backdrop-blur-xl bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6 md:p-10 shadow-2xl shadow-black/40 text-zinc-400";
+  "inner-page-section backdrop-blur-xl bg-black/70 border border-white/10 rounded-2xl p-6 md:p-10 shadow-2xl shadow-black/40 text-zinc-50";
 
 type ContainerProps = {
   children: ReactNode;

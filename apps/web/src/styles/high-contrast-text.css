@@ -1,0 +1,200 @@
+/**
+ * High-contrast typography — crisp white text on dark / video backgrounds.
+ * Loaded last; wins over cinematic glass and muted zinc defaults.
+ */
+
+:root {
+  --rtas-muted: #e4e4e7;
+  --shashka-muted: #e4e4e7;
+  --muted: #d4d4d8;
+  --rtas-text-body: #f4f4f5;
+  --rtas-text-secondary: #e4e4e7;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* —— Readable panels over video (override near-transparent glass) —— */
+.video-content-panel,
+.video-text-highlight,
+.rtas-hero-showcase__content.video-text-highlight {
+  background: rgba(0, 0, 0, 0.82) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.rtas-header,
+.rtas-header--studio {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.rtas-header__link,
+.rtas-header__mobile-link {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.rtas-footer {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.rtas-footer__col h4,
+.rtas-footer__muted {
+  color: #e4e4e7 !important;
+}
+
+.rtas-footer a,
+.rtas-footer__link {
+  color: #ffffff !important;
+}
+
+/* —— Landing page body copy —— */
+.rtas-trusted > p,
+.rtas-workflow__lead,
+.rtas-pipeline-step p,
+.rtas-value__card p,
+.rtas-final-cta p,
+.rtas-final-cta__note {
+  color: #f4f4f5 !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
+}
+
+.rtas-trusted li {
+  color: #ffffff !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.rtas-workflow h2,
+.rtas-value h2,
+.rtas-final-cta h2,
+.rtas-pipeline-step h3 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+.rtas-hero-showcase__headline h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.9),
+    0 0 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+.rtas-hero-showcase__tagline {
+  color: #ffffff !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+}
+
+/* —— Inner pages (pricing, legal, how-to) —— */
+.inner-page-section {
+  color: #f4f4f5 !important;
+  background: rgba(0, 0, 0, 0.72) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.inner-page-section :is(p, li, dd, .legal-subtitle, .legal-meta, .legal-lead, .rtas-eyebrow) {
+  color: #f4f4f5 !important;
+}
+
+.inner-page-section .legal-prose p,
+.inner-page-section .legal-prose li {
+  color: #f4f4f5 !important;
+}
+
+.inner-page-section :is(h1, h2, h3, h4, strong.inner-page-heading),
+.inner-page-section .text-zinc-100 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.inner-page-section a:not(.rtas-btn-lavender):not(.rtas-btn-ghost) {
+  color: #e9d5ff !important;
+  font-weight: 500;
+}
+
+.legal-prose-shell {
+  background: rgba(0, 0, 0, 0.78) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.legal-home-link {
+  color: #ffffff !important;
+}
+
+.legal-nav--inline a {
+  color: #e9d5ff !important;
+  font-weight: 600;
+}
+
+/* —— Pricing matrix —— */
+.rtas-pricing-tier__subtitle,
+.rtas-pricing-tier__highlights,
+.rtas-pricing-tier__highlights li,
+.rtas-pricing-tier__matrix-row dt,
+.rtas-pricing-tier__matrix-row--muted dd,
+.rtas-pricing-matrix__note {
+  color: #e4e4e7 !important;
+}
+
+.rtas-pricing-tier__matrix-row dd {
+  color: #ffffff !important;
+}
+
+.rtas-pricing-tier__price span {
+  color: #e4e4e7 !important;
+}
+
+.rtas-faq-grid p {
+  color: #f4f4f5 !important;
+}
+
+/* —— Studio workflow —— */
+.shashka-holo-widget,
+.create-panel-unified,
+.shashka-preview-frame,
+.shashka-preview-side,
+.credits-pill {
+  background: rgba(8, 8, 14, 0.92) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.create-panel-unified__bar .tagline,
+.shashka-wizard-step__meta,
+.shashka-wizard-step__hint,
+.studio-setup-section__prompt,
+.studio-wizard-progress__meta,
+.shashka-console__footnote,
+.studio-screen-rail__btn,
+.shashka-hud__status,
+.shashka-carousel__empty,
+.shashka-holo-widget .section-label,
+.field .help,
+.field label {
+  color: #f4f4f5 !important;
+}
+
+.shashka-wizard-step__label {
+  color: #e9d5ff !important;
+  font-weight: 600;
+}
+
+.create-panel-unified__bar h2,
+.shashka-holo-widget h2 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.studio-shell--unified {
+  color: #ffffff;
+}

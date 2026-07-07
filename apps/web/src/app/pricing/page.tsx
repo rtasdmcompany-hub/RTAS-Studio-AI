@@ -18,10 +18,10 @@ export default function PricingPage() {
       <InnerPageContainer>
         <InnerPageSection className="rtas-pricing-hero text-center">
           <p className="rtas-eyebrow">Global SaaS pricing</p>
-          <h1 className="text-zinc-100">Studio conversion matrix</h1>
+          <h1 className="text-white">Studio conversion matrix</h1>
           <p className="rtas-pricing-hero__lead">
             {PRODUCT_NAME} uses transparent credit economics —{" "}
-            <strong className="text-zinc-100">1 credit = 1 second</strong> of rendered
+            <strong className="text-white">1 credit = 1 second</strong> of rendered
             video. Start with Creator Starter (${TESTER_PRICE_USD} pay-as-you-go), scale
             with Pro Studio Tier (${STANDARD_PRICE_USD}/mo), or deploy Production Enterprise
             (${PREMIUM_PRICE_USD}/mo) for 4K cinematic output.
@@ -33,7 +33,7 @@ export default function PricingPage() {
         </InnerPageSection>
 
         <InnerPageSection className="rtas-pricing-faq">
-          <h2 className="text-zinc-100">Which tier fits your workflow?</h2>
+          <h2 className="text-white">Which tier fits your workflow?</h2>
           <div className="rtas-faq-grid">
             <div>
               <h3>Creator Starter — ${TESTER_PRICE_USD}</h3>
