@@ -1,0 +1,310 @@
+/* Asset gallery — profile grid + studio carousel cards */
+
+.asset-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 1rem;
+}
+
+.asset-gallery__carousel-track {
+  align-items: stretch;
+}
+
+.asset-gallery__carousel-track .asset-card--compact {
+  min-width: 9.5rem;
+}
+
+.asset-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 20, 31, 0.82);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.asset-card--grid {
+  min-height: 220px;
+}
+
+.asset-card--compact {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.asset-card--compact .asset-card__media {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.asset-card--active .asset-card__media {
+  border-color: rgba(165, 148, 253, 0.65);
+  box-shadow: 0 0 18px rgba(165, 148, 253, 0.28);
+}
+
+.asset-card--processing .asset-card__media {
+  border-color: rgba(165, 148, 253, 0.35);
+}
+
+.asset-card--failed .asset-card__media {
+  border-color: rgba(232, 93, 93, 0.35);
+}
+
+.asset-card__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: rgba(10, 11, 16, 0.9);
+}
+
+.asset-card__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #0a0b10;
+}
+
+.asset-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: rgba(165, 148, 253, 0.85);
+  background: linear-gradient(145deg, rgba(26, 29, 46, 0.95), rgba(36, 40, 58, 0.75));
+}
+
+.asset-card__shimmer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.04) 8%,
+    rgba(165, 148, 253, 0.12) 18%,
+    rgba(255, 255, 255, 0.04) 33%
+  );
+  background-size: 200% 100%;
+  animation: assetShimmer 1.6s ease-in-out infinite;
+}
+
+.asset-card__shimmer-wave {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 40%,
+    rgba(165, 148, 253, 0.18),
+    transparent 55%
+  );
+}
+
+.asset-card__shimmer-ring {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  border: 2px solid rgba(165, 148, 253, 0.25);
+  animation: assetRingSpin 3s linear infinite;
+}
+
+@keyframes assetShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes assetRingSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.asset-card__badge {
+  position: absolute;
+  left: 0.45rem;
+  bottom: 0.45rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(10, 11, 16, 0.78);
+  color: rgba(240, 242, 248, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+}
+
+.asset-card__badge--processing {
+  color: #c9b8ff;
+  border-color: rgba(165, 148, 253, 0.45);
+  animation: assetPulse 1.8s ease-in-out infinite;
+}
+
+.asset-card__badge--failed {
+  color: #ffb4b4;
+  border-color: rgba(232, 93, 93, 0.45);
+}
+
+.asset-card__badge--premium {
+  color: #e8c547;
+  border-color: rgba(201, 162, 39, 0.45);
+}
+
+@keyframes assetPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.72;
+  }
+}
+
+.asset-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.65rem 0.7rem 0.75rem;
+}
+
+.asset-card--compact .asset-card__body {
+  padding: 0.45rem 0.15rem 0;
+}
+
+.asset-card__title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asset-card--compact .asset-card__title {
+  font-size: 0.62rem;
+  text-align: center;
+}
+
+.asset-card__meta {
+  font-size: 0.62rem;
+  color: rgba(240, 242, 248, 0.55);
+}
+
+.asset-card--compact .asset-card__meta {
+  text-align: center;
+}
+
+.asset-card__status-line {
+  font-size: 0.62rem;
+  color: rgba(201, 184, 255, 0.85);
+}
+
+.asset-card__alert {
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: rgba(255, 180, 180, 0.92);
+}
+
+.asset-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.asset-card--compact .asset-card__actions {
+  justify-content: center;
+}
+
+.asset-card__btn {
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(26, 29, 46, 0.85);
+  color: rgba(240, 242, 248, 0.92);
+  font-size: 0.62rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.asset-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.asset-card__btn--primary {
+  border-color: rgba(165, 148, 253, 0.45);
+  color: #d9ccff;
+}
+
+.asset-card__btn--ghost {
+  background: transparent;
+}
+
+.asset-card__btn--danger {
+  border-color: rgba(232, 93, 93, 0.45);
+  color: #ffb4b4;
+}
+
+.asset-card--skeleton .asset-card__skel-line {
+  height: 0.55rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  animation: assetShimmer 1.6s ease-in-out infinite;
+}
+
+.asset-card__skel-line--title {
+  width: 72%;
+}
+
+.asset-card__skel-line--meta {
+  width: 48%;
+  margin-top: 0.35rem;
+}
+
+.profile-asset-gallery {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profile-asset-gallery__header h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.profile-asset-gallery__sub {
+  font-size: 0.82rem;
+  color: rgba(240, 242, 248, 0.55);
+  margin-bottom: 1rem;
+}
+
+.profile-asset-gallery__empty,
+.profile-asset-gallery__error {
+  font-size: 0.88rem;
+  color: rgba(240, 242, 248, 0.7);
+}
+
+.profile-asset-gallery__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.rtas-profile-wrap--with-gallery {
+  max-width: 960px;
+}
