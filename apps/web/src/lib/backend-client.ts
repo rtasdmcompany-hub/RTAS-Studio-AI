@@ -399,16 +399,36 @@ function normalizeResponse(data: Record<string, unknown>): BackendGenerateRespon
 
 async function pollPipelineJob(
   jobId: string,
-  onProgress: ProgressHandler
+  onProgress: ProgressHandler,
+  signal?: AbortSignal
 ): Promise<BackendGenerateResponse> {
-  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const delay = (ms: number) =>
+    new Promise<void>((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(new DOMException("Generation cancelled", "AbortError"));
+        return;
+      }
+      const timer = window.setTimeout(resolve, ms);
+      const onAbort = () => {
+        window.clearTimeout(timer);
+        reject(new DOMException("Generation cancelled", "AbortError"));
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
   const maxAttempts = 720;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (signal?.aborted) {
+      throw new DOMException("Generation cancelled", "AbortError");
+    }
     let res: Response;
     try {
-      res = await fetch(`/api/generate/jobs/${jobId}`, { cache: "no-store" });
-    } catch {
+      res = await fetch(`/api/generate/jobs/${jobId}`, {
+        cache: "no-store",
+        signal,
+      });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
       throw new BackendConnectionError();
     }
 
@@ -668,8 +688,14 @@ export async function runBackendGeneration(
     animationMs?: number;
     /** Raw form files — uploaded via multipart before /api/generate */
     uploadables?: Record<string, UploadableFile | null | undefined>;
+    /** Abort local waiting / polling (cloud job may continue) */
+    signal?: AbortSignal;
   }
 ): Promise<BackendGenerateResponse> {
+  if (options?.signal?.aborted) {
+    throw new DOMException("Generation cancelled", "AbortError");
+  }
+
   onProgress({
     percent: 0,
     message: "Connecting to RTAS AI API…",
@@ -687,6 +713,9 @@ export async function runBackendGeneration(
       stageIndex: 0,
     });
     const uploadRes = await postUploadToBackend(toUpload, body.jobId);
+    if (options?.signal?.aborted) {
+      throw new DOMException("Generation cancelled", "AbortError");
+    }
     requestBody = {
       ...body,
       jobId: uploadRes.jobId,
@@ -695,6 +724,9 @@ export async function runBackendGeneration(
   }
 
   const response = await postGenerateToBackend(requestBody);
+  if (options?.signal?.aborted) {
+    throw new DOMException("Generation cancelled", "AbortError");
+  }
 
   if (response.pipelineQueued) {
     onProgress({
@@ -702,7 +734,7 @@ export async function runBackendGeneration(
       message: response.message || "Long render queued — generating segments…",
       stageIndex: 0,
     });
-    return pollPipelineJob(response.jobId, onProgress);
+    return pollPipelineJob(response.jobId, onProgress, options?.signal);
   }
 
   if (!response.steps?.length) {
@@ -714,7 +746,12 @@ export async function runBackendGeneration(
     return response;
   }
 
-  await playBackendSteps(response.steps, onProgress, options?.animationMs ?? 6500);
+  await playBackendSteps(
+    response.steps,
+    onProgress,
+    options?.animationMs ?? 6500,
+    options?.signal
+  );
   return response;
 }
 
@@ -722,15 +759,31 @@ export async function runBackendGeneration(
 export async function playBackendSteps(
   steps: BackendProcessingStep[],
   onProgress: ProgressHandler,
-  totalMs = 6500
+  totalMs = 6500,
+  signal?: AbortSignal
 ): Promise<void> {
   if (steps.length === 0) return;
 
-  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const delay = (ms: number) =>
+    new Promise<void>((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(new DOMException("Generation cancelled", "AbortError"));
+        return;
+      }
+      const timer = window.setTimeout(resolve, ms);
+      const onAbort = () => {
+        window.clearTimeout(timer);
+        reject(new DOMException("Generation cancelled", "AbortError"));
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
+    });
   const stepMs = Math.max(25, Math.floor(totalMs / steps.length));
   let lastPercent = -1;
 
   for (const s of steps) {
+    if (signal?.aborted) {
+      throw new DOMException("Generation cancelled", "AbortError");
+    }
     if (s.percent !== lastPercent) {
       onProgress(s);
       lastPercent = s.percent;

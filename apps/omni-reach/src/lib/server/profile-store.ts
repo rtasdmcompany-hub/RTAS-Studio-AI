@@ -85,15 +85,9 @@ export async function saveServerProfile(profile: UserProfile): Promise<UserProfi
 /** Active paid customers for Fal pool sizing */
 export async function listActivePaidProfiles(): Promise<UserProfile[]> {
   if (await ensurePrismaReady()) {
-    const now = new Date();
     const users = await prisma.user.findMany({
       where: {
         tier: { in: ["premium", "standard", "tester"] },
-        credits: { gt: 0 },
-        OR: [
-          { creditsExpireAt: null },
-          { creditsExpireAt: { gt: now } },
-        ],
       },
     });
     return users.map(prismaUserToProfile);

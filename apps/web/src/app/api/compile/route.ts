@@ -11,6 +11,7 @@ import {
   listOutputClipFiles,
 } from "@/lib/compile-paths";
 import { isServerlessRuntime } from "@/lib/server/data-dir";
+import { requireApiSession } from "@/lib/server/api-auth";
 
 function compileJsonError(
   error: string,
@@ -113,6 +114,9 @@ function runVideoStitcher(
 
 /** Status for Compile button — reads apps/backend/data/outputs clip count. */
 export async function GET() {
+  const auth = await requireApiSession();
+  if (!auth.ok) return auth.response;
+
   try {
     if (isServerlessRuntime()) {
       return NextResponse.json({
@@ -149,8 +153,6 @@ export async function GET() {
       minClips: MIN_COMPILE_CLIPS,
       canCompile:
         clips.length >= MIN_COMPILE_CLIPS && ffmpegAvailable && stitcherReady,
-      outputsDir: paths.outputsDir,
-      stitcherScript: paths.stitcherScript,
       stitcherReady,
       ffmpegAvailable,
     });
@@ -170,6 +172,9 @@ export async function GET() {
 
 /** Merge output clips into one MP4 via apps/backend/video_stitcher.py. */
 export async function POST(request: Request) {
+  const auth = await requireApiSession();
+  if (!auth.ok) return auth.response;
+
   try {
     if (isServerlessRuntime()) {
       return compileJsonError(
@@ -190,7 +195,9 @@ export async function POST(request: Request) {
     }
 
     const targetDurationSec = body.targetDurationSec ?? 300;
-    const explicitClips = (body.clipFiles ?? []).filter(isCompileSourceClip);
+    const explicitClips = (body.clipFiles ?? [])
+      .map((f) => path.basename(String(f)))
+      .filter(isCompileSourceClip);
     const clips =
       explicitClips.length > 0
         ? explicitClips
@@ -208,7 +215,6 @@ export async function POST(request: Request) {
           error: `Need at least ${minRequired} clips to stitch (found ${clips.length}).`,
           clipCount: clips.length,
           minClips: minRequired,
-          outputsDir: paths.outputsDir,
         },
         { status: 400 }
       );
@@ -268,7 +274,6 @@ export async function POST(request: Request) {
       videoUrl,
       clipCount: result.clip_count ?? clips.length,
       outputFile: outputName,
-      outputsDir: paths.outputsDir,
       targetDurationSec,
     });
   } catch (err) {

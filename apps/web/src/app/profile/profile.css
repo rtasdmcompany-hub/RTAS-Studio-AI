@@ -1,0 +1,3 @@
+/* Profile gallery + dashboard — loaded only on /profile */
+@import "../../styles/asset-gallery.css";
+@import "../../styles/dashboard.css";

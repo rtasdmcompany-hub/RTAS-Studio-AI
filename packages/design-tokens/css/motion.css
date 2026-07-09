@@ -1,0 +1,162 @@
+/**
+ * @rtas/design-tokens — motion keyframes and utility classes.
+ */
+
+@keyframes rtas-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rtas-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rtas-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rtas-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rtas-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rtas-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rtas-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes rtas-mesh-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(2%, -1%, 0) scale(1.02);
+  }
+  66% {
+    transform: translate3d(-1%, 2%, 0) scale(0.98);
+  }
+}
+
+/* Motion utility classes */
+.rtas-motion-fade-in {
+  animation: rtas-fade-in var(--ds-duration-normal) var(--ds-ease-out) both;
+}
+
+.rtas-motion-fade-out {
+  animation: rtas-fade-out var(--ds-duration-fast) var(--ds-ease-in) both;
+}
+
+.rtas-motion-slide-up {
+  animation: rtas-slide-up var(--ds-duration-normal) var(--ds-ease-spring) both;
+}
+
+.rtas-motion-slide-down {
+  animation: rtas-slide-down var(--ds-duration-normal) var(--ds-ease-spring) both;
+}
+
+.rtas-motion-scale-in {
+  animation: rtas-scale-in var(--ds-duration-normal) var(--ds-ease-bounce) both;
+}
+
+.rtas-motion-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--ds-color-white-3) 0%,
+    var(--ds-color-white-10) 50%,
+    var(--ds-color-white-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: rtas-shimmer var(--ds-duration-slower) var(--ds-ease-linear) infinite;
+}
+
+.rtas-motion-pulse {
+  animation: rtas-pulse 2s var(--ds-ease-in-out) infinite;
+}
+
+.rtas-motion-mesh-drift {
+  animation: rtas-mesh-drift 18s var(--ds-ease-linear) infinite;
+}
+
+.rtas-transition-fast {
+  transition: all var(--ds-transition-fast);
+}
+
+.rtas-transition-smooth {
+  transition: all var(--ds-transition-smooth);
+}
+
+.rtas-transition-slow {
+  transition: all var(--ds-transition-slow);
+}
+
+.rtas-transition-spring {
+  transition: all var(--ds-transition-spring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rtas-motion-fade-in,
+  .rtas-motion-fade-out,
+  .rtas-motion-slide-up,
+  .rtas-motion-slide-down,
+  .rtas-motion-scale-in,
+  .rtas-motion-shimmer,
+  .rtas-motion-pulse,
+  .rtas-motion-mesh-drift {
+    animation: none !important;
+  }
+
+  .rtas-transition-fast,
+  .rtas-transition-smooth,
+  .rtas-transition-slow,
+  .rtas-transition-spring {
+    transition: none !important;
+  }
+}

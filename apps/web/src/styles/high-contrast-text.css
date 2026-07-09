@@ -1,15 +1,8 @@
 /**
  * High-contrast typography — crisp white text on dark / video backgrounds.
  * Loaded last; wins over cinematic glass and muted zinc defaults.
+ * Uses @rtas/design-tokens semantic color variables.
  */
-
-:root {
-  --rtas-muted: #e4e4e7;
-  --shashka-muted: #e4e4e7;
-  --muted: #d4d4d8;
-  --rtas-text-body: #f4f4f5;
-  --rtas-text-secondary: #e4e4e7;
-}
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -21,38 +14,38 @@ html {
 .video-content-panel,
 .video-text-highlight,
 .rtas-hero-showcase__content.video-text-highlight {
-  background: rgba(0, 0, 0, 0.82) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: var(--ds-color-black-82) !important;
+  backdrop-filter: blur(var(--ds-blur-md)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
+  border-color: var(--ds-color-white-12) !important;
 }
 
 .rtas-header,
 .rtas-header--studio {
-  background: rgba(0, 0, 0, 0.9) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  background: var(--ds-color-black-90) !important;
+  backdrop-filter: blur(var(--ds-blur-xl)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-xl)) !important;
 }
 
 .rtas-header__link,
 .rtas-header__mobile-link {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: var(--ds-color-white-92) !important;
 }
 
 .rtas-footer {
-  background: rgba(0, 0, 0, 0.9) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  background: var(--ds-color-black-90) !important;
+  backdrop-filter: blur(var(--ds-blur-xl)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-xl)) !important;
 }
 
 .rtas-footer__col h4,
 .rtas-footer__muted {
-  color: #e4e4e7 !important;
+  color: var(--ds-text-secondary) !important;
 }
 
 .rtas-footer a,
 .rtas-footer__link {
-  color: #ffffff !important;
+  color: var(--ds-text) !important;
 }
 
 /* —— Landing page body copy —— */
@@ -62,78 +55,78 @@ html {
 .rtas-value__card p,
 .rtas-final-cta p,
 .rtas-final-cta__note {
-  color: #f4f4f5 !important;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
+  color: var(--ds-text-body) !important;
+  text-shadow: 0 1px 8px var(--ds-color-black-78);
 }
 
 .rtas-trusted li {
-  color: #ffffff !important;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+  color: var(--ds-text) !important;
+  text-shadow: 0 1px 6px var(--ds-color-black-72);
 }
 
 .rtas-workflow h2,
 .rtas-value h2,
 .rtas-final-cta h2,
 .rtas-pipeline-step h3 {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text) !important;
+  text-shadow: 0 2px 12px var(--ds-color-black-82);
 }
 
 .rtas-hero-showcase__headline h1 {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text) !important;
   text-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.9),
-    0 0 32px rgba(0, 0, 0, 0.6) !important;
+    0 2px 16px var(--ds-color-black-90),
+    0 0 32px var(--ds-color-black-50) !important;
 }
 
 .rtas-hero-showcase__tagline {
-  color: #ffffff !important;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+  color: var(--ds-text) !important;
+  text-shadow: 0 1px 10px var(--ds-color-black-85);
 }
 
 /* —— Inner pages (pricing, legal, how-to) —— */
 .inner-page-section {
-  color: #f4f4f5 !important;
-  background: rgba(0, 0, 0, 0.72) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  color: var(--ds-text-body) !important;
+  background: var(--ds-color-black-72) !important;
+  backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg)) !important;
 }
 
 .inner-page-section :is(p, li, dd, .legal-subtitle, .legal-meta, .legal-lead, .rtas-eyebrow) {
-  color: #f4f4f5 !important;
+  color: var(--ds-text-body) !important;
 }
 
 .inner-page-section .legal-prose p,
 .inner-page-section .legal-prose li {
-  color: #f4f4f5 !important;
+  color: var(--ds-text-body) !important;
 }
 
 .inner-page-section :is(h1, h2, h3, h4, strong.inner-page-heading),
 .inner-page-section .text-zinc-100 {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text) !important;
 }
 
 .inner-page-section a:not(.rtas-btn-lavender):not(.rtas-btn-ghost) {
-  color: #e9d5ff !important;
-  font-weight: 500;
+  color: var(--ds-link-bright) !important;
+  font-weight: var(--ds-font-medium);
 }
 
 .legal-prose-shell {
-  background: rgba(0, 0, 0, 0.78) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: var(--ds-color-black-78) !important;
+  backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg)) !important;
 }
 
 .legal-home-link {
-  color: #ffffff !important;
+  color: var(--ds-text) !important;
 }
 
 .legal-nav--inline a {
-  color: #e9d5ff !important;
-  font-weight: 600;
+  color: var(--ds-link-bright) !important;
+  font-weight: var(--ds-font-semibold);
 }
 
 /* —— Pricing matrix —— */
@@ -143,19 +136,19 @@ html {
 .rtas-pricing-tier__matrix-row dt,
 .rtas-pricing-tier__matrix-row--muted dd,
 .rtas-pricing-matrix__note {
-  color: #e4e4e7 !important;
+  color: var(--ds-text-secondary) !important;
 }
 
 .rtas-pricing-tier__matrix-row dd {
-  color: #ffffff !important;
+  color: var(--ds-text) !important;
 }
 
 .rtas-pricing-tier__price span {
-  color: #e4e4e7 !important;
+  color: var(--ds-text-secondary) !important;
 }
 
 .rtas-faq-grid p {
-  color: #f4f4f5 !important;
+  color: var(--ds-text-body) !important;
 }
 
 /* —— Studio workflow —— */
@@ -164,9 +157,9 @@ html {
 .shashka-preview-frame,
 .shashka-preview-side,
 .credits-pill {
-  background: rgba(8, 8, 14, 0.92) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background: var(--ds-color-studio-panel) !important;
+  backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg)) !important;
 }
 
 .create-panel-unified__bar .tagline,
@@ -181,20 +174,20 @@ html {
 .shashka-holo-widget .section-label,
 .field .help,
 .field label {
-  color: #f4f4f5 !important;
+  color: var(--ds-text-body) !important;
 }
 
 .shashka-wizard-step__label {
-  color: #e9d5ff !important;
-  font-weight: 600;
+  color: var(--ds-link-bright) !important;
+  font-weight: var(--ds-font-semibold);
 }
 
 .create-panel-unified__bar h2,
 .shashka-holo-widget h2 {
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: var(--ds-text) !important;
+  -webkit-text-fill-color: var(--ds-text) !important;
 }
 
 .studio-shell--unified {
-  color: #ffffff;
+  color: var(--ds-text);
 }

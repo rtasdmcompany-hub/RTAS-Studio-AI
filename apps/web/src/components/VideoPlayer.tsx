@@ -75,7 +75,12 @@ export function VideoPlayer({
       )}
       <div className={`player-wrap ${isGenerating ? "player-wrap--busy" : ""}`}>
         {showEmpty && (
-          <div className="player-empty">Generated video will appear here</div>
+          <div className="player-empty rtas-ui-empty player-empty--inline" role="status">
+            <span className="rtas-ui-empty__icon" aria-hidden>
+              🎬
+            </span>
+            <p className="rtas-ui-empty__description">Generated video will appear here</p>
+          </div>
         )}
         {hasSrc && !isGenerating && (
           <video
@@ -83,7 +88,7 @@ export function VideoPlayer({
             src={playbackSrc}
             controls
             playsInline
-            preload="auto"
+            preload="metadata"
             className="player-video"
             onError={handleVideoError}
           />

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { PRODUCT_NAME } from "@rtas/shared";
+import { ButtonLink } from "@rtas/ui";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import {
   InnerPageContainer,
@@ -50,12 +50,12 @@ export default function AboutPage() {
           </div>
 
           <div className="rtas-about-page__actions">
-            <Link href="/studio" className="rtas-btn-lavender">
+            <ButtonLink href="/studio" variant="lavender">
               Open Studio <span aria-hidden>→</span>
-            </Link>
-            <Link href="/pricing" className="rtas-btn-ghost">
+            </ButtonLink>
+            <ButtonLink href="/pricing" variant="ghost">
               View pricing
-            </Link>
+            </ButtonLink>
           </div>
         </InnerPageSection>
       </InnerPageContainer>

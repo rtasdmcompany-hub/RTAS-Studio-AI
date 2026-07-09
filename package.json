@@ -4,21 +4,36 @@
   "version": "1.0.0",
   "description": "RTAS Studio AI — prompt & image to video platform",
   "workspaces": [
-    "apps/*",
+    "apps/web",
+    "apps/backend",
+    "apps/admin",
+    "apps/desktop",
+    "apps/omni-reach",
+    "apps/mobile",
+    "apps/rtas-mobile",
     "packages/*"
   ],
   "scripts": {
     "setup:env": "npm run setup:env -w @rtas/web",
-    "dev": "npm run dev:cursor -w @rtas/web",
+    "dev": "turbo run dev --parallel --filter=@rtas/web --filter=@rtas/admin --filter=@rtas/desktop",
     "dev:web": "npm run dev:cursor -w @rtas/web",
-    "dev:api": "node scripts/start-api.mjs",
+    "dev:admin": "npm run dev -w @rtas/admin",
+    "dev:desktop": "npm run dev -w @rtas/desktop",
+    "dev:api": "npm run dev -w @rtas/backend",
+    "dev:backend": "npm run dev -w @rtas/backend",
     "dev:api:cursor": "npm run dev:api:cursor -w @rtas/web",
     "verify:stack": "node scripts/verify-stack.mjs",
-    "build": "npm run build -w @rtas/web",
+    "verify:deployment-ready": "npm run verify:deployment-ready -w @rtas/web",
+    "verify:deployment-ready:full": "npm run verify:deployment-ready:full -w @rtas/web",
+    "build": "turbo run build --filter=@rtas/web --filter=@rtas/admin --filter=@rtas/omni-reach",
+    "build:web": "npm run build -w @rtas/web",
+    "build:admin": "npm run build -w @rtas/admin",
+    "lint": "turbo run lint --filter=@rtas/web --filter=@rtas/admin --filter=@rtas/omni-reach",
+    "typecheck": "turbo run typecheck",
+    "test": "npm run test -w @rtas/web",
     "db:generate": "npm run db:generate -w @rtas/web",
     "db:push": "npm run db:push -w @rtas/web",
     "db:migrate": "npm run db:migrate -w @rtas/web",
-    "lint": "npm run lint -w @rtas/web",
     "mobile:sync": "npm run sync -w @rtas/rtas-mobile",
     "mobile:android": "npm run open:android -w @rtas/rtas-mobile",
     "mobile:ios": "npm run open:ios -w @rtas/rtas-mobile",
@@ -30,12 +45,19 @@
   },
   "overrides": {
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "postcss": "^8.5.10",
+    "uuid": "^11.1.1",
+    "next-auth": {
+      "uuid": "^11.1.1"
+    }
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.17"
+    "eslint": "8.57.1",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.17",
+    "turbo": "^2.0.0"
   }
 }

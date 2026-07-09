@@ -1,22 +1,20 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma";
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
+  omniReachPrisma: PrismaClient | undefined;
 };
 
 function createPrismaClient(): PrismaClient {
   return new PrismaClient({
     log:
-      process.env.NODE_ENV === "development"
-        ? ["error", "warn"]
-        : ["error"],
+      process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+export const prisma = globalForPrisma.omniReachPrisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.omniReachPrisma = prisma;
 }
 
 /** True when DATABASE_URL is set to a non-empty PostgreSQL connection string. */

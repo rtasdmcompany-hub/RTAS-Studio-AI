@@ -45,7 +45,11 @@ export async function POST(request: Request) {
         tier: profile.tier,
       });
     }
-    default:
+    case "ignored":
       return NextResponse.json({ ok: true, ignored: event.reason });
+    case "subscription_cancelled":
+      return NextResponse.json({ ok: true, ignored: "Subscription cancelled" });
+    default:
+      return NextResponse.json({ ok: true });
   }
 }

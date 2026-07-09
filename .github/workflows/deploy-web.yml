@@ -1,0 +1,77 @@
+# Optional: promote / redeploy via GitHub when Vercel secrets are configured.
+# Primary CD path remains Vercel Git Integration (push to main → Deploy).
+# This workflow is for operators who prefer workflow_dispatch.
+#
+# Required GitHub Actions secrets (add when ready — not required for engineering readiness):
+#   VERCEL_TOKEN
+#   VERCEL_ORG_ID
+#   VERCEL_PROJECT_ID
+#
+# Usage: Actions → Deploy Web (manual) → Run workflow → select environment.
+
+name: Deploy Web (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Vercel environment to deploy
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - preview
+
+concurrency:
+  group: deploy-web-${{ github.event.inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Require Vercel secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Missing VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID."
+            echo "Add them under GitHub → Settings → Secrets, or deploy from the Vercel Dashboard."
+            exit 1
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project config
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel pull --yes --environment=${{ github.event.inputs.environment }} --token="$VERCEL_TOKEN"
+
+      - name: Build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token="$VERCEL_TOKEN"
+
+      - name: Deploy prebuilt
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel deploy --prebuilt ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token="$VERCEL_TOKEN"

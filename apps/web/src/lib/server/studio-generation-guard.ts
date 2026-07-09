@@ -1,4 +1,10 @@
 import { prisma, isPrismaConfigured } from "@/lib/prisma";
+import {
+  DEFAULT_VIDEO_PAGE_SIZE,
+  MAX_VIDEO_PAGE_SIZE,
+  serializeUserVideoAsset,
+  type UserVideoAsset,
+} from "@rtas/shared";
 import { getServerProfile, saveServerProfile } from "@/lib/server/profile-store";
 
 export const MAX_CONCURRENT_TRACKS = 3;
@@ -356,7 +362,7 @@ export async function listRecentGenerationJobs(userId: string, limit = 5) {
 
   return prisma.generationJob.findMany({
     where: { userId },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: limit,
     select: {
       id: true,
@@ -369,4 +375,88 @@ export async function listRecentGenerationJobs(userId: string, limit = 5) {
       createdAt: true,
     },
   });
+}
+
+const generationJobGallerySelect = {
+  id: true,
+  userId: true,
+  status: true,
+  prompt: true,
+  generatedVideoUrl: true,
+  durationSeconds: true,
+  creditsCharged: true,
+  chunkTotal: true,
+  chunksCompleted: true,
+  errorMessage: true,
+  isPublic: true,
+  createdAt: true,
+  completedAt: true,
+} as const;
+
+export type UserVideoPage = {
+  items: UserVideoAsset[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+/** Indexed, cursor-paginated gallery query scoped to userId FK. */
+export async function listUserGenerationJobsPaginated(
+  userId: string,
+  options: { cursor?: string | null; limit?: number } = {}
+): Promise<UserVideoPage> {
+  if (!isPrismaConfigured()) {
+    return { items: [], nextCursor: null, hasMore: false };
+  }
+
+  const limit = Math.min(
+    Math.max(options.limit ?? DEFAULT_VIDEO_PAGE_SIZE, 1),
+    MAX_VIDEO_PAGE_SIZE
+  );
+
+  const rows = await prisma.generationJob.findMany({
+    where: { userId },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
+    ...(options.cursor
+      ? { cursor: { id: options.cursor }, skip: 1 }
+      : {}),
+    select: generationJobGallerySelect,
+  });
+
+  const hasMore = rows.length > limit;
+  const slice = hasMore ? rows.slice(0, limit) : rows;
+  const items = slice.map((row) => serializeUserVideoAsset(row));
+  const nextCursor = hasMore ? (slice[slice.length - 1]?.id ?? null) : null;
+
+  return { items, nextCursor, hasMore };
+}
+
+export async function deleteGenerationJobForUser(
+  jobId: string,
+  userId: string
+): Promise<{ deleted: boolean; reason?: string }> {
+  if (!isPrismaConfigured()) {
+    return { deleted: false, reason: "database_unavailable" };
+  }
+
+  const job = await prisma.generationJob.findFirst({
+    where: { id: jobId, userId },
+    select: { status: true },
+  });
+
+  if (!job) {
+    return { deleted: false, reason: "not_found" };
+  }
+
+  const status = job.status.toUpperCase();
+  if (
+    status !== "FAILED" &&
+    status !== "COMPLETED" &&
+    status !== "QUEUED"
+  ) {
+    return { deleted: false, reason: "job_in_progress" };
+  }
+
+  await prisma.generationJob.delete({ where: { id: jobId } });
+  return { deleted: true };
 }

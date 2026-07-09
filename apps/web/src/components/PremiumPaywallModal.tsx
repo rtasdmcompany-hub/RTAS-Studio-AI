@@ -10,6 +10,7 @@ import {
   TESTER_DURATION_DAYS,
   TESTER_PRICE_USD,
 } from "@rtas/shared";
+import { Button, Dialog } from "@rtas/ui";
 
 type Props = {
   open: boolean;
@@ -28,59 +29,44 @@ export function PremiumPaywallModal({
   onSubscribePremium,
   onClose,
 }: Props) {
-  if (!open) return null;
-
   return (
-    <div
-      className="paywall-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="paywall-title"
+    <Dialog
+      open={open}
+      variant="paywall"
+      titleId="paywall-title"
+      contentClassName="paywall-modal paywall-modal--wide"
+      onClose={onClose}
+      closeOnEscape
     >
-      <div className="paywall-modal paywall-modal--wide">
-        <div className="paywall-glow" aria-hidden />
-        <h2 id="paywall-title" className="paywall-title">
-          You have no credits
-        </h2>
-        <p className="paywall-desc">
-          {message ??
-            "Please recharge your account to generate videos. Plans start as low as the $5 Tester pass."}
-        </p>
+      <h2 id="paywall-title" className="paywall-title">
+        You have no credits
+      </h2>
+      <p className="paywall-desc">
+        {message ??
+          "Please recharge your account to generate videos. Plans start as low as the $5 Tester pass."}
+      </p>
 
-        <button
-          type="button"
-          className="paywall-subscribe-btn paywall-subscribe-btn--tester"
-          onClick={onSubscribeTester}
-        >
-          Tester — ${TESTER_PRICE_USD} · {TESTER_CREDITS}s · {TESTER_DURATION_DAYS} days · try
-          the full studio
-        </button>
+      <Button variant="paywall-tester" onClick={onSubscribeTester}>
+        Tester — ${TESTER_PRICE_USD} · {TESTER_CREDITS}s · {TESTER_DURATION_DAYS} days · try
+        the full studio
+      </Button>
 
-        <button
-          type="button"
-          className="paywall-subscribe-btn paywall-subscribe-btn--standard"
-          onClick={onSubscribeStandard}
-        >
-          Standard — ${STANDARD_PRICE_USD}/mo · {STANDARD_CREDITS}s · HD · commercial rights
-        </button>
+      <Button variant="paywall-standard" onClick={onSubscribeStandard}>
+        Standard — ${STANDARD_PRICE_USD}/mo · {STANDARD_CREDITS}s · HD · commercial rights
+      </Button>
 
-        <button
-          type="button"
-          className="paywall-subscribe-btn"
-          onClick={onSubscribePremium}
-        >
-          Premium 4K — ${PREMIUM_PRICE_USD}/mo · {PREMIUM_CREDITS}s · 1 month · advanced
-          cinematic 4K
-        </button>
+      <Button variant="paywall" onClick={onSubscribePremium}>
+        Premium 4K — ${PREMIUM_PRICE_USD}/mo · {PREMIUM_CREDITS}s · 1 month · advanced
+        cinematic 4K
+      </Button>
 
-        <Link href="/pricing#plans" className="paywall-recharge-link">
-          View payment options &amp; recharge →
-        </Link>
+      <Link href="/pricing#plans" className="paywall-recharge-link">
+        View payment options &amp; recharge →
+      </Link>
 
-        <button type="button" className="paywall-skip-link" onClick={onClose}>
-          Cancel
-        </button>
-      </div>
-    </div>
+      <button type="button" className="paywall-skip-link rtas-ui-focus-ring" onClick={onClose}>
+        Maybe later
+      </button>
+    </Dialog>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CATEGORY_META,
@@ -99,24 +100,56 @@ import { StudioVideoCarousel } from "./cinematic/StudioVideoCarousel";
 import { startCheckout, type CheckoutPlan } from "@/lib/checkout-client";
 import { BackendConnectionNotice } from "./BackendConnectionNotice";
 import { CategoryWizardGroup } from "./CategoryFieldsSection";
-import { EarlyResubscribeModal } from "./EarlyResubscribeModal";
-import { PremiumPaywallModal } from "./PremiumPaywallModal";
-import { DurationLimitModal } from "./DurationLimitModal";
 import {
   getMaxVideoDurationSeconds,
   validateDurationSelection,
 } from "@/lib/duration-limits";
 import { notifyVideoReady } from "@/lib/video-notify";
-import { PreviewGenerationProgress } from "./PreviewGenerationProgress";
-import { ShareVideoModal } from "./ShareVideoModal";
+import {
+  AutosaveIndicator,
+  DraftRestoreBanner,
+  GenerationPipelinePanel,
+  StudioWorkflowPanel,
+} from "@/components/studio/pipeline";
+import { StudioToast, type StudioToastState } from "@/components/studio/StudioToast";
+import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
 import { StudioSkeleton } from "@/components/ui/skeletons";
+import { Button } from "@rtas/ui";
 import { VideoPlayer } from "./VideoPlayer";
 import { VisualStyleSelector } from "./VisualStyleSelector";
 import { useStudioFormBackup } from "@/hooks/useStudioFormBackup";
+import { useStudioKeyboardShortcuts } from "@/hooks/useStudioKeyboardShortcuts";
 import {
   resumeStudioDraftSave,
+  saveStudioDraft,
   suppressStudioDraftSave,
 } from "@/lib/studio-form-backup";
+import {
+  addPromptToHistory,
+  upsertRecentProject,
+  type SavedWorkflow,
+} from "@/lib/studio-workflow-store";
+
+const PremiumPaywallModal = dynamic(
+  () => import("./PremiumPaywallModal").then((mod) => mod.PremiumPaywallModal),
+  { ssr: false },
+);
+const ShareVideoModal = dynamic(
+  () => import("./ShareVideoModal").then((mod) => mod.ShareVideoModal),
+  { ssr: false },
+);
+const DurationLimitModal = dynamic(
+  () => import("./DurationLimitModal").then((mod) => mod.DurationLimitModal),
+  { ssr: false },
+);
+const EarlyResubscribeModal = dynamic(
+  () => import("./EarlyResubscribeModal").then((mod) => mod.EarlyResubscribeModal),
+  { ssr: false },
+);
+const GenerationStartedModal = dynamic(
+  () => import("./GenerationStartedModal").then((mod) => mod.GenerationStartedModal),
+  { ssr: false },
+);
 
 type GenUiState = {
   active: boolean;
@@ -125,7 +158,15 @@ type GenUiState = {
   stageIndex: number;
 };
 
-type GenPhase = "idle" | "running" | "error" | "success";
+type GenPhase = "idle" | "running" | "error" | "success" | "cancelled";
+
+type GenerateAttemptSnapshot = {
+  form: StudioFormState;
+  mode: GenerationMode;
+  category: VideoCategory;
+  visualStyle: VisualStyle;
+  durationSeconds: number;
+};
 
 type PipelineDiagnostic = {
   error: string;
@@ -240,10 +281,19 @@ export function StudioClient() {
   const [connectionNoticeHint, setConnectionNoticeHint] = useState<
     string | null | undefined
   >(undefined);
+  const [studioToast, setStudioToast] = useState<StudioToastState | null>(null);
+  const [retryLoading, setRetryLoading] = useState(false);
   const previewPanelRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
   const genPhaseRef = useRef<GenPhase>("idle");
   const durationPromptAutoFillStepRef = useRef<number | null>(null);
+  const generationStartedAtRef = useRef<number | null>(null);
+  const lastGenerateAttemptRef = useRef<GenerateAttemptSnapshot | null>(null);
+  const generationAbortRef = useRef<AbortController | null>(null);
+  const toastIdRef = useRef(0);
+  const handleRetryGenerationRef = useRef<(() => Promise<void>) | null>(null);
+  const onGenerateClickRef = useRef<(() => void) | null>(null);
+  const [showGenStartedModal, setShowGenStartedModal] = useState(false);
 
   const scrollToProgress = useCallback(() => {
     const target = progressRef.current ?? previewPanelRef.current;
@@ -334,15 +384,21 @@ export function StudioClient() {
 
   useEffect(() => {
     const poll = () => {
+      if (document.visibilityState === "hidden") return;
       void fetchBackendHealthStatus().then(applyBackendHealth);
     };
     poll();
     const interval = window.setInterval(poll, 30_000);
     const onFocus = () => poll();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") poll();
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [applyBackendHealth]);
 
@@ -377,17 +433,29 @@ export function StudioClient() {
   }, []);
 
   useEffect(() => {
-    void refreshCompileStatus();
-    const interval = window.setInterval(() => void refreshCompileStatus(), 12_000);
-    const onFocus = () => void refreshCompileStatus();
+    const poll = () => {
+      if (document.visibilityState === "hidden") return;
+      void refreshCompileStatus();
+    };
+    poll();
+    const interval = window.setInterval(poll, 12_000);
+    const onFocus = () => poll();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") poll();
+    };
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [refreshCompileStatus, videos.length, processing, genPhase]);
+    // Intentionally omit videos.length / processing / genPhase — those were
+    // restarting the interval on every generation tick.
+  }, [refreshCompileStatus]);
 
-  const { rememberTextField } = useStudioFormBackup({
+  const { rememberTextField, pendingDraft, restoreDraft, dismissDraft, lastSavedAt, saving, showDraftBanner } =
+    useStudioFormBackup({
     mode,
     category,
     visualStyle,
@@ -396,7 +464,18 @@ export function StudioClient() {
     setCategory,
     setVisualStyle,
     setForm,
+    setWizardStep,
   });
+
+  const pushToast = useCallback(
+    (toast: Omit<StudioToastState, "id">) => {
+      toastIdRef.current += 1;
+      setStudioToast({ ...toast, id: toastIdRef.current });
+    },
+    []
+  );
+
+  const dismissToast = useCallback(() => setStudioToast(null), []);
 
   const clearFieldError = useCallback((id: string) => {
     setFieldErrors((prev) => {
@@ -449,47 +528,56 @@ export function StudioClient() {
     [clearFieldError, processing, genPhase]
   );
 
-  const handleCategorySelect = (c: VideoCategory) => {
-    if (processing || genPhase === "running" || !mode) return;
-    setCategory(c);
-    setVisualStyle(null);
-    setSetupPhase("style");
-    setForm((prev) =>
-      pruneFormToVisible(
-        { ...prev, text: { ...prev.text, duration: prev.text.duration ?? "" } },
-        c,
-        mode,
-        "avatar"
-      )
-    );
-    scrollToSetupRef(setupStyleRef);
-  };
+  const handleCategorySelect = useCallback(
+    (c: VideoCategory) => {
+      if (processing || genPhase === "running" || !mode) return;
+      setCategory(c);
+      setVisualStyle(null);
+      setSetupPhase("style");
+      setForm((prev) =>
+        pruneFormToVisible(
+          { ...prev, text: { ...prev.text, duration: prev.text.duration ?? "" } },
+          c,
+          mode,
+          "avatar"
+        )
+      );
+      scrollToSetupRef(setupStyleRef);
+    },
+    [processing, genPhase, mode]
+  );
 
-  const handleModeSelect = (m: GenerationMode) => {
-    if (processing || genPhase === "running") return;
-    setMode(m);
-    setCategory(null);
-    setVisualStyle(null);
-    setSetupPhase("category");
-    setForm((prev) => {
-      const next = createInitialFormState();
-      const title = prev.text[VIDEO_TITLE_FIELD_ID]?.trim();
-      if (title) next.text[VIDEO_TITLE_FIELD_ID] = title;
-      return next;
-    });
-    scrollToSetupRef(setupCategoryRef);
-  };
+  const handleModeSelect = useCallback(
+    (m: GenerationMode) => {
+      if (processing || genPhase === "running") return;
+      setMode(m);
+      setCategory(null);
+      setVisualStyle(null);
+      setSetupPhase("category");
+      setForm((prev) => {
+        const next = createInitialFormState();
+        const title = prev.text[VIDEO_TITLE_FIELD_ID]?.trim();
+        if (title) next.text[VIDEO_TITLE_FIELD_ID] = title;
+        return next;
+      });
+      scrollToSetupRef(setupCategoryRef);
+    },
+    [processing, genPhase]
+  );
 
-  const handleVisualStyleSelect = (style: VisualStyle) => {
-    if (processing || genPhase === "running" || !mode || !category) return;
-    setVisualStyle(style);
-    setSetupPhase("title");
-    setForm((prev) => {
-      const synced = syncIdentityPipeline(prev, style);
-      return pruneFormToVisible(synced, category, mode, style);
-    });
-    scrollToSetupRef(setupTitleRef);
-  };
+  const handleVisualStyleSelect = useCallback(
+    (style: VisualStyle) => {
+      if (processing || genPhase === "running" || !mode || !category) return;
+      setVisualStyle(style);
+      setSetupPhase("title");
+      setForm((prev) => {
+        const synced = syncIdentityPipeline(prev, style);
+        return pruneFormToVisible(synced, category, mode, style);
+      });
+      scrollToSetupRef(setupTitleRef);
+    },
+    [processing, genPhase, mode, category]
+  );
 
   const applyProgress = useCallback((step: {
     percent: number;
@@ -606,6 +694,9 @@ export function StudioClient() {
 
   const startGenerationUi = useCallback(
     (message: string, percent = 3) => {
+      generationAbortRef.current?.abort();
+      generationAbortRef.current = new AbortController();
+      generationStartedAtRef.current = Date.now();
       setProcessing(true);
       genPhaseRef.current = "running";
       setGenPhase("running");
@@ -685,8 +776,27 @@ export function StudioClient() {
       }
       setStatusText(notice.message);
       scrollToProgress();
+
+      if (displayPhase === "error") {
+        pushToast({
+          tone: "error",
+          title: notice.title,
+          message: notice.hint ? `${notice.message} ${notice.hint}` : notice.message,
+          actionLabel: "Retry",
+          onAction: () => {
+            dismissToast();
+            void handleRetryGenerationRef.current?.();
+          },
+        });
+      } else if (displayPhase === "success") {
+        pushToast({
+          tone: "success",
+          title: notice.title,
+          message: notice.message,
+        });
+      }
     },
-    [scrollToProgress, profile]
+    [scrollToProgress, profile, pushToast, dismissToast]
   );
 
   const showGenerationFailure = useCallback(
@@ -696,18 +806,36 @@ export function StudioClient() {
     [showCustomerNotice]
   );
 
-  const handleRetryGeneration = useCallback(() => {
-    setPipelineDiagnostic(null);
-    setConnectionError(null);
+  const handleCancelGeneration = useCallback(() => {
+    generationAbortRef.current?.abort();
+    generationAbortRef.current = null;
+    genPhaseRef.current = "cancelled";
+    setGenPhase("cancelled");
     setProcessing(false);
+    setGenUi((prev) => ({
+      ...prev,
+      active: true,
+      message: "Stopped waiting locally. Cloud render may continue — check Your Videos.",
+    }));
+    setFormNotice(
+      "Waiting cancelled. If the job already reached the GPU, it may still finish in Your Videos."
+    );
+    pushToast({
+      tone: "info",
+      title: "Stopped waiting",
+      message: "Draft kept. Cloud jobs already queued may still complete.",
+    });
+    void serverGallery.refresh();
+  }, [serverGallery, pushToast]);
+
+  const handleDismissPipeline = useCallback(() => {
+    generationAbortRef.current = null;
+    setGenUi(IDLE_GEN);
     genPhaseRef.current = "idle";
     setGenPhase("idle");
-    setGenUi(IDLE_GEN);
-    setStatusText("Ready to retry generation");
-    if (profile) {
-      void syncFromServer(profile.id);
-    }
-  }, [profile, syncFromServer]);
+    setProcessing(false);
+    generationStartedAtRef.current = null;
+  }, []);
 
   const runGenerate = useCallback(
     async (opts?: {
@@ -719,17 +847,23 @@ export function StudioClient() {
       segmentMode?: boolean;
       overrideDurationSeconds?: number;
       overrideForm?: StudioFormState;
+      overrideMode?: GenerationMode;
+      overrideCategory?: VideoCategory;
+      overrideVisualStyle?: VisualStyle;
     }): Promise<GeneratedVideo | null> => {
-      if (!profile || !category || !mode || !visualStyle) return null;
+      const activeCategory = opts?.overrideCategory ?? category;
+      const activeMode = opts?.overrideMode ?? mode;
+      const activeVisualStyle = opts?.overrideVisualStyle ?? visualStyle;
+      if (!profile || !activeCategory || !activeMode || !activeVisualStyle) return null;
 
       const activeForm = opts?.overrideForm ?? form;
       const requestedDuration = opts?.overrideDurationSeconds ?? durationSeconds;
 
       if (!opts?.skipValidation) {
         const validationErrors = collectRequiredFieldErrors(
-          category,
-          mode,
-          visualStyle,
+          activeCategory,
+          activeMode,
+          activeVisualStyle,
           activeForm
         );
         if (validationErrors.length > 0) {
@@ -751,7 +885,7 @@ export function StudioClient() {
       const effectiveDuration = isFreeTrial
         ? Math.min(requestedDuration, FREE_TRIAL_DURATION_SECONDS)
         : requestedDuration;
-      const capturedTitle = buildVideoTitle(category, mode, activeForm);
+      const capturedTitle = buildVideoTitle(activeCategory, activeMode, activeForm);
       const capturedPrompt = extractCreativePrompt(activeForm);
 
       const deviceFingerprint = getDeviceFingerprint();
@@ -761,7 +895,6 @@ export function StudioClient() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: activeProfile.id,
             deviceFingerprint,
           }),
         });
@@ -777,7 +910,7 @@ export function StudioClient() {
         }
       }
 
-      const payload = buildGeneratePayload(activeForm, category, mode, visualStyle);
+      const payload = buildGeneratePayload(activeForm, activeCategory, activeMode, activeVisualStyle);
 
       const requestBody: GenerateRequestBody = {
         ...payload,
@@ -831,7 +964,8 @@ export function StudioClient() {
           applyProgress,
           {
             animationMs: 6500 + Math.floor(Math.random() * 1500),
-            uploadables: form.files,
+            uploadables: activeForm.files,
+            signal: generationAbortRef.current?.signal,
           }
         );
 
@@ -848,7 +982,6 @@ export function StudioClient() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              userId: activeProfile.id,
               deviceFingerprint,
             }),
           });
@@ -880,9 +1013,9 @@ export function StudioClient() {
           id: backendRes.jobId,
           userId: activeProfile.id,
           title: capturedTitle,
-          category,
-          mode,
-          visualStyle,
+          category: activeCategory,
+          mode: activeMode,
+          visualStyle: activeVisualStyle,
           durationSeconds: backendRes.durationSeconds,
           creditsUsed: backendRes.creditsUsed,
           previewOnly: isPreview || (!isPaidGeneration && backendRes.previewOnly),
@@ -908,18 +1041,23 @@ export function StudioClient() {
           message: backendRes.message || "Video ready",
           stageIndex: 3,
         });
+        if (capturedPrompt && !opts?.segmentMode) addPromptToHistory(capturedPrompt);
+        if (!opts?.segmentMode) {
+          upsertRecentProject({
+            id: video.id,
+            title: capturedTitle,
+            prompt: capturedPrompt || undefined,
+            category: activeCategory,
+            durationSeconds: video.durationSeconds,
+            createdAt: video.createdAt,
+            status: "ready",
+          });
+        }
         if (!opts?.segmentMode) {
           resetFormForNextVideo();
           setStudioScreen("preview");
         }
         void refreshCompileStatus();
-        if (!opts?.segmentMode) {
-          window.setTimeout(() => {
-            setGenUi(IDLE_GEN);
-            genPhaseRef.current = "idle";
-            setGenPhase("idle");
-          }, 2500);
-        }
 
         if (opts?.gracefulDegrade || (backendRes.previewOnly && opts?.previewOnly)) {
           const previewNotice = noticeForOwnerOrCustomer(
@@ -934,14 +1072,35 @@ export function StudioClient() {
           showCustomerNotice(previewNotice, "success");
         } else {
           setStatusText(backendRes.message || "Video ready");
+          pushToast({
+            tone: "success",
+            title: "Your video is ready",
+            message: "Preview, download, or create a variation from the success panel.",
+          });
         }
         return video;
       } catch (e) {
+        if (
+          (e instanceof DOMException && e.name === "AbortError") ||
+          (e instanceof Error && /cancelled|aborted/i.test(e.message))
+        ) {
+          genPhaseRef.current = "cancelled";
+          setGenPhase("cancelled");
+          setProcessing(false);
+          setGenUi((prev) => ({
+            ...prev,
+            active: true,
+            message: "Stopped waiting locally. Check Your Videos if a cloud job was already queued.",
+          }));
+          return null;
+        }
+
         if (isPipelineFailureError(e)) {
+          const failure = e;
           setPipelineDiagnostic({
-            error: e.message,
-            details: e.details,
-            code: e.code,
+            error: failure.message,
+            details: failure.details,
+            code: failure.code,
             at: new Date().toISOString(),
           });
           setStudioDebugOpen(true);
@@ -950,11 +1109,11 @@ export function StudioClient() {
           setGenUi((prev) => ({
             ...prev,
             active: true,
-            message: e.message,
+            message: failure.message,
           }));
-          setStatusText(e.message);
-          setConnectionError(e.details);
-          showGenerationFailure("GPU pipeline failed", e.message, e.details);
+          setStatusText(failure.message);
+          setConnectionError(failure.details);
+          showGenerationFailure("GPU pipeline failed", failure.message, failure.details);
           return null;
         }
 
@@ -1069,8 +1228,59 @@ export function StudioClient() {
       startGenerationUi,
       stopGenerationUi,
       resetFormForNextVideo,
+      pushToast,
     ]
   );
+
+  const handleRetryGeneration = useCallback(async () => {
+    const snapshot = lastGenerateAttemptRef.current;
+    setPipelineDiagnostic(null);
+    setConnectionError(null);
+    dismissToast();
+    setRetryLoading(true);
+
+    if (!snapshot || !profile) {
+      setRetryLoading(false);
+      genPhaseRef.current = "idle";
+      setGenPhase("idle");
+      setGenUi(IDLE_GEN);
+      setProcessing(false);
+      setStatusText("Ready to retry generation");
+      if (profile) void syncFromServer(profile.id);
+      return;
+    }
+
+    setForm(snapshot.form);
+    setMode(snapshot.mode);
+    setCategory(snapshot.category);
+    setVisualStyle(snapshot.visualStyle);
+    setStudioScreen("preview");
+    startGenerationUi("Retrying generation…", 8);
+    pushToast({
+      tone: "info",
+      title: "Retrying generation",
+      message: "Restored your last inputs and re-queued the render.",
+    });
+
+    try {
+      const video = await runGenerate({
+        skipValidation: true,
+        uiAlreadyStarted: true,
+        overrideForm: snapshot.form,
+        overrideDurationSeconds: snapshot.durationSeconds,
+        overrideMode: snapshot.mode,
+        overrideCategory: snapshot.category,
+        overrideVisualStyle: snapshot.visualStyle,
+      });
+      if (video) void notifyVideoReady(profile, video);
+    } catch {
+      /* runGenerate handles errors */
+    } finally {
+      setRetryLoading(false);
+    }
+  }, [profile, runGenerate, startGenerationUi, syncFromServer, pushToast, dismissToast]);
+
+  handleRetryGenerationRef.current = handleRetryGeneration;
 
   const isLiveFalBlocked = useCallback((guard: FalGuardStatus | null) => {
     if (!guard) return false;
@@ -1192,13 +1402,19 @@ export function StudioClient() {
           message: compileData.message ?? "Full video ready",
           stageIndex: 3,
         });
+        const longPrompt = extractCreativePrompt(form);
+        if (longPrompt) addPromptToHistory(longPrompt);
+        upsertRecentProject({
+          id: finalVideo.id,
+          title: capturedTitle,
+          prompt: longPrompt || undefined,
+          category,
+          durationSeconds: plan.totalSeconds,
+          createdAt: finalVideo.createdAt,
+          status: "ready",
+        });
         setStatusText(compileData.message ?? "Full video ready");
         void notifyVideoReady(freshProfile, finalVideo);
-        window.setTimeout(() => {
-          setGenUi(IDLE_GEN);
-          genPhaseRef.current = "idle";
-          setGenPhase("idle");
-        }, 3500);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Long video failed.";
         showGenerationFailure("Video build failed", msg);
@@ -1297,7 +1513,19 @@ export function StudioClient() {
 
     setFieldErrors({});
     setStudioScreen("preview");
+    lastGenerateAttemptRef.current = {
+      form: { ...form, text: { ...form.text }, files: { ...form.files } },
+      mode,
+      category,
+      visualStyle,
+      durationSeconds,
+    };
     startGenerationUi("Preparing your video…", 2);
+
+    const segmentPlan = computeSegmentPlan(durationSeconds);
+    if (durationSeconds >= 60 || segmentPlan.segmentCount > 1) {
+      setShowGenStartedModal(true);
+    }
 
     try {
       const freshProfile = (await syncFromServer(profile.id)) ?? profile;
@@ -1375,6 +1603,10 @@ export function StudioClient() {
       showGenerationFailure("Could not start", msg);
       stopGenerationUi();
     }
+  };
+
+  onGenerateClickRef.current = () => {
+    void onGenerateClick();
   };
 
   const canCompileVideo =
@@ -1504,12 +1736,12 @@ export function StudioClient() {
     window.open("http://localhost:3001", "_blank", "noopener,noreferrer");
   };
 
-  const handleClosePaywall = () => {
+  const handleClosePaywall = useCallback(() => {
     setShowPaywall(false);
     setPaywallMessage(undefined);
-  };
+  }, []);
 
-  const goPreviousWizard = () => {
+  const goPreviousWizard = useCallback(() => {
     if (processing || genPhase === "running") return;
     if (wizardStep <= WIZARD_SETUP_STEP) return;
     setFieldErrors({});
@@ -1524,7 +1756,7 @@ export function StudioClient() {
       }
       return next;
     });
-  };
+  }, [processing, genPhase, wizardStep, mode, category, visualStyle]);
 
   const advanceWizard = () => {
     if (processing || genPhase === "running") return;
@@ -1629,17 +1861,298 @@ export function StudioClient() {
       })
     : undefined;
 
-  const handleSelectVideo = (video: GeneratedVideo) => {
-    if (processing) return;
-    setStudioScreen("preview");
-    setActiveVideo({
-      ...video,
-      videoUrl: resolveVideoPlaybackUrl(video.videoUrl, {
-        simulationMode: video.simulationMode ?? false,
-        preferSample: video.simulationMode ?? false,
-      }),
+  const handleSelectVideo = useCallback(
+    (video: GeneratedVideo) => {
+      if (processing) return;
+      setStudioScreen("preview");
+      setActiveVideo({
+        ...video,
+        videoUrl: resolveVideoPlaybackUrl(video.videoUrl, {
+          simulationMode: video.simulationMode ?? false,
+          preferSample: video.simulationMode ?? false,
+        }),
+      });
+    },
+    [processing]
+  );
+
+  const handleCarouselSelect = useCallback(
+    (item: Parameters<typeof userVideoAssetToGeneratedVideo>[0]) => {
+      handleSelectVideo(userVideoAssetToGeneratedVideo(item, profile?.id));
+    },
+    [handleSelectVideo, profile?.id]
+  );
+
+  const handleCarouselShare = useCallback(
+    (item: Parameters<typeof userVideoAssetToGeneratedVideo>[0]) => {
+      handleShareVideo(userVideoAssetToGeneratedVideo(item, profile?.id));
+    },
+    [handleShareVideo, profile?.id]
+  );
+
+  const handleCarouselLoadMore = useCallback(() => {
+    void serverGallery.loadMore();
+  }, [serverGallery]);
+
+  const handleCarouselRefresh = useCallback(() => {
+    void serverGallery.refresh();
+  }, [serverGallery]);
+
+  const handlePipelineRetry = useCallback(() => {
+    void handleRetryGeneration();
+  }, [handleRetryGeneration]);
+
+  const generationModelLabel = useMemo(() => {
+    if (activeVideo?.simulationMode) return "RTAS Preview Engine";
+    if (falGuard?.billingBlocked) return "RTAS Cloud (paused)";
+    if (profile && hasPremiumAccess(profile, durationSeconds)) {
+      return "RTAS Cinematic Engine · Premium";
+    }
+    return "RTAS Cinematic Engine";
+  }, [activeVideo?.simulationMode, falGuard?.billingBlocked, profile, durationSeconds]);
+
+  const handleSuccessPreview = useCallback(() => {
+    const frame = previewPanelRef.current;
+    frame?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const videoEl = frame?.querySelector("video");
+    if (videoEl instanceof HTMLVideoElement) {
+      void videoEl.play().catch(() => undefined);
+    }
+    pushToast({
+      tone: "info",
+      title: "Preview ready",
+      message: "Playing in the canvas on the right.",
     });
-  };
+  }, [pushToast]);
+
+  const handleSuccessDownload = useCallback(() => {
+    const url = activeVideo?.videoUrl;
+    if (!url || !activeVideo?.canDownload) {
+      pushToast({
+        tone: "warning",
+        title: "Download unavailable",
+        message: "Upgrade or wait for a paid render to unlock download.",
+      });
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(activeVideo.title || "rtas-video").replace(/[^\w\-]+/g, "-").slice(0, 48)}.mp4`;
+    a.rel = "noopener";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    pushToast({
+      tone: "success",
+      title: "Download started",
+      message: "Your video file is on the way.",
+    });
+  }, [activeVideo, pushToast]);
+
+  const handleEditPrompt = useCallback(() => {
+    const snapshot = lastGenerateAttemptRef.current;
+    if (snapshot) {
+      setForm(snapshot.form);
+      setMode(snapshot.mode);
+      setCategory(snapshot.category);
+      setVisualStyle(snapshot.visualStyle);
+    }
+    setStudioScreen("create");
+    const promptStep = Math.min(
+      Math.max(WIZARD_FIRST_GROUP_STEP, 1),
+      Math.max(
+        0,
+        getWizardStepCount(
+          snapshot?.category ?? category,
+          snapshot?.mode ?? mode,
+          snapshot?.visualStyle ?? visualStyle
+        ) - 1
+      )
+    );
+    setWizardStep(promptStep);
+    pushToast({
+      tone: "info",
+      title: "Edit your prompt",
+      message: "Your last inputs are restored. Adjust the scene, then generate again.",
+    });
+    requestAnimationFrame(() => {
+      const el =
+        document.getElementById("mainPrompt") ||
+        document.getElementById("directionPrompt") ||
+        document.querySelector(".prompt-editor__textarea");
+      if (el instanceof HTMLElement) el.focus();
+    });
+  }, [category, mode, visualStyle, pushToast]);
+
+  const handleCreateVariation = useCallback(() => {
+    const snapshot = lastGenerateAttemptRef.current;
+    const text = snapshot?.form.text ?? form.text;
+    const base =
+      text.mainPrompt?.trim() ||
+      text.directionPrompt?.trim() ||
+      text.prompt?.trim() ||
+      "";
+    const variationHint =
+      "Variation: slightly different camera angle, lighting, and pacing while keeping the same subject.";
+    const next = base
+      ? `${base.replace(/\s*Variation:.*$/i, "").trim()}\n\n${variationHint}`
+      : variationHint;
+
+    if (snapshot) {
+      setMode(snapshot.mode);
+      setCategory(snapshot.category);
+      setVisualStyle(snapshot.visualStyle);
+      setForm({
+        ...snapshot.form,
+        text: {
+          ...snapshot.form.text,
+          mainPrompt: next.slice(0, 4000),
+          ...(snapshot.form.text.directionPrompt !== undefined
+            ? { directionPrompt: snapshot.form.text.directionPrompt }
+            : {}),
+        },
+      });
+    } else {
+      const fieldId =
+        form.text.mainPrompt !== undefined ? "mainPrompt" : "directionPrompt";
+      setTextField(fieldId, next.slice(0, 4000));
+    }
+
+    setStudioScreen("create");
+    pushToast({
+      tone: "success",
+      title: "Variation ready",
+      message: "Prompt updated with a gentle variation cue. Review, then generate.",
+    });
+  }, [form.text, setTextField, pushToast]);
+
+  const forceSaveDraft = useCallback(() => {
+    if (!mode || !visualStyle) {
+      pushToast({
+        tone: "warning",
+        title: "Nothing to save yet",
+        message: "Choose a mode and visual style first.",
+      });
+      return;
+    }
+    saveStudioDraft({
+      mode,
+      category,
+      visualStyle,
+      text: form.text,
+    });
+    pushToast({
+      tone: "success",
+      title: "Draft saved",
+      message: "Your prompts and settings are stored on this device.",
+    });
+  }, [mode, category, visualStyle, form.text, pushToast]);
+
+  useStudioKeyboardShortcuts({
+    enabled: Boolean(profile),
+    onGenerate: () => {
+      if (processing || genPhase === "running") return;
+      if (studioScreen !== "create") setStudioScreen("create");
+      onGenerateClickRef.current?.();
+    },
+    onCancel: () => {
+      if (genPhase === "running") handleCancelGeneration();
+      else if (studioToast) dismissToast();
+    },
+    onRetry: () => {
+      if (genPhase === "error") void handleRetryGeneration();
+    },
+    onToggleScreen: () => {
+      if (processing || genPhase === "running") return;
+      setStudioScreen((prev) => (prev === "create" ? "preview" : "create"));
+    },
+    onSaveDraft: forceSaveDraft,
+  });
+
+  const handleRestoreDraft = useCallback(() => {
+    restoreDraft();
+    pushToast({
+      tone: "success",
+      title: "Draft restored",
+      message: "Your autosaved prompts and settings are back.",
+    });
+  }, [restoreDraft, pushToast]);
+
+  const handleApplyPrompt = useCallback(
+    (prompt: string) => {
+      const fieldId =
+        mode === "prompt" ? "directionPrompt" : form.text.mainPrompt !== undefined ? "mainPrompt" : "prompt";
+      setTextField(fieldId, prompt);
+      setStudioScreen("create");
+    },
+    [form.text.mainPrompt, mode, setTextField]
+  );
+
+  const handleLoadWorkflow = useCallback(
+    (workflow: SavedWorkflow) => {
+      setMode(workflow.mode);
+      setCategory(workflow.category);
+      setVisualStyle(workflow.visualStyle);
+      setForm((prev) => {
+        const merged: StudioFormState = {
+          ...prev,
+          text: { ...createInitialFormState().text, ...workflow.text },
+        };
+        if (!workflow.category) return merged;
+        return pruneFormToVisible(
+          merged,
+          workflow.category,
+          workflow.mode,
+          workflow.visualStyle
+        );
+      });
+      setWizardStep(WIZARD_FIRST_GROUP_STEP);
+      setStudioScreen("create");
+    },
+    []
+  );
+
+  const handleSelectRecent = useCallback(
+    (project: { id: string }) => {
+      const item = carouselItems.find((entry) => entry.id === project.id);
+      if (item && profile) {
+        handleSelectVideo(userVideoAssetToGeneratedVideo(item, profile.id));
+        return;
+      }
+      setStudioScreen("preview");
+      void serverGallery.refresh();
+    },
+    [carouselItems, profile, serverGallery]
+  );
+
+  const getWorkflowSnapshot = useCallback(() => {
+    if (!mode || !visualStyle) return null;
+    return {
+      mode,
+      category,
+      visualStyle,
+      text: { ...form.text },
+    };
+  }, [category, form.text, mode, visualStyle]);
+
+  const segmentPlan = useMemo(
+    () => computeSegmentPlan(durationSeconds),
+    [durationSeconds]
+  );
+  const generationEtaWindow = useMemo(
+    () => estimateProcessingWindow(durationSeconds, { segmentCount: segmentPlan.segmentCount }),
+    [durationSeconds, segmentPlan.segmentCount]
+  );
+  const queueActiveCount =
+    studioMetrics?.concurrentTracks ?? studioMetrics?.renderingQueues ?? 0;
+  const queueMaxCount = studioMetrics?.maxConcurrentGenerations ?? 3;
+  const pipelineVisible =
+    processing ||
+    genUi.active ||
+    genPhase === "error" ||
+    genPhase === "success" ||
+    genPhase === "cancelled";
 
   const premiumPipeline = profile
     ? hasPremiumAccess(profile, durationSeconds)
@@ -1707,6 +2220,16 @@ export function StudioClient() {
           void proceedToCheckout(pendingCheckoutPlan, { rolloverRemaining: true })
         }
         onCancel={() => setShowEarlyResubscribe(false)}
+      />
+
+      <GenerationStartedModal
+        open={showGenStartedModal}
+        title="Generation started"
+        message="Your video is rendering in our cloud pipeline. You can keep editing or browse past renders while you wait."
+        minMinutes={generationEtaWindow.minMinutes}
+        maxMinutes={generationEtaWindow.maxMinutes}
+        segmentCount={segmentPlan.segmentCount}
+        onClose={() => setShowGenStartedModal(false)}
       />
 
       <div
@@ -1819,10 +2342,29 @@ export function StudioClient() {
             >
               <div className="shashka-holo-widget create-panel-unified">
               <header className="create-panel-unified__bar">
-                <h2>Create your video</h2>
+                <div className="create-panel-unified__bar-top">
+                  <h2>Create your video</h2>
+                  <AutosaveIndicator savedAt={lastSavedAt} saving={saving} />
+                </div>
+                {showDraftBanner && pendingDraft ? (
+                  <DraftRestoreBanner
+                    draft={pendingDraft}
+                    onRestore={handleRestoreDraft}
+                    onDismiss={dismissDraft}
+                  />
+                ) : null}
                 <p className="create-panel-unified__tagline">
                   Step-by-step wizard — lyrics, audio, face lock, one flow.
                 </p>
+                {!mode && !showDraftBanner ? (
+                  <div className="studio-empty-project" role="status">
+                    <p className="studio-empty-project__title">Start a new project</p>
+                    <p className="studio-empty-project__copy">
+                      Choose a mode below. Your draft autosaves as you go — nothing is lost if you leave.
+                    </p>
+                  </div>
+                ) : null}
+                <StudioShortcutsHint className="studio-shortcuts-hint--create" />
                 <div className="studio-wizard-progress-wrap">
                   <div
                     className="studio-wizard-progress"
@@ -2169,15 +2711,16 @@ export function StudioClient() {
             >
               <div className="shashka-preview-header">
                 <h2>{isLoading ? "Rendering" : "Preview"}</h2>
-                <button
+                <Button
                   type="button"
-                  className="btn-secondary studio-back-to-editor"
+                  variant="secondary"
+                  className="studio-back-to-editor"
                   onClick={() => setStudioScreen("create")}
                   disabled={isLoading}
                   title={isLoading ? "Wait for render to finish" : "Return to create wizard"}
                 >
                   {isLoading ? "Rendering…" : "← Create"}
-                </button>
+                </Button>
               </div>
 
               {showConnectionBanner && isStudioOwner(profile) && (
@@ -2189,19 +2732,62 @@ export function StudioClient() {
                 />
               )}
 
-              <PreviewGenerationProgress
+              <GenerationPipelinePanel
                 ref={progressRef}
-                active={processing || (genUi.active && genPhase !== "idle")}
+                active={pipelineVisible}
                 phase={
                   genPhase === "error"
                     ? "error"
                     : genPhase === "success"
                       ? "success"
-                      : "running"
+                      : genPhase === "cancelled"
+                        ? "cancelled"
+                        : "running"
                 }
                 percent={genUi.percent}
                 message={genUi.message}
-                patienceMessage={generationPatienceMessage}
+                stageIndex={genUi.stageIndex}
+                durationSeconds={durationSeconds}
+                segmentCount={segmentPlan.segmentCount}
+                startedAt={generationStartedAtRef.current}
+                queueActive={queueActiveCount}
+                queueMax={queueMaxCount}
+                modelLabel={generationModelLabel}
+                videoTitle={activeVideo?.title}
+                canDownload={Boolean(activeVideo?.canDownload)}
+                downloadUrl={activeVideo?.videoUrl}
+                onCancel={genPhase === "running" ? handleCancelGeneration : undefined}
+                onRetry={genPhase === "error" ? handlePipelineRetry : undefined}
+                retryLoading={retryLoading}
+                onPreview={
+                  genPhase === "success" && activeVideo?.videoUrl
+                    ? handleSuccessPreview
+                    : undefined
+                }
+                onDownload={
+                  genPhase === "success" && activeVideo?.videoUrl
+                    ? handleSuccessDownload
+                    : undefined
+                }
+                onRegenerate={genPhase === "success" ? handlePipelineRetry : undefined}
+                onEditPrompt={genPhase === "success" ? handleEditPrompt : undefined}
+                onCreateVariation={
+                  genPhase === "success" ? handleCreateVariation : undefined
+                }
+                onDismiss={
+                  genPhase === "success" || genPhase === "error" || genPhase === "cancelled"
+                    ? handleDismissPipeline
+                    : undefined
+                }
+              />
+
+              <StudioWorkflowPanel
+                currentPrompt={currentPrompt === "—" ? "" : currentPrompt}
+                canSaveWorkflow={Boolean(mode && visualStyle && !isLoading)}
+                onApplyPrompt={handleApplyPrompt}
+                onLoadWorkflow={handleLoadWorkflow}
+                onSelectRecent={handleSelectRecent}
+                getWorkflowSnapshot={getWorkflowSnapshot}
               />
 
               <StudioVideoCarousel
@@ -2209,16 +2795,12 @@ export function StudioClient() {
                 activeVideoId={activeVideo?.id}
                 profile={profile}
                 disabled={processing}
-                onSelect={(item) =>
-                  handleSelectVideo(
-                    userVideoAssetToGeneratedVideo(item, profile?.id)
-                  )
-                }
-                onShare={(item) =>
-                  handleShareVideo(
-                    userVideoAssetToGeneratedVideo(item, profile?.id)
-                  )
-                }
+                hasMore={serverGallery.hasMore}
+                loadingMore={serverGallery.loadingMore}
+                onLoadMore={handleCarouselLoadMore}
+                onRefresh={handleCarouselRefresh}
+                onSelect={handleCarouselSelect}
+                onShare={handleCarouselShare}
               />
 
               {isStudioOwner(profile) ? (
@@ -2256,13 +2838,14 @@ export function StudioClient() {
               </div>
               {activeVideo?.status === "ready" && activeVideo.videoUrl && !isGenerating ? (
                 <div className="shashka-preview-share-row">
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
                     className="btn-share-video"
                     onClick={() => handleShareVideo(activeVideo)}
                   >
                     Share Video
-                  </button>
+                  </Button>
                   {activeVideo.isPublic ? (
                     <span className="shashka-preview-share-note">Public link active</span>
                   ) : null}
@@ -2273,6 +2856,7 @@ export function StudioClient() {
           ) : null}
         </div>
       </div>
+      <StudioToast toast={studioToast} onDismiss={dismissToast} />
     </>
   );
 }

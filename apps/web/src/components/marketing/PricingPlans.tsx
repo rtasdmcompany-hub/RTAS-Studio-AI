@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import type { PaidPlanType } from "@rtas/shared";
+import { Button } from "@rtas/ui";
 import { loadProfile, saveProfile } from "@/lib/store";
 import { startCheckout } from "@/lib/checkout-client";
 import { PRICING_TIERS, planDisplayName } from "@/lib/pricing-tiers";
@@ -161,14 +162,17 @@ export function PricingPlans() {
 
             <FeatureChecklist features={tier.features} />
 
-            <button
+            <Button
               type="button"
-              className="rtas-btn-lavender rtas-pricing-tier__cta"
+              variant="lavender"
+              className="rtas-pricing-tier__cta"
               disabled={busy !== null}
+              loading={busy === tier.plan}
+              loadingLabel="Starting…"
               onClick={() => void runCheckout(tier.plan)}
             >
-              {busy === tier.plan ? "Starting…" : tier.ctaLabel}
-            </button>
+              {tier.ctaLabel}
+            </Button>
           </article>
         ))}
 

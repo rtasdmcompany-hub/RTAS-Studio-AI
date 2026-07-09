@@ -1,8 +1,29 @@
 "use client";
 
-import { LiveChatWidget } from "@/components/marketing/LiveChatWidget";
-import { BackToTop } from "@/components/marketing/BackToTop";
-import { StudioClient } from "./StudioClient";
+import dynamic from "next/dynamic";
+import { StudioSkeleton } from "@/components/ui/skeletons";
+
+const StudioClient = dynamic(
+  () => import("./StudioClient").then((mod) => mod.StudioClient),
+  {
+    ssr: false,
+    loading: () => <StudioSkeleton />,
+  }
+);
+
+const LiveChatWidget = dynamic(
+  () =>
+    import("@/components/marketing/LiveChatWidget").then(
+      (mod) => mod.LiveChatWidget
+    ),
+  { ssr: false }
+);
+
+const BackToTop = dynamic(
+  () =>
+    import("@/components/marketing/BackToTop").then((mod) => mod.BackToTop),
+  { ssr: false }
+);
 
 export function StudioShell() {
   return (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { PaidPlanType } from "@rtas/shared";
 import { getActivePaymentProvider } from "@/lib/monetization";
+import { requireApiSession } from "@/lib/server/api-auth";
 
 function normalizePlan(raw: unknown): PaidPlanType {
   if (raw === "tester" || raw === "standard" || raw === "premium") return raw;
@@ -9,20 +10,26 @@ function normalizePlan(raw: unknown): PaidPlanType {
 
 /**
  * Returns checkout URL for configured Merchant of Record (Paddle / Lemon Squeezy)
- * or demo activation for local development.
+ * or demo activation for local development only.
  */
 export async function POST(request: Request) {
+  const auth = await requireApiSession();
+  if (!auth.ok) return auth.response;
+
   const provider = getActivePaymentProvider();
 
-  let body: { userId?: string; email?: string; plan?: PaidPlanType } = {};
+  let body: { email?: string; plan?: PaidPlanType } = {};
   try {
     body = await request.json();
   } catch {
     /* optional body */
   }
 
-  const userId = body.userId ?? "local-user";
-  const email = body.email ?? "";
+  const userId = auth.userId;
+  const email =
+    body.email?.trim() ||
+    auth.session.user?.email?.trim() ||
+    "";
   const plan = normalizePlan(body.plan);
 
   if (provider === "paddle") {
@@ -61,6 +68,19 @@ export async function POST(request: Request) {
         plan,
       });
     }
+  }
+
+  // Demo checkout is development-only — never activate plans without payment in production.
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      {
+        error:
+          "Live payment is not configured. Set Paddle or Lemon Squeezy checkout URLs before accepting payments.",
+        provider: provider ?? "none",
+        plan,
+      },
+      { status: 503 }
+    );
   }
 
   return NextResponse.json({

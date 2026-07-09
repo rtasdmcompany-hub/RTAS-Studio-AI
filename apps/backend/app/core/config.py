@@ -49,6 +49,20 @@ class Settings(BaseSettings):
     fal_model_flashhead: str = "fal-ai/flash-head"
     fal_model_cinematic: str = "fal-ai/wan/v2.7/image-to-video"
     fal_resolution: str = "720p"
+
+    # Tier-routed Fal endpoints (billing separation — override per deploy)
+    fal_tier_economy_t2v: str = "fal-ai/mochi-video"
+    fal_tier_economy_i2v: str = "fal-ai/mochi-video"
+    fal_tier_economy_real_face: str = "fal-ai/mochi-video"
+    fal_tier_economy_resolution: str = "720p"
+    fal_tier_enterprise_t2v: str = "fal-ai/kling-video"
+    fal_tier_enterprise_i2v: str = "fal-ai/kling-video"
+    fal_tier_enterprise_real_face: str = "fal-ai/kling-video"
+    fal_tier_enterprise_cinematic: str = "fal-ai/luma-dream-machine"
+    fal_tier_enterprise_resolution: str = "1080p"
+    fal_strict_tier_routing: bool = Field(
+        default=True, validation_alias="FAL_STRICT_TIER_ROUTING"
+    )
     # Owner wallet protection — no live Fal calls when false (zero Fal spend)
     fal_live_enabled: bool = Field(default=True, validation_alias="FAL_LIVE_ENABLED")
     fal_retry_cooldown_sec: int = Field(

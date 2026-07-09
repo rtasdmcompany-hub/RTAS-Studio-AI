@@ -1,6 +1,5 @@
 import { GlassSkeletonPanel, SkeletonBar } from "./ShimmerSkeleton";
 
-/** Auth card skeleton — login, signup, and check-email Suspense fallbacks. */
 export function AuthSkeleton() {
   return (
     <div className="auth-shell">
@@ -29,7 +28,6 @@ export function AuthSkeleton() {
   );
 }
 
-/** Compact inline skeleton for check-email confirmation link state. */
 export function AuthLinkSkeleton() {
   return (
     <GlassSkeletonPanel className="w-full" ariaLabel="Preparing confirmation link">

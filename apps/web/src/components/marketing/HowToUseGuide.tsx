@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ButtonLink } from "@rtas/ui";
 import {
   CATEGORY_GUIDES,
   STUDIO_FLOW,
@@ -18,6 +18,7 @@ function GuideMedia({
   media: { type: "video" | "image"; src: string; alt: string };
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
 
   const play = useCallback(() => {
     const video = ref.current;
@@ -26,19 +27,47 @@ function GuideMedia({
   }, []);
 
   useEffect(() => {
-    play();
-  }, [media.src, play]);
+    const node = ref.current;
+    if (!node && media.type === "video") return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldLoad(true);
+      return;
+    }
+
+    const target = media.type === "video" ? ref.current : null;
+    if (!target) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px", threshold: 0.05 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [media.type]);
+
+  useEffect(() => {
+    if (shouldLoad && media.type === "video") play();
+  }, [media.src, shouldLoad, media.type, play]);
 
   if (media.type === "video") {
     return (
       <video
         ref={ref}
-        src={media.src}
-        autoPlay
+        src={shouldLoad ? media.src : undefined}
+        autoPlay={shouldLoad}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="none"
         className="rtas-howto-media__video"
         aria-label={media.alt}
         onLoadedData={play}
@@ -48,7 +77,13 @@ function GuideMedia({
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={media.src} alt={media.alt} className="rtas-howto-media__img" />
+    <img
+      src={media.src}
+      alt={media.alt}
+      className="rtas-howto-media__img"
+      loading="lazy"
+      decoding="async"
+    />
   );
 }
 
@@ -64,12 +99,12 @@ export function HowToUseGuide() {
           music videos, ads, faith content, and narrative shorts at scale.
         </p>
         <div className="rtas-howto-page__actions">
-          <Link href="/studio" className="rtas-btn-lavender">
+          <ButtonLink href="/studio" variant="lavender">
             Open Studio <span aria-hidden>→</span>
-          </Link>
-          <a href="#categories" className="rtas-btn-ghost">
+          </ButtonLink>
+          <ButtonLink href="#categories" variant="ghost">
             Jump to categories
-          </a>
+          </ButtonLink>
         </div>
       </InnerPageSection>
 
@@ -218,9 +253,9 @@ export function HowToUseGuide() {
             </ul>
           </div>
 
-          <Link href="/studio" className="rtas-btn-lavender rtas-howto-category__cta">
+          <ButtonLink href="/studio" variant="lavender" className="rtas-howto-category__cta">
             Create in Studio →
-          </Link>
+          </ButtonLink>
         </InnerPageSection>
       ))}
 
@@ -231,12 +266,12 @@ export function HowToUseGuide() {
           <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>.
         </p>
         <div className="rtas-howto-page__actions">
-          <Link href="/pricing" className="rtas-btn-ghost">
+          <ButtonLink href="/pricing" variant="ghost">
             View pricing and credits
-          </Link>
-          <Link href="/studio" className="rtas-btn-lavender">
+          </ButtonLink>
+          <ButtonLink href="/studio" variant="lavender">
             Start creating
-          </Link>
+          </ButtonLink>
         </div>
       </InnerPageSection>
     </InnerPageContainer>

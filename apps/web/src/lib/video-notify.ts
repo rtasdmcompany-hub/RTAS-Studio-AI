@@ -9,8 +9,6 @@ export async function notifyVideoReady(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: profile.email,
-        name: profile.name,
         title: video.title,
         videoUrl: video.videoUrl,
         durationSeconds: video.durationSeconds,

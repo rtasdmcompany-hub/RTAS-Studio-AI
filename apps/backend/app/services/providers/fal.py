@@ -206,15 +206,20 @@ def _build_fal_request(job: GenerationJobInput) -> tuple[str, dict[str, Any]]:
     image_path = job.driving_image_path
     wants_i2v = job.mode == "image" or image_path is not None
 
+    resolution = job.fal_resolution or settings.fal_resolution
     arguments: dict[str, Any] = {
         "prompt": prompt,
         "duration": duration,
-        "resolution": settings.fal_resolution,
+        "resolution": resolution,
         "enable_safety_checker": True,
     }
 
     if job.selected_endpoint:
         endpoint = job.selected_endpoint
+    elif settings.fal_strict_tier_routing:
+        raise ValueError(
+            "Tier-routed Fal endpoint missing — live renders require valid billing tier."
+        )
     elif job.visual_style == "real":
         endpoint = settings.fal_model_real_face
         if image_path is None:

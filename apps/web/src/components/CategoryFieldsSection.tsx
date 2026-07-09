@@ -16,6 +16,45 @@ import {
 } from "@/components/create-form";
 import { FileUploadField } from "./FileUploadField";
 import { FormFieldRestoreHint } from "./FormFieldRestoreHint";
+import { PromptEditor } from "./PromptEditor";
+import { FieldError } from "@rtas/ui";
+
+const PROMPT_FIELD_IDS = new Set([
+  "mainPrompt",
+  "directionPrompt",
+  "lyrics",
+  "adScript",
+  "plot",
+  "script",
+  "characters",
+]);
+
+const PROMPT_SUGGESTIONS: Record<string, string[]> = {
+  mainPrompt: [
+    "cinematic lighting",
+    "slow camera push-in",
+    "shallow depth of field",
+    "golden hour",
+    "identity lock",
+  ],
+  directionPrompt: [
+    "tracking shot",
+    "low angle",
+    "soft rim light",
+    "handheld energy",
+    "macro detail",
+  ],
+  characters: [
+    "consistent wardrobe",
+    "expressive eyes",
+    "natural skin texture",
+    "hero silhouette",
+  ],
+  lyrics: ["emotional chorus", "intimate verse", "building energy"],
+  adScript: ["benefit first", "clear CTA", "product hero shot"],
+  plot: ["rising tension", "emotional beat", "satisfying close"],
+  script: ["conversational tone", "clear hook", "strong closer"],
+};
 
 type Props = {
   category: VideoCategory;
@@ -34,7 +73,8 @@ function renderTextControl(
   hasError: boolean,
   disabled: boolean,
   onTextChange: Props["onTextChange"],
-  maxDurationSeconds?: number
+  maxDurationSeconds?: number,
+  errorMessage?: string
 ) {
   const label = f.shortLabel || f.label;
   const value = form.text[f.id] ?? "";
@@ -50,6 +90,23 @@ function renderTextControl(
       {control}
     </FormFieldRestoreHint>
   );
+
+  if (f.type === "textarea" && PROMPT_FIELD_IDS.has(f.id)) {
+    return (
+      <PromptEditor
+        id={f.id}
+        label={label}
+        value={value}
+        placeholder={f.placeholder}
+        helpText={f.helpText}
+        hasError={hasError}
+        errorMessage={errorMessage}
+        disabled={disabled}
+        suggestions={PROMPT_SUGGESTIONS[f.id]}
+        onChange={(next) => onTextChange(f.id, next)}
+      />
+    );
+  }
 
   if (f.type === "textarea") {
     return wrap(
@@ -133,6 +190,25 @@ function renderField(
     );
   }
 
+  if (f.type === "textarea" && PROMPT_FIELD_IDS.has(f.id)) {
+    return (
+      <div
+        key={f.id}
+        className={`field field--prompt field--${f.id}${hasError ? " field--error" : ""}`}
+      >
+        {renderTextControl(
+          f,
+          form,
+          hasError,
+          disabled,
+          onTextChange,
+          maxDurationSeconds,
+          errorMessage
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       key={f.id}
@@ -141,9 +217,7 @@ function renderField(
       <label htmlFor={f.id}>{label}</label>
       {renderTextControl(f, form, hasError, disabled, onTextChange, maxDurationSeconds)}
       {hasError ? (
-        <p className="field-error" role="alert">
-          {errorMessage}
-        </p>
+        <FieldError>{errorMessage}</FieldError>
       ) : (
         f.helpText && <p className="help">{f.helpText}</p>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { Alert, Button, EmptyState } from "@rtas/ui";
 import { useUserVideoGallery } from "@/hooks/useUserVideoGallery";
 import {
   AssetGallerySkeleton,
@@ -15,16 +16,18 @@ export function ProfileAssetGallery({ userId }: Props) {
   const gallery = useUserVideoGallery(userId, {
     pollActive: true,
   });
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleDelete = useCallback(
     async (jobId: string) => {
+      setDeleteError(null);
       const res = await fetch(`/api/user/videos/${jobId}`, { method: "DELETE" });
       if (res.ok) {
         gallery.removeItem(jobId);
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      window.alert(body.error ?? "Could not delete this render.");
+      setDeleteError(body.error ?? "Could not delete this render. Please try again.");
     },
     [gallery.removeItem]
   );
@@ -32,29 +35,50 @@ export function ProfileAssetGallery({ userId }: Props) {
   return (
     <section className="profile-asset-gallery" aria-labelledby="profile-gallery-heading">
       <div className="profile-asset-gallery__header">
-        <h2 id="profile-gallery-heading">Your renders</h2>
+        <h2 id="profile-gallery-heading">Your library</h2>
         <p className="profile-asset-gallery__sub">
-          Server-backed gallery — active jobs refresh automatically.
+          Finished and active renders — updates automatically while jobs run.
         </p>
       </div>
 
+      {deleteError ? (
+        <Alert
+          variant="error"
+          message={deleteError}
+          onDismiss={() => setDeleteError(null)}
+          className="profile-asset-gallery__notice"
+        />
+      ) : null}
+
       {gallery.error ? (
-        <p className="profile-asset-gallery__error" role="alert">
-          {gallery.error}{" "}
-          <button type="button" className="asset-card__btn asset-card__btn--ghost" onClick={() => void gallery.refresh()}>
+        <Alert
+          variant="error"
+          title="Couldn't load your renders"
+          message={gallery.error}
+          className="profile-asset-gallery__notice"
+        >
+          <Button
+            variant="ui-ghost"
+            size="sm"
+            onClick={() => void gallery.refresh()}
+            className="profile-asset-gallery__retry"
+          >
             Retry
-          </button>
-        </p>
+          </Button>
+        </Alert>
       ) : null}
 
       {gallery.loading && gallery.items.length === 0 ? (
         <AssetGallerySkeleton count={6} />
-      ) : gallery.items.length === 0 ? (
-        <p className="profile-asset-gallery__empty">
-          No renders yet.{" "}
-          <a href="/studio">Create your first video in Studio</a>.
-        </p>
-      ) : (
+      ) : gallery.items.length === 0 && !gallery.error ? (
+        <EmptyState
+          icon="🎬"
+          title="No renders yet"
+          description="Finished videos land here with live status. Create once in Studio to fill your library."
+          actionLabel="Create your first video →"
+          actionHref="/studio"
+        />
+      ) : gallery.items.length > 0 ? (
         <>
           <div className="asset-gallery__grid">
             {gallery.items.map((item) => (
@@ -69,18 +93,18 @@ export function ProfileAssetGallery({ userId }: Props) {
 
           {gallery.hasMore ? (
             <div className="profile-asset-gallery__more">
-              <button
-                type="button"
-                className="btn-secondary"
-                disabled={gallery.loadingMore}
+              <Button
+                variant="secondary"
+                loading={gallery.loadingMore}
+                loadingLabel="Loading…"
                 onClick={() => void gallery.loadMore()}
               >
-                {gallery.loadingMore ? "Loading…" : "Load more renders"}
-              </button>
+                Load more renders
+              </Button>
             </div>
           ) : null}
         </>
-      )}
+      ) : null}
     </section>
   );
 }

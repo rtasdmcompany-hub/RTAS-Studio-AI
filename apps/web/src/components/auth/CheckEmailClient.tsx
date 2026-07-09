@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BrandLockup } from "@/components/BrandLockup";
 import { AuthLinkSkeleton } from "@/components/ui/skeletons";
+import { Alert, Button, ButtonLink } from "@rtas/ui";
 import { AuthFlowGuard } from "./AuthFlowGuard";
 
 const DEV_VERIFY_KEY = "rtas_dev_verify_url";
@@ -160,68 +161,81 @@ export function CheckEmailClient() {
         </div>
 
         {notice && (
-          <div className="auth-success auth-confirmation-banner" role="status">
-            <p>{notice}</p>
-          </div>
+          <Alert variant="success" message={notice} />
         )}
 
         {realInboxDelivery && emailWasSentToInbox && !notice && (
-          <div className="auth-success" role="status">
-            <p>
-              We sent a confirmation email to <strong>{maskedEmail}</strong>.
-            </p>
-            <p>
-              Check your inbox and spam folder, then click <strong>Confirm my account</strong>.
-            </p>
-            <p>
-              After confirming,{" "}
-              <Link href="/auth/login?callbackUrl=%2Fstudio">sign in</Link> to open Studio.
-            </p>
-          </div>
+          <Alert
+            variant="success"
+            message={
+              <>
+                <p>
+                  We sent a confirmation email to <strong>{maskedEmail}</strong>.
+                </p>
+                <p>
+                  Check your inbox and spam folder, then click <strong>Confirm my account</strong>.
+                </p>
+                <p>
+                  After confirming,{" "}
+                  <Link href="/auth/login?callbackUrl=%2Fstudio">sign in</Link> to open Studio.
+                </p>
+              </>
+            }
+          />
         )}
 
         {resendSandboxFrom && (
-          <div className="auth-notice" role="status">
-            <p>
-              Inbox email is not active yet because the sending domain is not verified in
-              Resend. Use <strong>Confirm my account now</strong> below to activate your account.
-            </p>
-          </div>
+          <Alert
+            variant="info"
+            message={
+              <>
+                Inbox email is not active yet because the sending domain is not verified in
+                Resend. Use <strong>Confirm my account now</strong> below to activate your account.
+              </>
+            }
+          />
         )}
 
         {devFileMode && (
-          <div className="auth-notice" role="status">
-            <p>
-              Email delivery is in local development mode. Use the confirmation link below
-              to verify your account, then sign in.
-            </p>
-          </div>
+          <Alert
+            variant="info"
+            message={
+              <>
+                Email delivery is in local development mode. Use the confirmation link below
+                to verify your account, then sign in.
+              </>
+            }
+          />
         )}
 
         {smtpNeedsAppPassword && (
-          <p className="auth-error" role="alert">
-            SMTP is not configured in <code>apps/web/.env.local</code>. Add{" "}
-            <code>SMTP_PASS</code> for real email delivery, or use the confirmation link
-            below.
-          </p>
+          <Alert
+            variant="error"
+            message={
+              <>
+                SMTP is not configured in <code>apps/web/.env.local</code>. Add{" "}
+                <code>SMTP_PASS</code> for real email delivery, or use the confirmation link
+                below.
+              </>
+            }
+          />
         )}
 
         {error && (
-          <p className="auth-error" role="alert">
-            {error}
-          </p>
+          <Alert variant="error" message={error} />
         )}
 
         {loadingLink && !devVerificationUrl && <AuthLinkSkeleton />}
 
         {showOnPageConfirm && (
           <>
-            <a
+            <ButtonLink
               href={devVerificationUrl!}
-              className="btn-primary auth-submit auth-confirm-link-btn"
+              variant="primary"
+              className="auth-submit auth-confirm-link-btn"
             >
               Confirm my account now
-            </a>
+            </ButtonLink>
             {!resendSandboxFrom && !realInboxDelivery && (
               <p className="auth-dev-link">
                 Copy link: <a href={devVerificationUrl!}>{devVerificationUrl}</a>
@@ -230,18 +244,19 @@ export function CheckEmailClient() {
           </>
         )}
 
-        <button
+        <Button
           type="button"
-          className="btn-ghost auth-submit"
+          variant="ghost"
+          className="auth-submit"
           disabled={busy || !resendEmail}
+          loading={busy}
+          loadingLabel="Working…"
           onClick={() => void loadVerificationLink(true)}
         >
-          {busy
-            ? "Working…"
-            : realInboxDelivery
-              ? "Resend confirmation email"
-              : "Refresh confirmation link"}
-        </button>
+          {realInboxDelivery
+            ? "Resend confirmation email"
+            : "Refresh confirmation link"}
+        </Button>
 
         <p className="auth-switch">
           Already confirmed?{" "}

@@ -3,20 +3,17 @@ import {
   evaluateFalPoolHealth,
 } from "@/lib/payments/fal-funding-service";
 import { getFalLedgerSummary } from "@/lib/server/fal-ledger-store";
+import {
+  adminUnauthorizedResponse,
+  isAdminAuthorized,
+} from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 
-function isAuthorized(request: Request): boolean {
-  const secret = process.env.RTAS_ADMIN_SECRET?.trim();
-  if (!secret) return process.env.NODE_ENV === "development";
-  const header = request.headers.get("x-rtas-admin-secret");
-  return header === secret;
-}
-
 /** Owner: Fal pool status + ledger (protect with RTAS_ADMIN_SECRET in production) */
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!isAdminAuthorized(request)) {
+    return adminUnauthorizedResponse();
   }
 
   const snapshot = await evaluateFalPoolHealth();

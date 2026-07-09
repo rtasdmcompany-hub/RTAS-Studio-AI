@@ -32,7 +32,6 @@ export async function startCheckout(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      userId: profile.id,
       email: profile.email,
       plan,
     }),
@@ -42,12 +41,14 @@ export async function startCheckout(
     url?: string;
     localActivateUrl?: string;
     message?: string;
+    error?: string;
     demo?: boolean;
   };
 
   if (!res.ok) {
     return {
-      message: data.message ?? "Checkout could not start. Please try again.",
+      message:
+        data.error ?? data.message ?? "Checkout could not start. Please try again.",
     };
   }
 

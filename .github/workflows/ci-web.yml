@@ -1,0 +1,76 @@
+name: CI — RTAS Web
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vercel.json"
+      - "docs/**"
+      - ".github/workflows/ci-web.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vercel.json"
+      - "docs/**"
+      - ".github/workflows/ci-web.yml"
+
+concurrency:
+  group: ci-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint · Typecheck · Smoke · Ready · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: .
+
+    env:
+      NEXTAUTH_SECRET: ci-build-placeholder-not-for-production-use-32chars
+      NEXTAUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PHASE: phase-production-build
+      RTAS_ALLOW_INCOMPLETE_ENV: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install --workspace=@rtas/web --include-workspace-root --legacy-peer-deps --no-audit --no-fund
+
+      - name: Deployment-ready artifacts
+        run: npm run verify:deployment-ready -w @rtas/web
+
+      - name: ESLint
+        run: npm run lint -w @rtas/web
+
+      - name: TypeScript
+        run: npm run typecheck -w @rtas/web
+
+      - name: Commercial smoke tests
+        run: npm run test -w @rtas/web
+
+      - name: Production readiness checklist
+        run: npm run verify:production -w @rtas/web
+
+      - name: Production build
+        run: npm run build -w @rtas/web
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rtas_ci?schema=public

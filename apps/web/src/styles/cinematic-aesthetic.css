@@ -1,23 +1,12 @@
 /**
  * Cinematic urban studio atmosphere — mesh gradients, glass, glow, micro-interactions.
  * Loaded after marketing/studio styles; does not alter lazy-load, auth, or image logic.
+ * Color/motion tokens: @rtas/design-tokens/css/tokens.css
  */
-
-:root {
-  --bg: #09090b;
-  --surface: rgba(255, 255, 255, 0.03);
-  --surface2: rgba(255, 255, 255, 0.05);
-  --border: rgba(255, 255, 255, 0.06);
-  --cinematic-purple: #581c87;
-  --cinematic-gold: #b45309;
-  --cinematic-purple-glow: rgba(168, 85, 247, 0.4);
-  --cinematic-gold-glow: rgba(232, 197, 71, 0.35);
-  --transition-smooth: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
 /* —— Animated concert mesh backdrop —— */
 .cinematic-atmosphere {
-  background-color: #09090b;
+  background-color: var(--ds-bg-deep);
   isolation: isolate;
 }
 
@@ -31,7 +20,7 @@
 }
 
 .cinematic-atmosphere::before {
-  background: #09090b;
+  background: var(--ds-bg-deep);
 }
 
 .cinematic-atmosphere::after {
@@ -64,25 +53,25 @@
 .cinematic-glass-panel {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ds-color-white-6);
+  background: var(--ds-color-white-3);
 }
 
 .cinematic-glass-panel {
-  border-radius: 1rem;
+  border-radius: var(--ds-radius-lg);
   box-shadow:
-    0 24px 48px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 24px 48px var(--ds-color-black-45),
+    inset 0 1px 0 var(--ds-color-white-5);
 }
 
 .cinematic-heading-gradient {
   color: transparent;
   background-image: linear-gradient(
     125deg,
-    #f8fafc 0%,
-    #fde68a 38%,
-    #e8c547 52%,
-    #c084fc 88%
+    var(--ds-color-slate-50) 0%,
+    var(--ds-color-gold-300) 38%,
+    var(--ds-accent-2) 52%,
+    var(--ds-color-violet-400) 88%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -90,13 +79,13 @@
 
 .rtas-header,
 .rtas-header--studio {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(var(--ds-blur-xl));
+  -webkit-backdrop-filter: blur(var(--ds-blur-xl));
+  border-bottom: 1px solid var(--ds-color-white-10);
+  background: var(--ds-color-black-90) !important;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    0 8px 32px var(--ds-color-black-40),
+    inset 0 1px 0 var(--ds-color-white-4);
   transition:
     background var(--transition-smooth),
     box-shadow var(--transition-smooth),
@@ -106,13 +95,13 @@
 .video-content-panel,
 .video-text-highlight,
 .auth-card {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(var(--ds-blur-lg));
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
+  border: 1px solid var(--ds-color-white-10);
   background: rgba(0, 0, 0, 0.8) !important;
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 16px 40px var(--ds-color-black-42),
+    inset 0 1px 0 var(--ds-color-white-5);
   transition:
     transform var(--transition-smooth),
     box-shadow var(--transition-smooth),
@@ -133,10 +122,10 @@
   color: transparent;
   background-image: linear-gradient(
     125deg,
-    #f8fafc 0%,
-    #fde68a 38%,
-    #e8c547 52%,
-    #c084fc 88%
+    var(--ds-color-slate-50) 0%,
+    var(--ds-color-gold-300) 38%,
+    var(--ds-accent-2) 52%,
+    var(--ds-color-violet-400) 88%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -170,11 +159,11 @@
 }
 
 .rtas-header__wordmark {
-  text-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+  text-shadow: 0 0 18px var(--ds-color-lavender-glow-soft);
 }
 
 .rtas-header__product {
-  color: #c4b5fd !important;
+  color: var(--ds-color-lavender-300) !important;
   text-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
 }
 
@@ -184,8 +173,8 @@
 .rtas-workflow__cta,
 .btn-primary.auth-submit {
   box-shadow:
-    0 0 20px rgba(168, 85, 247, 0.4),
-    0 4px 16px rgba(0, 0, 0, 0.35);
+    0 0 20px var(--ds-color-lavender-glow),
+    0 4px 16px var(--ds-color-black-40);
   transition:
     transform var(--transition-smooth),
     box-shadow var(--transition-smooth),
@@ -201,7 +190,7 @@
   box-shadow:
     0 0 28px rgba(168, 85, 247, 0.55),
     0 0 40px rgba(180, 83, 9, 0.22),
-    0 8px 24px rgba(0, 0, 0, 0.4);
+    0 8px 24px var(--ds-color-black-40);
   filter: brightness(1.05);
 }
 
@@ -220,7 +209,7 @@
 .rtas-header__link--active,
 .rtas-header__mobile-link:hover,
 .rtas-header__mobile-link--active {
-  color: #fff;
+  color: var(--ds-color-white);
   text-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
 }
 
@@ -246,20 +235,20 @@
 .rtas-pipeline-step:hover,
 .profile-card:hover {
   transform: translateY(-4px) scale(1.015);
-  border-color: rgba(168, 85, 247, 0.35) !important;
+  border-color: var(--ds-color-lavender-glow-soft) !important;
   box-shadow:
-    0 0 24px rgba(168, 85, 247, 0.18),
-    0 20px 48px rgba(0, 0, 0, 0.45);
+    0 0 24px var(--ds-color-lavender-glow-muted),
+    0 20px 48px var(--ds-color-black-45);
 }
 
 .rtas-category-card:hover {
   transform: translateY(-2px) scale(1.01);
-  border-color: rgba(232, 197, 71, 0.35) !important;
-  box-shadow: 0 0 20px rgba(180, 83, 9, 0.2);
+  border-color: var(--ds-color-gold-glow) !important;
+  box-shadow: 0 0 20px var(--ds-color-gold-glow-soft);
 }
 
 a:not(.rtas-btn-lavender):not(.rtas-btn-ghost):not(.rtas-header__brand):hover {
-  text-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
+  text-shadow: 0 0 10px var(--ds-color-lavender-glow-soft);
   transition: text-shadow var(--transition-smooth), color var(--transition-smooth);
 }
 
@@ -268,13 +257,13 @@ a:not(.rtas-btn-lavender):not(.rtas-btn-ghost):not(.rtas-header__brand):hover {
 .create-panel-unified,
 .shashka-preview-frame,
 .credits-pill {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(var(--ds-blur-lg));
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
+  border: 1px solid var(--ds-color-white-10);
   background: rgba(8, 8, 14, 0.92) !important;
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    0 12px 32px var(--ds-color-black-40),
+    inset 0 1px 0 var(--ds-color-white-4);
   transition:
     box-shadow var(--transition-smooth),
     border-color var(--transition-smooth);
@@ -283,30 +272,30 @@ a:not(.rtas-btn-lavender):not(.rtas-btn-ghost):not(.rtas-header__brand):hover {
 .shashka-holo-widget:hover {
   border-color: rgba(168, 85, 247, 0.25);
   box-shadow:
-    0 0 18px rgba(168, 85, 247, 0.12),
-    0 16px 40px rgba(0, 0, 0, 0.42);
+    0 0 18px var(--ds-color-lavender-glow-faint),
+    0 16px 40px var(--ds-color-black-42);
 }
 
 .shashka-holo-widget h2,
 .create-panel-unified__bar h2 {
   color: transparent;
-  background-image: linear-gradient(90deg, #f1f5f9, #e8c547);
+  background-image: linear-gradient(90deg, var(--ds-color-slate-100), var(--ds-accent-2));
   -webkit-background-clip: text;
   background-clip: text;
 }
 
 .rtas-header--studio {
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.5),
-    0 0 24px rgba(88, 28, 135, 0.15);
+    0 8px 32px var(--ds-color-black-50),
+    0 0 24px var(--ds-color-purple-glow);
 }
 
 /* —— Footer glass —— */
 .rtas-footer {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(var(--ds-blur-xl));
+  -webkit-backdrop-filter: blur(var(--ds-blur-xl));
+  border-top: 1px solid var(--ds-color-white-10);
+  background: var(--ds-color-black-90) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

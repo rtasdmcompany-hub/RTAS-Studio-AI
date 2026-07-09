@@ -43,13 +43,13 @@ export function SharePublicView({ share }: Props) {
         ) : null}
 
         <section className="share-page__cta">
-          <h2>Create Your Own AI Video with RTAS Studio AI</h2>
+          <h2>Create your own AI video with {PRODUCT_NAME}</h2>
           <p>
             Turn prompts and images into cinematic videos — face lock, music sync, and
             studio-grade exports in minutes.
           </p>
-          <Link href="/" className="share-page__cta-btn">
-            Create Your Own AI Video with RTAS Studio AI
+          <Link href="/studio" className="share-page__cta-btn rtas-ui-focus-ring">
+            Start creating <span aria-hidden>→</span>
           </Link>
         </section>
       </main>

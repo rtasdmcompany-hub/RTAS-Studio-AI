@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GeneratedVideo } from "@rtas/shared";
+import { Alert, Button, Dialog } from "@rtas/ui";
 import {
   buildPublicShareUrl,
   buildTwitterShareUrl,
@@ -74,90 +75,81 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
     }
   };
 
-  if (!open || !video) return null;
+  if (!video) return null;
 
   const whatsAppUrl = buildWhatsAppShareUrl(publicUrl, video.title);
   const twitterUrl = buildTwitterShareUrl(publicUrl, video.title);
+  const description = publishing
+    ? "Publishing your public link…"
+    : error
+      ? "We could not publish this link yet."
+      : "Your video is live for anyone with the link. Spread it across social channels.";
 
   return (
-    <div
-      className="paywall-overlay share-modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="share-modal-title"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      variant="paywall"
+      titleId="share-modal-title"
+      title="Share your AI video"
+      description={description}
+      closeOnEscape
+      closeOnOverlayClick
+      overlayClassName="share-modal-overlay"
+      contentClassName="share-modal"
     >
-      <div
-        className="paywall-modal share-modal"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="paywall-glow" aria-hidden />
-        <h2 id="share-modal-title" className="paywall-title">
-          Share your AI video
-        </h2>
-        <p className="paywall-desc">
-          {publishing
-            ? "Publishing your public link…"
-            : error
-              ? "We could not publish this link yet."
-              : "Your video is live for anyone with the link. Spread it across social channels."}
-        </p>
+      {error ? (
+        <Alert variant="error" message={error} className="share-modal__error-alert" />
+      ) : null}
 
-        {error ? (
-          <p className="share-modal__error" role="alert">
-            {error}
-          </p>
-        ) : null}
+      <div className="share-modal__link-bar">
+        <input
+          type="text"
+          readOnly
+          value={publicUrl}
+          className="share-modal__link-input rtas-ui-input"
+          aria-label="Public share link"
+        />
+        <Button
+          variant="paywall"
+          className="share-modal__copy-btn"
+          onClick={() => void handleCopy()}
+          disabled={publishing || Boolean(error)}
+        >
+          {copied ? "Copied!" : "Copy Public Link"}
+        </Button>
+      </div>
 
-        <div className="share-modal__link-bar">
-          <input
-            type="text"
-            readOnly
-            value={publicUrl}
-            className="share-modal__link-input"
-            aria-label="Public share link"
-          />
-          <button
-            type="button"
-            className="share-modal__copy-btn"
-            onClick={() => void handleCopy()}
-            disabled={publishing || Boolean(error)}
-          >
-            {copied ? "Copied!" : "Copy Public Link"}
-          </button>
-        </div>
-
-        <div className="share-modal__social" aria-label="Share to social">
-          <a
-            href={whatsAppUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="share-modal__social-btn share-modal__social-btn--whatsapp"
-          >
-            WhatsApp
-          </a>
-          <a
-            href={twitterUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="share-modal__social-btn share-modal__social-btn--x"
-          >
-            X / Twitter
-          </a>
-          <button
-            type="button"
-            className="share-modal__social-btn share-modal__social-btn--copy"
-            onClick={() => void handleCopy()}
-            disabled={publishing || Boolean(error)}
-          >
-            Copy link
-          </button>
-        </div>
-
-        <button type="button" className="paywall-skip-link" onClick={onClose}>
-          Close
+      <div className="share-modal__social" aria-label="Share to social">
+        <a
+          href={whatsAppUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-modal__social-btn share-modal__social-btn--whatsapp"
+        >
+          WhatsApp
+        </a>
+        <a
+          href={twitterUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="share-modal__social-btn share-modal__social-btn--x"
+        >
+          X / Twitter
+        </a>
+        <button
+          type="button"
+          className="share-modal__social-btn share-modal__social-btn--copy rtas-ui-focus-ring"
+          onClick={() => void handleCopy()}
+          disabled={publishing || Boolean(error)}
+        >
+          Copy link
         </button>
       </div>
-    </div>
+
+      <button type="button" className="paywall-skip-link rtas-ui-focus-ring" onClick={onClose}>
+        Close
+      </button>
+    </Dialog>
   );
 }

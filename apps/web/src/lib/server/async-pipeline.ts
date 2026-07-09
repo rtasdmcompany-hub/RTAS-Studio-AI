@@ -14,7 +14,7 @@ export function shouldUseAsyncPipeline(input: {
 export async function triggerAsyncGpuPipeline(
   body: Record<string, unknown>,
   pipelineJobId: string
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; status?: number }> {
   const base = getServerFastApiBase();
   if (!base) {
     return { ok: false, error: "GPU worker is not configured" };
@@ -45,7 +45,7 @@ export async function triggerAsyncGpuPipeline(
       } catch {
         // ignore parse errors
       }
-      return { ok: false, error: message };
+      return { ok: false, error: message, status: res.status };
     }
 
     return { ok: true };

@@ -1,0 +1,541 @@
+/**
+ * @rtas/ui — enterprise component styles built on design tokens.
+ * Legacy class names (btn-primary, paywall-*) remain in globals.css for backward compatibility.
+ */
+
+/* —— Focus & accessibility —— */
+.rtas-ui-focus-ring:focus-visible {
+  outline: 2px solid var(--ds-accent-lavender);
+  outline-offset: 2px;
+}
+
+.rtas-ui-skip-focus:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* —— Button base (token-native; maps to legacy via variant classes in Button.tsx) —— */
+.rtas-ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  font-family: var(--ds-font-sans);
+  font-weight: var(--ds-font-semibold);
+  line-height: var(--ds-leading-none);
+  border-radius: var(--ds-radius-md);
+  transition:
+    transform var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    background var(--ds-transition-fast),
+    color var(--ds-transition-fast),
+    border-color var(--ds-transition-fast),
+    opacity var(--ds-transition-fast);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rtas-ui-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.rtas-ui-btn--sm {
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+}
+
+.rtas-ui-btn--md {
+  padding: var(--ds-space-3) var(--ds-space-4);
+  font-size: var(--ds-text-md);
+}
+
+.rtas-ui-btn--lg {
+  padding: var(--ds-space-3-5) var(--ds-space-5);
+  font-size: var(--ds-text-base);
+}
+
+.rtas-ui-btn--full {
+  width: 100%;
+}
+
+/* Size tokens win over legacy padding so Button size= is consistent everywhere */
+.rtas-ui-btn.rtas-ui-btn--sm {
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+}
+
+.rtas-ui-btn.rtas-ui-btn--md:not(.rtas-btn-lavender--lg):not(.paywall-subscribe-btn) {
+  padding: var(--ds-space-3) var(--ds-space-4);
+  font-size: var(--ds-text-md);
+}
+
+.rtas-ui-btn.rtas-ui-btn--lg,
+.rtas-ui-btn.rtas-btn-lavender--lg {
+  padding: var(--ds-space-3-5) var(--ds-space-5);
+  font-size: var(--ds-text-base);
+}
+
+/* Unified dismiss / skip text control used across modals */
+.rtas-ui-dismiss-link,
+.skip-link,
+.paywall-skip-link,
+.rtas-checkout-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: none;
+  background: transparent;
+  color: var(--ds-text-subdued);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-normal);
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color var(--ds-transition-fast);
+}
+
+.rtas-ui-dismiss-link:hover,
+.skip-link:hover,
+.paywall-skip-link:hover,
+.rtas-checkout-modal__close:hover {
+  color: var(--ds-text);
+}
+
+/* Shared dialog title/description for non-paywall variants */
+.rtas-dialog-title {
+  margin: var(--ds-space-0) var(--ds-space-0) var(--ds-space-3);
+  font-size: var(--ds-text-xl);
+  font-weight: var(--ds-font-semibold);
+  color: var(--ds-text);
+  line-height: var(--ds-leading-snug);
+}
+
+.rtas-dialog-desc {
+  margin: var(--ds-space-0) var(--ds-space-0) var(--ds-space-4);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-relaxed);
+}
+
+/* —— Card —— */
+.rtas-ui-card {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow-panel);
+  padding: var(--ds-space-5) var(--ds-space-6);
+}
+
+.rtas-ui-card--glass {
+  background: var(--ds-surface-glass);
+  backdrop-filter: blur(var(--ds-blur-lg));
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
+}
+
+.rtas-ui-card--interactive {
+  transition:
+    transform var(--ds-transition-smooth),
+    box-shadow var(--ds-transition-smooth),
+    border-color var(--ds-transition-smooth);
+}
+
+.rtas-ui-card--interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ds-shadow-glow-purple);
+  border-color: var(--ds-border-strong);
+}
+
+/* —— Badge —— */
+.rtas-ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-0-5) var(--ds-space-2-5);
+  border-radius: var(--ds-radius-full);
+  font-size: var(--ds-text-xs);
+  font-weight: var(--ds-font-semibold);
+  letter-spacing: var(--ds-tracking-wide);
+  line-height: var(--ds-leading-tight);
+}
+
+.rtas-ui-badge--default {
+  background: var(--ds-surface-glass-2);
+  color: var(--ds-text-secondary);
+  border: 1px solid var(--ds-border-subtle);
+}
+
+.rtas-ui-badge--accent {
+  background: var(--ds-color-lavender-glow-faint);
+  color: var(--ds-link-bright);
+  border: 1px solid var(--ds-color-lavender-glow-muted);
+}
+
+.rtas-ui-badge--success {
+  background: var(--ds-color-green-surface-strong);
+  color: var(--ds-success);
+  border: 1px solid var(--ds-color-green-border);
+}
+
+.rtas-ui-badge--warning {
+  background: var(--ds-color-amber-surface);
+  color: var(--ds-color-gold-400);
+  border: 1px solid var(--ds-color-amber-border);
+}
+
+.rtas-ui-badge--danger {
+  background: var(--ds-color-red-surface);
+  color: var(--ds-color-red-300);
+  border: 1px solid var(--ds-color-red-glow);
+}
+
+/* —— Progress —— */
+.rtas-ui-progress {
+  width: 100%;
+  height: var(--ds-space-2);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-surface-glass-2);
+  border: 1px solid var(--ds-border-subtle);
+  overflow: hidden;
+}
+
+.rtas-ui-progress__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ds-accent), var(--ds-accent-2));
+  transition: width var(--ds-transition-smooth);
+}
+
+.rtas-ui-progress--lavender .rtas-ui-progress__bar {
+  background: linear-gradient(90deg, var(--ds-accent-lavender), var(--ds-link));
+}
+
+/* —— Alert —— */
+.rtas-ui-alert {
+  display: flex;
+  gap: var(--ds-space-3);
+  align-items: flex-start;
+  padding: var(--ds-space-3-5) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--ds-border-subtle);
+  background: var(--ds-surface-glass);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-normal);
+}
+
+.rtas-ui-alert__icon {
+  flex-shrink: 0;
+  font-size: var(--ds-text-lg);
+  line-height: 1;
+}
+
+.rtas-ui-alert__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rtas-ui-alert__title {
+  font-weight: var(--ds-font-semibold);
+  color: var(--ds-text);
+  margin-bottom: var(--ds-space-1);
+}
+
+.rtas-ui-alert__message {
+  color: var(--ds-text-body);
+}
+
+.rtas-ui-alert__hint {
+  margin-top: var(--ds-space-2);
+  color: var(--ds-text-subdued);
+  font-size: var(--ds-text-xs);
+}
+
+.rtas-ui-alert--info {
+  border-color: var(--ds-color-lavender-glow-muted);
+  background: var(--ds-color-lavender-glow-faint);
+}
+
+.rtas-ui-alert--success {
+  border-color: var(--ds-color-green-border);
+  background: var(--ds-color-green-surface);
+}
+
+.rtas-ui-alert--warning {
+  border-color: var(--ds-color-amber-border);
+  background: var(--ds-color-amber-surface-soft);
+}
+
+.rtas-ui-alert--error {
+  border-color: var(--ds-color-red-glow);
+  background: var(--ds-color-red-surface);
+}
+
+.rtas-ui-alert__dismiss {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--ds-text-subdued);
+  font-size: var(--ds-text-xl);
+  line-height: 1;
+  padding: var(--ds-space-0-5);
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+}
+
+.rtas-ui-alert__dismiss:hover {
+  color: var(--ds-text);
+  background: var(--ds-surface-glass-2);
+}
+
+.rtas-ui-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-3);
+}
+
+/* —— Form fields —— */
+.rtas-ui-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-1-5);
+}
+
+.rtas-ui-label {
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-font-medium);
+  color: var(--ds-text-body);
+}
+
+.rtas-ui-input,
+.rtas-ui-textarea,
+.rtas-ui-select {
+  width: 100%;
+  padding: var(--ds-space-3) var(--ds-space-3-5);
+  border-radius: var(--ds-radius-md);
+  border: 1px solid var(--ds-border-subtle);
+  background: var(--ds-surface-glass);
+  color: var(--ds-text);
+  font-family: var(--ds-font-sans);
+  font-size: var(--ds-text-md);
+  line-height: var(--ds-leading-normal);
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
+}
+
+.rtas-ui-input::placeholder,
+.rtas-ui-textarea::placeholder {
+  color: var(--ds-text-subdued);
+}
+
+.rtas-ui-input:focus-visible,
+.rtas-ui-textarea:focus-visible,
+.rtas-ui-select:focus-visible {
+  outline: none;
+  border-color: var(--ds-accent-lavender);
+  box-shadow: 0 0 0 3px var(--ds-color-lavender-glow-faint);
+}
+
+.rtas-ui-input:disabled,
+.rtas-ui-textarea:disabled,
+.rtas-ui-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rtas-ui-field-error {
+  font-size: var(--ds-text-xs);
+  color: var(--ds-danger-soft);
+  font-weight: var(--ds-font-medium);
+}
+
+.rtas-ui-field-hint {
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-subdued);
+}
+
+/* —— Empty state —— */
+.rtas-ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-8) var(--ds-space-4);
+  border-radius: var(--ds-radius-lg);
+  border: 1px dashed var(--ds-border-subtle);
+  background: var(--ds-surface-glass);
+}
+
+.rtas-ui-empty__icon {
+  font-size: var(--ds-text-3xl);
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.rtas-ui-empty__title {
+  font-size: var(--ds-text-lg);
+  font-weight: var(--ds-font-semibold);
+  color: var(--ds-text);
+}
+
+.rtas-ui-empty__description {
+  max-width: 28rem;
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-relaxed);
+}
+
+/* —— Spinner —— */
+.rtas-ui-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--ds-border-subtle);
+  border-top-color: var(--ds-accent-lavender);
+  border-radius: var(--ds-radius-full);
+  animation: rtas-ui-spin var(--ds-duration-spin) var(--ds-ease-linear) infinite;
+}
+
+.rtas-ui-spinner--sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.rtas-ui-spinner--lg {
+  width: 2rem;
+  height: 2rem;
+  border-width: 3px;
+}
+
+@keyframes rtas-ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rtas-ui-loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-6);
+  color: var(--ds-text-body);
+  font-size: var(--ds-text-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rtas-ui-spinner {
+    animation-duration: 1.4s;
+  }
+
+  .rtas-ui-card--interactive:hover {
+    transform: none;
+  }
+}
+
+/* —— Toast (canonical; studio-toast aliases kept for existing CSS hooks) —— */
+.rtas-ui-toast {
+  position: fixed;
+  right: var(--ds-space-5);
+  bottom: var(--ds-space-5);
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-3);
+  max-width: 24rem;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: var(--ds-radius-lg);
+  border: 1px solid var(--ds-border-subtle);
+  background: var(--ds-surface-elevated, var(--ds-surface));
+  backdrop-filter: blur(var(--ds-blur-xl));
+  box-shadow: var(--ds-shadow-xl);
+}
+
+.rtas-ui-toast--success {
+  border-color: var(--ds-color-green-border);
+}
+
+.rtas-ui-toast--error {
+  border-color: var(--ds-color-red-glow);
+}
+
+.rtas-ui-toast--warning {
+  border-color: var(--ds-color-amber-border);
+}
+
+.rtas-ui-toast--info {
+  border-color: var(--ds-color-lavender-border-soft);
+}
+
+.rtas-ui-toast__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.rtas-ui-toast__title {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-font-semibold);
+  color: var(--ds-text);
+}
+
+.rtas-ui-toast__message {
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-normal);
+}
+
+.rtas-ui-toast__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  flex-shrink: 0;
+}
+
+.rtas-ui-toast__close {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: var(--ds-radius-full);
+  background: transparent;
+  color: var(--ds-text-subdued);
+  font-size: var(--ds-text-lg);
+  cursor: pointer;
+}
+
+.rtas-ui-toast__close:hover {
+  color: var(--ds-text);
+}
+
+/* Progress inside generation overlay keeps legacy track height via className */
+.gen-overlay .rtas-ui-progress {
+  height: 6px;
+  margin-bottom: var(--ds-space-4);
+}
+
+@media (max-width: 640px) {
+  .rtas-ui-card {
+    padding: var(--ds-space-4);
+  }
+
+  .rtas-ui-empty {
+    padding: var(--ds-space-6) var(--ds-space-3);
+  }
+
+  .rtas-ui-toast {
+    right: var(--ds-space-3);
+    bottom: var(--ds-space-3);
+    left: var(--ds-space-3);
+    max-width: none;
+  }
+}

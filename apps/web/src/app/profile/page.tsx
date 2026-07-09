@@ -1,7 +1,19 @@
 import { applyCreditExpiry } from "@/lib/store";
 import { requireSession } from "@/lib/auth/require-session";
 import { getServerProfile, saveServerProfile } from "@/lib/server/profile-store";
-import { ProfileClient } from "@/components/profile/ProfileClient";
+import dynamic from "next/dynamic";
+
+const ProfileClient = dynamic(
+  () =>
+    import("@/components/profile/ProfileClient").then((mod) => mod.ProfileClient),
+  {
+    loading: () => (
+      <div className="rtas-ui-loading-overlay" role="status" aria-live="polite">
+        Loading dashboard…
+      </div>
+    ),
+  }
+);
 
 export default async function ProfilePage() {
   const session = await requireSession("/profile");

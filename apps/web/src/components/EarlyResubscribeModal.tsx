@@ -1,6 +1,7 @@
 "use client";
 
 import { STANDARD_CREDITS, rolloverCredits } from "@rtas/shared";
+import { Button, Dialog } from "@rtas/ui";
 
 type Props = {
   open: boolean;
@@ -17,41 +18,27 @@ export function EarlyResubscribeModal({
   onConfirm,
   onCancel,
 }: Props) {
-  if (!open) return null;
-
   const nextBalance = rolloverCredits(remainingCredits);
   const expiryLabel = creditsExpireAt
     ? new Date(creditsExpireAt).toLocaleDateString()
     : "current period";
 
   return (
-    <div
-      className="paywall-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="early-resubscribe-title"
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      variant="paywall"
+      titleId="early-resubscribe-title"
+      title="Extend your subscription?"
+      description={`Your current subscription period and credits are still active. Would you like to add new credits and extend your subscription now? You have ${remainingCredits} credits remaining (valid until ${expiryLabel}). Renewing now will roll them forward into ${nextBalance} total credits for the next month (${STANDARD_CREDITS} new + rollover).`}
+      closeOnEscape
     >
-      <div className="paywall-modal">
-        <h2 id="early-resubscribe-title" className="paywall-title">
-          Extend your subscription?
-        </h2>
-        <p className="paywall-desc">
-          Your current subscription period and credits are still active. Would you like
-          to add new credits and extend your subscription now?
-        </p>
-        <p className="paywall-desc">
-          You have <strong>{remainingCredits}</strong> credits remaining (valid
-          until <strong>{expiryLabel}</strong>). Renewing now will roll them
-          forward into <strong>{nextBalance}</strong> total credits for the next
-          month ({STANDARD_CREDITS} new + rollover).
-        </p>
-        <button type="button" className="paywall-subscribe-btn" onClick={onConfirm}>
-          Yes, add credits &amp; extend
-        </button>
-        <button type="button" className="paywall-skip-link" onClick={onCancel}>
-          Not now
-        </button>
-      </div>
-    </div>
+      <Button variant="paywall" onClick={onConfirm}>
+        Yes, add credits & extend
+      </Button>
+      <button type="button" className="paywall-skip-link rtas-ui-focus-ring" onClick={onCancel}>
+        Not now
+      </button>
+    </Dialog>
   );
 }

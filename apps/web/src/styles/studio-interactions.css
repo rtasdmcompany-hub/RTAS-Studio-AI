@@ -1,0 +1,441 @@
+/**
+ * Studio interaction layer — subtle, consistent motion & feedback.
+ * No redesign: status, confidence, and quality only.
+ */
+
+/* —— Shared focus ring (keyboard confidence) —— */
+.studio-shell--unified .chip:focus-visible,
+.studio-shell--unified .shashka-wizard-nav__prev:focus-visible,
+.studio-shell--unified .shashka-wizard-nav__next:focus-visible,
+.studio-shell--unified .shashka-console__generate:focus-visible,
+.studio-shell--unified .shashka-console__compile:focus-visible,
+.studio-shell--unified .studio-screen-rail__btn:focus-visible,
+.studio-shell--unified .studio-workflow-panel__tab:focus-visible,
+.studio-shell--unified .studio-workflow-panel__item-btn:focus-visible,
+.studio-shell--unified .file-upload-clear:focus-visible,
+.studio-shell--unified .prompt-editor__chip:focus-visible,
+.studio-shell--unified .btn-secondary:focus-visible,
+.studio-shell--unified .btn-ghost:focus-visible,
+.studio-shell--unified .studio-toast__close:focus-visible,
+.studio-shell--unified .studio-back-to-editor:focus-visible {
+  outline: 2px solid var(--ds-accent-lavender);
+  outline-offset: 2px;
+}
+
+/* —— Press feedback (click confidence) —— */
+.studio-shell--unified .chip:active:not(:disabled),
+.studio-shell--unified .prompt-editor__chip:active:not(:disabled),
+.studio-shell--unified .shashka-wizard-nav__prev:active:not(:disabled),
+.studio-shell--unified .shashka-wizard-nav__next:active:not(:disabled),
+.studio-shell--unified .shashka-console__generate:active:not(:disabled),
+.studio-shell--unified .shashka-console__compile:active:not(:disabled),
+.studio-shell--unified .studio-screen-rail__btn:active:not(:disabled),
+.studio-shell--unified .btn-secondary:active:not(:disabled),
+.studio-shell--unified .studio-workflow-panel__tab:active,
+.studio-shell--unified .rtas-ui-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  transition-duration: var(--ds-duration-instant);
+}
+
+.studio-shell--unified .chip,
+.studio-shell--unified .prompt-editor__chip,
+.studio-shell--unified .shashka-wizard-nav__prev,
+.studio-shell--unified .shashka-wizard-nav__next,
+.studio-shell--unified .shashka-console__generate,
+.studio-shell--unified .shashka-console__compile,
+.studio-shell--unified .studio-screen-rail__btn,
+.studio-shell--unified .btn-secondary,
+.studio-shell--unified .studio-workflow-panel__tab {
+  transition:
+    transform var(--ds-transition-fast),
+    background var(--ds-transition-fast),
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    color var(--ds-transition-fast),
+    opacity var(--ds-transition-fast);
+}
+
+/* —— Hover polish (lift without flash) —— */
+.studio-shell--unified .studio-workflow-panel__tab:hover:not(.studio-workflow-panel__tab--active) {
+  background: var(--ds-color-lavender-glow-faint);
+  color: var(--ds-text-body);
+}
+
+.studio-shell--unified .studio-screen-rail__btn:hover:not(:disabled):not(.studio-screen-rail__btn--active) {
+  transform: translateY(-1px);
+}
+
+.studio-shell--unified .file-upload-clear:hover:not(:disabled) {
+  transform: scale(1.04);
+}
+
+.studio-shell--unified .file-upload-clear:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* —— Disabled clarity —— */
+.studio-shell--unified .chip:disabled,
+.studio-shell--unified .prompt-editor__chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.studio-shell--unified .shashka-console__generate:disabled,
+.studio-shell--unified .shashka-console__compile:disabled,
+.studio-shell--unified .shashka-wizard-nav__prev:disabled,
+.studio-shell--unified .shashka-wizard-nav__next:disabled {
+  transform: none !important;
+  filter: grayscale(0.15);
+}
+
+/* —— Drag & drop: calm accept / reject —— */
+@keyframes studio-drop-accept {
+  0% {
+    box-shadow: 0 0 0 0 var(--ds-color-green-border);
+  }
+  40% {
+    box-shadow: 0 0 0 4px var(--ds-color-green-surface);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes studio-drop-reject {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.file-upload--accepted .file-upload-dropzone {
+  animation: studio-drop-accept var(--ds-duration-slow) var(--ds-ease-out);
+  border-color: var(--ds-color-green-border);
+}
+
+.file-upload--rejecting .file-upload-dropzone {
+  animation: studio-drop-reject var(--ds-duration-normal) var(--ds-ease-out);
+  border-color: var(--ds-color-red-glow);
+}
+
+.file-upload--dragging .file-upload-dropzone {
+  border-style: solid;
+}
+
+.file-upload--dragging .file-upload-title {
+  color: var(--ds-accent-2);
+}
+
+/* Local upload readiness bar (indeterminate while validating) */
+.file-upload-progress {
+  position: absolute;
+  left: var(--ds-space-3);
+  right: var(--ds-space-3);
+  bottom: var(--ds-space-2);
+  height: 2px;
+  border-radius: var(--ds-radius-full);
+  overflow: hidden;
+  background: var(--ds-surface-glass-2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ds-transition-fast);
+}
+
+.file-upload--busy .file-upload-progress {
+  opacity: 1;
+}
+
+.file-upload-progress__fill {
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, var(--ds-accent-lavender), transparent);
+  animation: studio-upload-indeterminate var(--ds-duration-slower) var(--ds-ease-in-out) infinite;
+}
+
+@keyframes studio-upload-indeterminate {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+/* —— Generation pipeline: enter + status motion —— */
+@keyframes studio-pipeline-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes studio-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes studio-status-flash {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes studio-queue-breathe {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.gen-pipeline {
+  animation: studio-pipeline-enter var(--ds-duration-normal) var(--ds-ease-out) both;
+}
+
+.gen-pipeline--success .gen-pipeline__header,
+.gen-pipeline--error .gen-pipeline__header {
+  animation: studio-status-flash var(--ds-duration-slow) var(--ds-ease-out);
+}
+
+.gen-pipeline__check {
+  animation: studio-check-in var(--ds-duration-fast) var(--ds-ease-out) both;
+}
+
+.gen-pipeline__fill {
+  position: relative;
+}
+
+.gen-pipeline--running .gen-pipeline__fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: rtas-shimmer 1.8s var(--ds-ease-linear) infinite;
+  pointer-events: none;
+}
+
+.gen-pipeline__queue--waiting {
+  animation: studio-queue-breathe var(--ds-duration-pulse) var(--ds-ease-in-out) infinite;
+}
+
+.gen-pipeline__queue-slot {
+  transition:
+    background var(--ds-transition-smooth),
+    box-shadow var(--ds-transition-fast);
+}
+
+.gen-pipeline__actions .rtas-ui-btn {
+  min-width: 7.5rem;
+}
+
+/* —— Toast enter / exit —— */
+@keyframes studio-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes studio-toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.studio-toast {
+  animation: studio-toast-in var(--ds-duration-normal) var(--ds-ease-out) both;
+}
+
+.studio-toast--leaving {
+  animation: studio-toast-out var(--ds-duration-fast) var(--ds-ease-in) both;
+  pointer-events: none;
+}
+
+.studio-toast__close:focus-visible {
+  outline: 2px solid var(--ds-accent-lavender);
+  outline-offset: 2px;
+}
+
+/* —— Empty states: quiet presence —— */
+.studio-shell--unified .rtas-ui-empty,
+.studio-shell--unified .studio-workflow-panel__empty-state,
+.studio-shell--unified .player-empty {
+  animation: rtas-fade-in var(--ds-duration-normal) var(--ds-ease-out) both;
+  transition:
+    border-color var(--ds-transition-fast),
+    background var(--ds-transition-fast);
+}
+
+.studio-shell--unified .rtas-ui-empty:hover {
+  border-color: var(--ds-color-lavender-glow-muted);
+  background: var(--ds-color-lavender-glow-faint);
+}
+
+.studio-gallery-empty {
+  width: 100%;
+  min-height: 8.5rem;
+  margin: var(--ds-space-1) 0;
+}
+
+.studio-empty-project {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-4);
+  margin-bottom: var(--ds-space-3);
+  border-radius: var(--ds-radius-lg);
+  border: 1px dashed var(--ds-border-subtle);
+  background: var(--ds-surface-glass);
+  animation: rtas-fade-in var(--ds-duration-normal) var(--ds-ease-out) both;
+}
+
+.studio-empty-project__title {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+  font-weight: var(--ds-font-semibold);
+  color: var(--ds-text);
+}
+
+.studio-empty-project__copy {
+  margin: 0;
+  font-size: var(--ds-text-xs);
+  color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-normal);
+  max-width: 22rem;
+}
+
+/* —— Skeleton: soft shimmer (not flashy) —— */
+.shashka-studio--loading .rtas-motion-pulse {
+  animation: none;
+  background: linear-gradient(
+    90deg,
+    var(--ds-color-white-3) 0%,
+    var(--ds-color-white-8) 45%,
+    var(--ds-color-white-3) 100%
+  );
+  background-size: 200% 100%;
+  animation: rtas-shimmer 1.6s var(--ds-ease-linear) infinite;
+}
+
+.shashka-studio--loading .cinematic-glass-panel {
+  animation: rtas-fade-in var(--ds-duration-normal) var(--ds-ease-out) both;
+}
+
+/* —— Wizard step presence —— */
+.shashka-wizard-step {
+  animation: rtas-fade-in var(--ds-duration-fast) var(--ds-ease-out) both;
+}
+
+.studio-wizard-progress__fill {
+  transition: width var(--ds-transition-smooth) !important;
+}
+
+/* —— Prompt editor focus calm —— */
+.prompt-editor {
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast),
+    background var(--ds-transition-fast);
+}
+
+.prompt-editor__textarea {
+  transition:
+    border-color var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
+}
+
+/* —— Reduced motion: status without distraction —— */
+@media (prefers-reduced-motion: reduce) {
+  .studio-shell--unified .chip,
+  .studio-shell--unified .prompt-editor__chip,
+  .studio-shell--unified .shashka-wizard-nav__prev,
+  .studio-shell--unified .shashka-wizard-nav__next,
+  .studio-shell--unified .shashka-console__generate,
+  .studio-shell--unified .shashka-console__compile,
+  .studio-shell--unified .studio-screen-rail__btn,
+  .studio-shell--unified .btn-secondary,
+  .file-upload-dropzone,
+  .file-upload-clear,
+  .prompt-editor,
+  .gen-pipeline__fill,
+  .gen-pipeline__eta-fill,
+  .gen-pipeline__step,
+  .gen-pipeline__queue-slot,
+  .studio-wizard-progress__fill {
+    transition: none !important;
+  }
+
+  .gen-pipeline,
+  .gen-pipeline--success .gen-pipeline__header,
+  .gen-pipeline--error .gen-pipeline__header,
+  .gen-pipeline__check,
+  .studio-toast,
+  .studio-toast--leaving,
+  .file-upload--accepted .file-upload-dropzone,
+  .file-upload--rejecting .file-upload-dropzone,
+  .file-upload-progress__fill,
+  .gen-pipeline--running .gen-pipeline__fill::after,
+  .gen-pipeline__queue--waiting,
+  .gen-pipeline__pulse,
+  .gen-pipeline__step--active .gen-pipeline__step-dot,
+  .gen-pipeline__queue-slot--busy,
+  .shashka-studio--loading .rtas-motion-pulse,
+  .shashka-wizard-step,
+  .studio-empty-project,
+  .studio-shell--unified .rtas-ui-empty,
+  .studio-shell--unified .player-empty,
+  .shashka-ambient-rain,
+  .shashka-neon-pulse,
+  .shashka-flare-a,
+  .shashka-flare-b,
+  .shashka-carousel__vinyl {
+    animation: none !important;
+  }
+
+  .file-upload--dragging .file-upload-dropzone,
+  .studio-shell--unified .chip:hover:not(:disabled),
+  .studio-shell--unified .shashka-console__generate:hover:not(:disabled),
+  .studio-shell--unified .studio-screen-rail__btn:hover:not(:disabled) {
+    transform: none !important;
+  }
+}

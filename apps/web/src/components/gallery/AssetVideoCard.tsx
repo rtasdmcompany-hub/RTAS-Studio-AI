@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { memo, useCallback } from "react";
 import {
   isActivePipelineStatus,
   pipelineProgressPercent,
   type PipelineStatus,
 } from "@rtas/shared";
+import { Badge, Button, ButtonLink, SkeletonBar } from "@rtas/ui";
 import type { GalleryDisplayItem } from "@/lib/gallery-display";
 
 type Props = {
@@ -23,7 +24,7 @@ function isProcessing(status: PipelineStatus): boolean {
   return isActivePipelineStatus(status);
 }
 
-export function AssetVideoCard({
+function AssetVideoCardComponent({
   item,
   variant = "grid",
   active = false,
@@ -42,10 +43,18 @@ export function AssetVideoCard({
   const canSelect = completed && Boolean(onSelect);
   const compact = variant === "compact";
 
-  const handlePrimaryAction = () => {
+  const handlePrimaryAction = useCallback(() => {
     if (!canSelect || disabled) return;
     onSelect?.(item);
-  };
+  }, [canSelect, disabled, item, onSelect]);
+
+  const handleShare = useCallback(() => {
+    onShare?.(item);
+  }, [item, onShare]);
+
+  const handleDelete = useCallback(() => {
+    onDelete?.(item.id);
+  }, [item.id, onDelete]);
 
   return (
     <article
@@ -82,19 +91,26 @@ export function AssetVideoCard({
         )}
 
         {processing ? (
-          <span className="asset-card__badge asset-card__badge--processing">
+          <Badge
+            variant="warning"
+            className="asset-card__badge asset-card__badge--processing"
+          >
             Processing… {progress}%
-          </span>
+          </Badge>
         ) : failed ? (
-          <span className="asset-card__badge asset-card__badge--failed">
+          <Badge
+            variant="danger"
+            className="asset-card__badge asset-card__badge--failed"
+          >
             Failed
-          </span>
+          </Badge>
         ) : (
-          <span
+          <Badge
+            variant={isPreview ? "default" : "accent"}
             className={`asset-card__badge${isPreview ? "" : " asset-card__badge--premium"}`}
           >
             {isPreview ? "Preview" : item.isPublic ? "Public" : "Premium"}
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -116,49 +132,46 @@ export function AssetVideoCard({
 
         <div className="asset-card__actions">
           {canSelect ? (
-            <button
+            <Button
               type="button"
-              className="asset-card__btn asset-card__btn--primary"
+              variant="asset-primary"
               onClick={handlePrimaryAction}
               disabled={disabled}
             >
               Play
-            </button>
+            </Button>
           ) : processing ? (
-            <button type="button" className="asset-card__btn" disabled>
+            <Button type="button" variant="asset-ghost" disabled>
               Rendering…
-            </button>
+            </Button>
           ) : null}
 
           {failed ? (
             <>
-              <Link
-                href="/studio"
-                className="asset-card__btn asset-card__btn--ghost"
-              >
+              <ButtonLink href="/studio" variant="asset-ghost">
                 Retry in Studio
-              </Link>
+              </ButtonLink>
               {onDelete ? (
-                <button
+                <Button
                   type="button"
-                  className="asset-card__btn asset-card__btn--danger"
-                  onClick={() => onDelete(item.id)}
+                  variant="asset-danger"
+                  onClick={handleDelete}
                 >
                   Delete
-                </button>
+                </Button>
               ) : null}
             </>
           ) : null}
 
           {canShare ? (
-            <button
+            <Button
               type="button"
-              className="asset-card__btn asset-card__btn--ghost"
-              onClick={() => onShare?.(item)}
+              variant="asset-ghost"
+              onClick={handleShare}
               disabled={disabled}
             >
               Share
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -166,17 +179,19 @@ export function AssetVideoCard({
   );
 }
 
+export const AssetVideoCard = memo(AssetVideoCardComponent);
+
 export function AssetGallerySkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="asset-gallery__grid" aria-busy="true" aria-label="Loading videos">
       {Array.from({ length: count }).map((_, index) => (
         <div key={index} className="asset-card asset-card--grid asset-card--skeleton">
-          <div className="asset-card__media asset-card__shimmer">
-            <span className="asset-card__shimmer-wave" />
+          <div className="asset-card__media">
+            <SkeletonBar className="h-full w-full min-h-[8rem] rounded-none" />
           </div>
           <div className="asset-card__body">
-            <div className="asset-card__skel-line asset-card__skel-line--title" />
-            <div className="asset-card__skel-line asset-card__skel-line--meta" />
+            <SkeletonBar className="asset-card__skel-line asset-card__skel-line--title h-4 w-3/4" />
+            <SkeletonBar className="asset-card__skel-line asset-card__skel-line--meta mt-2 h-3 w-1/2" />
           </div>
         </div>
       ))}

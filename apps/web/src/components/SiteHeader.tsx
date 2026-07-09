@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { ButtonLink } from "@rtas/ui";
 import { RtasHeaderBrand } from "@/components/RtasHeaderBrand";
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 
@@ -82,9 +83,9 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
         <div className="rtas-header__actions rtas-header__actions--desktop">
           {actionsSlot}
           <AuthHeaderActions variant={authVariant} />
-          <Link href="/studio" className="rtas-btn-lavender rtas-header__cta">
+          <ButtonLink href="/studio" variant="lavender" className="rtas-header__cta">
             Start creating
-          </Link>
+          </ButtonLink>
         </div>
 
         <button
@@ -121,13 +122,14 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
           <div className="rtas-header__mobile-actions">
             {actionsSlot}
             <AuthHeaderActions variant={authVariant} />
-            <Link
+            <ButtonLink
               href="/studio"
-              className="rtas-btn-lavender rtas-header__mobile-cta"
+              variant="lavender"
+              className="rtas-header__mobile-cta"
               onClick={() => setMenuOpen(false)}
             >
               Start creating
-            </Link>
+            </ButtonLink>
           </div>
         </nav>
       ) : null}

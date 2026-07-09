@@ -31,7 +31,7 @@ function isRealSecret(value: string): boolean {
   return value.length > 0 && !PLACEHOLDER_SECRETS.has(value);
 }
 
-/** NextAuth signing secret — never throws; dev/build fallbacks when unset. */
+/** NextAuth signing secret — never throws during build; production runtime requires a real secret. */
 export function getNextAuthSecret(): string {
   const secret = readEnv("NEXTAUTH_SECRET");
   if (isRealSecret(secret)) return secret;
@@ -40,7 +40,14 @@ export function getNextAuthSecret(): string {
     return "rtas-dev-insecure-nextauth-secret-run-npm-setup-env";
   }
 
-  return "rtas-production-placeholder-run-npm-setup-env";
+  // Production build / CI may import auth without secrets.
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return "rtas-build-placeholder-not-for-runtime";
+  }
+
+  throw new Error(
+    "[RTAS Studio] NEXTAUTH_SECRET must be set to a strong random value in production. Run: openssl rand -base64 32"
+  );
 }
 
 export function getNextAuthUrl(): string {
@@ -162,15 +169,34 @@ export function getServerFastApiUrl(): string {
   return "";
 }
 
-/** Log missing GPU worker URL at boot without crashing the Next.js runtime. */
+/** Log missing production secrets at boot without crashing the Next.js runtime. */
 export function validateProductionServerEnv(): void {
   if (process.env.NODE_ENV !== "production") return;
   if (process.env.NEXT_PHASE === "phase-production-build") return;
 
   const resolved = resolveServerFastApiUrl();
-  if (resolved.ok) return;
+  if (!resolved.ok) {
+    console.error(FASTAPI_URL_MISSING_MESSAGE);
+  }
 
-  console.error(FASTAPI_URL_MISSING_MESSAGE);
+  const authSecret = readEnv("NEXTAUTH_SECRET");
+  if (!isRealSecret(authSecret)) {
+    console.error(
+      "[RTAS Studio] NEXTAUTH_SECRET must be set to a strong random value in production."
+    );
+  }
+
+  const paymentProvider = readEnv("NEXT_PUBLIC_PAYMENT_PROVIDER").toLowerCase();
+  if (paymentProvider === "paddle" && !readEnv("PADDLE_WEBHOOK_SECRET")) {
+    console.error(
+      "[RTAS Studio] PADDLE_WEBHOOK_SECRET is required when NEXT_PUBLIC_PAYMENT_PROVIDER=paddle."
+    );
+  }
+  if (paymentProvider === "lemon_squeezy" && !readEnv("LEMONSQUEEZY_WEBHOOK_SECRET")) {
+    console.error(
+      "[RTAS Studio] LEMONSQUEEZY_WEBHOOK_SECRET is required when NEXT_PUBLIC_PAYMENT_PROVIDER=lemon_squeezy."
+    );
+  }
 }
 
 export function getSimulationMode(): boolean {

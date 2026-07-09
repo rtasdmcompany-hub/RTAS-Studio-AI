@@ -4,26 +4,27 @@ import {
   isFreeTrialBlocked,
 } from "@/lib/server/trial-abuse-store";
 import { getServerProfile } from "@/lib/server/profile-store";
+import {
+  clientIpFromRequest,
+  requireApiSession,
+} from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 
-function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() ?? "";
-  return request.headers.get("x-real-ip")?.trim() ?? "";
-}
-
 export async function POST(request: Request) {
-  let body: { userId?: string; deviceFingerprint?: string } = {};
+  const auth = await requireApiSession();
+  if (!auth.ok) return auth.response;
+
+  let body: { deviceFingerprint?: string } = {};
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const userId = body.userId?.trim() || "local-user";
+  const userId = auth.userId;
   const deviceFingerprint = body.deviceFingerprint?.trim() ?? "";
-  const ipAddress = clientIp(request);
+  const ipAddress = clientIpFromRequest(request);
 
   const profile = await getServerProfile(userId);
 

@@ -31,6 +31,9 @@ export function getCompilePaths(): CompilePaths {
 }
 
 export function isCompileSourceClip(name: string): boolean {
+  // Basename only — reject path traversal and absolute paths.
+  if (!name || name !== path.basename(name)) return false;
+  if (name.includes("..") || name.includes("/") || name.includes("\\")) return false;
   const lower = name.toLowerCase();
   return (
     lower.endsWith(".mp4") &&

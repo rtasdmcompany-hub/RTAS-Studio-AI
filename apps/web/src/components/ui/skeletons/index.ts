@@ -1,4 +1,8 @@
-export { SkeletonBar, GlassSkeletonPanel } from "./ShimmerSkeleton";
-export { AuthSkeleton, AuthLinkSkeleton } from "./AuthSkeleton";
+export {
+  SkeletonBar,
+  GlassSkeletonPanel,
+  AuthSkeleton,
+  AuthLinkSkeleton,
+  StudioSkeleton,
+} from "@rtas/ui/skeletons";
 export { ProfileSkeleton } from "./ProfileSkeleton";
-export { StudioSkeleton } from "./StudioSkeleton";

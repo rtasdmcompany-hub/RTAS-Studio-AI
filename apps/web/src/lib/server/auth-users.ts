@@ -303,13 +303,19 @@ export async function upsertOAuthUser(input: {
     const byEmail = await prisma.user.findUnique({ where: { email } });
 
     if (byEmail) {
+      // Refuse to attach Google to a password account without explicit linking.
+      if (byEmail.passwordHash && byEmail.provider === "credentials") {
+        throw new Error(
+          "OAuth account linking blocked: email already registered with a password."
+        );
+      }
+
       const updated = await prisma.user.update({
         where: { id: byEmail.id },
         data: {
           name: input.name || byEmail.name,
           image: input.image ?? byEmail.image,
-          provider:
-            byEmail.provider === "credentials" ? byEmail.provider : "google",
+          provider: "google",
           emailVerified: true,
         },
       });
@@ -342,11 +348,17 @@ export async function upsertOAuthUser(input: {
   const byEmail = findInMap(map, email);
 
   if (byEmail) {
+    if (byEmail.passwordHash && byEmail.provider === "credentials") {
+      throw new Error(
+        "OAuth account linking blocked: email already registered with a password."
+      );
+    }
+
     const updated: AuthUserRecord = {
       ...byEmail,
       name: input.name || byEmail.name,
       image: input.image ?? byEmail.image,
-      provider: byEmail.provider === "credentials" ? byEmail.provider : "google",
+      provider: "google",
       emailVerified: true,
       emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date().toISOString(),
     };

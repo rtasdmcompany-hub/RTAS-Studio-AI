@@ -1,10 +1,10 @@
-import Link from "next/link";
 import {
   PREMIUM_PRICE_USD,
   PRODUCT_NAME,
   STANDARD_PRICE_USD,
   TESTER_PRICE_USD,
 } from "@rtas/shared";
+import { ButtonLink } from "@rtas/ui";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { LandingCategoryShowcase } from "@/components/marketing/LandingCategoryShowcase";
 import { ShowcaseVideos } from "@/components/marketing/ShowcaseVideos";
@@ -79,9 +79,9 @@ export default function HomePage() {
           <p className="rtas-hero-showcase__tagline">
             <strong>{PRODUCT_NAME}</strong> — {SHOWCASE_HERO_TAGLINE}
           </p>
-          <Link href="/studio" className="rtas-btn-lavender rtas-btn-lavender--lg">
+          <ButtonLink href="/studio" variant="lavender-lg">
             Start creating <span aria-hidden>→</span>
-          </Link>
+          </ButtonLink>
         </div>
       </section>
 
@@ -109,9 +109,9 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-        <Link href="/studio" className="rtas-btn-lavender rtas-workflow__cta">
+        <ButtonLink href="/studio" variant="lavender" className="rtas-workflow__cta">
           Open Studio <span aria-hidden>→</span>
-        </Link>
+        </ButtonLink>
       </section>
 
       <section id="features" className="rtas-value video-content-panel">
@@ -130,12 +130,12 @@ export default function HomePage() {
         <h2>Make videos worth watching.</h2>
         <p>Compose · Render · Publish — built for international music-video standards.</p>
         <div className="rtas-final-cta__row">
-          <Link href="/studio" className="rtas-btn-lavender">
+          <ButtonLink href="/studio" variant="lavender">
             Get started
-          </Link>
-          <Link href="/pricing" className="rtas-btn-ghost">
+          </ButtonLink>
+          <ButtonLink href="/pricing" variant="ghost">
             View pricing
-          </Link>
+          </ButtonLink>
         </div>
         <p className="rtas-final-cta__note">
           Tester ${TESTER_PRICE_USD} · Standard ${STANDARD_PRICE_USD}/mo · Premium ${PREMIUM_PRICE_USD}/mo

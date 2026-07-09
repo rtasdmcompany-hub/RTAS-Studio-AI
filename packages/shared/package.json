@@ -2,9 +2,15 @@
   "name": "@rtas/shared",
   "version": "1.0.0",
   "private": true,
+  "description": "Shared types, credits, categories, and legal content for RTAS apps",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
   }
 }

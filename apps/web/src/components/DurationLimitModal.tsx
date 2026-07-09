@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Button, Dialog } from "@rtas/ui";
 
 type Props = {
   open: boolean;
@@ -17,41 +18,38 @@ export function DurationLimitModal({
   onClose,
   onRecharge,
 }: Props) {
-  if (!open) return null;
-
   return (
-    <div
-      className="paywall-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="duration-limit-title"
+    <Dialog
+      open={open}
+      variant="paywall"
+      titleId="duration-limit-title"
+      onClose={onClose}
+      closeOnEscape
     >
-      <div className="paywall-modal">
-        <h2 id="duration-limit-title" className="paywall-title">
-          Video length not allowed
-        </h2>
-        <p className="paywall-desc">{message}</p>
-        {maxAllowedSeconds !== undefined && maxAllowedSeconds > 0 ? (
-          <p className="paywall-desc">
-            Maximum you can select right now:{" "}
-            <strong>{maxAllowedSeconds} seconds</strong>.
-          </p>
-        ) : null}
+      <h2 id="duration-limit-title" className="paywall-title">
+        Video length not allowed
+      </h2>
+      <p className="paywall-desc">{message}</p>
+      {maxAllowedSeconds !== undefined && maxAllowedSeconds > 0 ? (
+        <p className="paywall-desc">
+          Maximum you can select right now:{" "}
+          <strong>{maxAllowedSeconds} seconds</strong>.
+        </p>
+      ) : null}
 
-        {onRecharge ? (
-          <button type="button" className="paywall-subscribe-btn" onClick={onRecharge}>
-            Recharge account
-          </button>
-        ) : null}
+      {onRecharge ? (
+        <Button variant="paywall" onClick={onRecharge}>
+          Recharge account
+        </Button>
+      ) : null}
 
-        <Link href="/pricing#plans" className="paywall-recharge-link">
-          View plans &amp; payment →
-        </Link>
+      <Link href="/pricing#plans" className="paywall-recharge-link">
+        View plans &amp; payment →
+      </Link>
 
-        <button type="button" className="paywall-skip-link" onClick={onClose}>
-          OK
-        </button>
-      </div>
-    </div>
+      <button type="button" className="paywall-skip-link rtas-ui-focus-ring" onClick={onClose}>
+        OK
+      </button>
+    </Dialog>
   );
 }

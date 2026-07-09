@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function ShowcaseVideo({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
 
   const play = useCallback(() => {
     const video = ref.current;
@@ -15,18 +16,41 @@ function ShowcaseVideo({ src }: { src: string }) {
   }, []);
 
   useEffect(() => {
-    play();
-  }, [src, play]);
+    const node = ref.current;
+    if (!node) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "120px", threshold: 0.05 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (shouldLoad) play();
+  }, [src, shouldLoad, play]);
 
   return (
     <video
       ref={ref}
-      src={src}
-      autoPlay
+      src={shouldLoad ? src : undefined}
+      autoPlay={shouldLoad}
       muted
       loop
       playsInline
-      preload="auto"
+      preload="none"
       className="w-full h-full object-cover"
       onLoadedData={play}
       onCanPlay={play}
@@ -86,18 +110,18 @@ export function LandingCategoryShowcase({
         </span>
         <span className="rtas-category-card__body">
           <span className="rtas-category-card__label">Cartoon</span>
-          <span className="rtas-category-card__blurb">Animated stories for kids</span>
+          <span className="rtas-category-card__blurb">Stylized animated storytelling</span>
         </span>
       </Link>
 
-      <Link href="/studio" className="rtas-category-card" aria-label="Religious — open studio">
+      <Link href="/studio" className="rtas-category-card" aria-label="Islamic — open studio">
         <span className="rtas-category-card__media">
           <ShowcaseVideo src="/showcase/islamic.mp4" />
           <span className="rtas-category-card__sheen" aria-hidden />
         </span>
         <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Religious</span>
-          <span className="rtas-category-card__blurb">Faith stories, prayers, and teachings for any tradition</span>
+          <span className="rtas-category-card__label">Islamic</span>
+          <span className="rtas-category-card__blurb">Faith-forward cinematic storytelling</span>
         </span>
       </Link>
     </div>

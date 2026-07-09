@@ -26,6 +26,16 @@ import {
   releaseRenderingSlotOnFailure,
   updateGenerationJobPipeline,
 } from "@/lib/server/studio-generation-guard";
+import { getServerProfile } from "@/lib/server/profile-store";
+import {
+  assertBillingForFalLive,
+  profileToGenerateSnapshot,
+} from "@/lib/server/tier-fal-routing";
+import {
+  FREE_TRIAL_ABUSE_MESSAGE,
+  isFreeTrialBlocked,
+} from "@/lib/server/trial-abuse-store";
+import { clientIpFromRequest } from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -71,9 +81,60 @@ export async function POST(request: Request) {
 
     const { mode, category, visualStyle, durationSeconds, fields, files } = body;
 
-    previewOnly = Boolean(body.previewOnly);
-    useFreeTrial = Boolean(body.useFreeTrial);
+    const requestedPreview = Boolean(body.previewOnly);
+    const requestedTrial = Boolean(body.useFreeTrial);
+
+    const serverProfile = await getServerProfile(effectiveUserId);
+    const accountTrialUsed =
+      serverProfile.hasUsedFreeTrial ?? serverProfile.freeTrialUsed ?? false;
+
+    // Never trust client billing flags — re-validate trial/preview server-side.
+    useFreeTrial = false;
+    previewOnly = false;
+
+    if (requestedTrial) {
+      const trialGate = await isFreeTrialBlocked({
+        userId: effectiveUserId,
+        ipAddress: clientIpFromRequest(request),
+        deviceFingerprint: body.deviceFingerprint?.trim() ?? "",
+        accountTrialUsed,
+      });
+      if (trialGate.blocked) {
+        return NextResponse.json(
+          { error: FREE_TRIAL_ABUSE_MESSAGE, reason: trialGate.reason },
+          { status: 403 }
+        );
+      }
+      useFreeTrial = true;
+    } else if (requestedPreview) {
+      // Preview skip is only for unpaid / zero-credit accounts (not a paid bypass).
+      const hasPaidCredits =
+        serverProfile.subscriptionActive &&
+        Number.isFinite(serverProfile.credits) &&
+        serverProfile.credits > 0;
+      if (hasPaidCredits) {
+        return NextResponse.json(
+          { error: "Preview mode is not available on an active paid plan." },
+          { status: 400 }
+        );
+      }
+      previewOnly = true;
+    }
+
     skipBilling = previewOnly || useFreeTrial;
+
+    if (!skipBilling) {
+      const billingGate = assertBillingForFalLive(serverProfile, {
+        previewOnly,
+        useFreeTrial,
+      });
+      if (!billingGate.ok) {
+        return NextResponse.json(
+          { error: billingGate.message },
+          { status: billingGate.status }
+        );
+      }
+    }
 
     if (!skipBilling) {
       try {
@@ -165,6 +226,7 @@ export async function POST(request: Request) {
       durationSeconds: processedDurationSeconds,
       jobId: backendJobId ?? jobId ?? body.jobId,
       pipelineJobId: jobId ?? body.jobId,
+      profile: profileToGenerateSnapshot(serverProfile),
     };
 
     if (useAsyncPipeline && jobId) {
@@ -182,7 +244,7 @@ export async function POST(request: Request) {
         );
         return NextResponse.json(
           { error: queued.error ?? "Failed to queue long render" },
-          { status: 503 }
+          { status: queued.status === 402 ? 402 : 503 }
         );
       }
 

@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { getChatReply, type ChatMessage } from "@/lib/live-chat";
+import {
+  checkRateLimit,
+  clientIpFromRequest,
+  rateLimitResponse,
+} from "@/lib/server/api-auth";
 
 export async function POST(request: Request) {
+  const ip = clientIpFromRequest(request) || "unknown";
+  const limited = checkRateLimit(`chat:${ip}`, 30, 60_000);
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
   let body: { message?: string; history?: ChatMessage[] } = {};
   try {
     body = await request.json();

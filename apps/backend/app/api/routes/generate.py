@@ -7,6 +7,10 @@ from app.schemas.generation import (
     GenerateResponse,
 )
 from app.services.ai_service import LiveGenerationError, run_generation
+from app.services.tier_fal_routing import (
+    BillingAccessError,
+    assert_billing_for_live_generation,
+)
 from app.services.content_moderation import (
     CONTENT_POLICY_MESSAGE,
     ContentPolicyViolation,
@@ -86,7 +90,12 @@ async def create_generation(body: GenerateRequest, request: Request) -> Generate
         settings.fal_configured
         and settings.fal_live_enabled
         and not body.preview_only
+        and not body.use_free_trial
     ):
+        try:
+            assert_billing_for_live_generation(body)
+        except BillingAccessError as exc:
+            raise HTTPException(status_code=402, detail=exc.message) from exc
         try:
             assert_fal_live_allowed(body.user_id)
         except ValueError as exc:
@@ -121,6 +130,8 @@ async def create_generation(body: GenerateRequest, request: Request) -> Generate
         print(f"Fal API Error: {exc.message}", flush=True)
         if exc.error_code == "model_routing":
             raise HTTPException(status_code=422, detail=exc.message) from exc
+        if exc.error_code == "billing_required":
+            raise HTTPException(status_code=402, detail=exc.message) from exc
         if exc.error_code in ("fal_auth", "replicate_auth"):
             raise HTTPException(status_code=401, detail=exc.message) from exc
         if exc.error_code in ("fal_credit", "replicate_credit"):
@@ -224,11 +235,18 @@ async def create_generation_async(
         settings.fal_configured
         and settings.fal_live_enabled
         and not body.preview_only
+        and not body.use_free_trial
     ):
+        try:
+            assert_billing_for_live_generation(body)
+        except BillingAccessError as exc:
+            raise HTTPException(status_code=402, detail=exc.message) from exc
         try:
             assert_fal_live_allowed(body.user_id)
         except ValueError as exc:
             msg = str(exc)
+            if "balance" in msg.lower() or "billing" in msg.lower() or "wait" in msg.lower():
+                raise HTTPException(status_code=402, detail=msg) from exc
             raise HTTPException(status_code=503, detail=msg) from exc
 
     background_tasks.add_task(_run_generation_background, body)

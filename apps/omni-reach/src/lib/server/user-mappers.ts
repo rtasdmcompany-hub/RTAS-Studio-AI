@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User } from "@/generated/prisma";
 import type { UserProfile } from "@rtas/shared";
 import { getDefaultProfile } from "@/lib/store";
 import type { AuthUserRecord } from "@/lib/server/auth-users";

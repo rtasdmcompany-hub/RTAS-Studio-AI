@@ -1,0 +1,5 @@
+/* Studio-only stylesheets — loaded only on /studio routes */
+@import "../../styles/shashka-studio.css";
+@import "../../styles/asset-gallery.css";
+@import "../../styles/generation-pipeline.css";
+@import "../../styles/studio-interactions.css";

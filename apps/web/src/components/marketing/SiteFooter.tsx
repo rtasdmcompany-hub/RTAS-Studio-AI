@@ -62,7 +62,7 @@ export function SiteFooter() {
             <Link href="/how-to-use">How to use</Link>
             <Link href="/#features">Features</Link>
             <Link href="/pricing">Pricing</Link>
-            <Link href="/profile">Account</Link>
+            <Link href="/profile">Dashboard</Link>
           </div>
           <div className="rtas-footer__col">
             <h3>Legal</h3>

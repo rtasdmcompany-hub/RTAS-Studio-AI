@@ -133,18 +133,23 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
     saveProfile(loaded);
     setProfileState(loaded);
     setStudioMetrics(null);
-    void syncFromServer(loaded.id);
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get("activated") === "1" || params.get("payment") === "success") {
+    const checkoutSuccess =
+      params.get("activated") === "1" || params.get("payment") === "success";
+
+    if (checkoutSuccess) {
       const rawPlan = params.get("plan");
       const plan: PaidPlanType =
         rawPlan === "standard" || rawPlan === "premium" ? rawPlan : "standard";
       const p = activatePlan(loaded, plan);
       saveProfile(p);
       setProfileState(p);
+      // Single sync after local activate — avoids duplicate subscription fetches
       void syncFromServer(p.id);
       void fetch("/api/admin/fal-funding/refresh", { method: "POST" }).catch(() => {});
+    } else {
+      void syncFromServer(loaded.id);
     }
   }, [session, status, syncFromServer]);
 

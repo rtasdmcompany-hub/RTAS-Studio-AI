@@ -5,6 +5,7 @@ import Link from "next/link";
 import { signIn, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PRODUCT_NAME } from "@rtas/shared";
+import { Alert, Button, Dialog, Field, Input } from "@rtas/ui";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { BrandLockup } from "@/components/BrandLockup";
 import { storeDevVerificationUrl, storeEmailSentToInbox } from "./CheckEmailClient";
@@ -211,38 +212,41 @@ export function AuthForm({ mode }: Props) {
 
   return (
     <>
-      {signupSentModal && (
-        <div className="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="signup-sent-title">
-          <div className="auth-modal">
-            <h2 id="signup-sent-title">
-              {signupSentModal.emailSent ? "Check your email" : "Confirm your account"}
-            </h2>
-            {signupSentModal.emailSent ? (
-              <>
-                <p>
-                  We sent a confirmation email to <strong>{signupSentModal.masked}</strong>.
-                </p>
-                <p>
-                  Open the email, click <strong>Confirm my account</strong>, then sign in.
-                  You cannot access the studio until your email is verified.
-                </p>
-              </>
-            ) : (
-              <>
-                <p>
-                  Your account for <strong>{signupSentModal.masked}</strong> is ready.
-                </p>
-                <p>
-                  On the next screen, click <strong>Confirm my account now</strong>, then sign in.
-                </p>
-              </>
-            )}
-            <button type="button" className="btn-primary auth-submit" onClick={closeSignupSentModal}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
+      <Dialog
+        open={Boolean(signupSentModal)}
+        onClose={closeSignupSentModal}
+        variant="auth"
+        titleId="signup-sent-title"
+        title={
+          signupSentModal?.emailSent ? "Check your email" : "Confirm your account"
+        }
+        closeOnEscape
+        showGlow={false}
+      >
+        {signupSentModal?.emailSent ? (
+          <>
+            <p>
+              We sent a confirmation email to <strong>{signupSentModal.masked}</strong>.
+            </p>
+            <p>
+              Open the email, click <strong>Confirm my account</strong>, then sign in.
+              You cannot access the studio until your email is verified.
+            </p>
+          </>
+        ) : signupSentModal ? (
+          <>
+            <p>
+              Your account for <strong>{signupSentModal.masked}</strong> is ready.
+            </p>
+            <p>
+              On the next screen, click <strong>Confirm my account now</strong>, then sign in.
+            </p>
+          </>
+        ) : null}
+        <Button variant="primary" className="auth-submit" onClick={closeSignupSentModal}>
+          Got it
+        </Button>
+      </Dialog>
 
       <div className="auth-card">
       <div className="auth-card-header auth-card-header--lockup">
@@ -252,15 +256,14 @@ export function AuthForm({ mode }: Props) {
       </div>
 
       {(error || authError) && (
-        <p className="auth-error" role="alert">
-          {error ?? mapAuthError(authError)}
-        </p>
+        <Alert
+          variant="error"
+          message={error ?? mapAuthError(authError)}
+        />
       )}
 
       {success && (
-        <p className="auth-success" role="status">
-          {success}
-        </p>
+        <Alert variant="success" message={success} />
       )}
 
       {googleAuthEnabled === true && (
@@ -283,9 +286,9 @@ export function AuthForm({ mode }: Props) {
 
       <form className="auth-form" onSubmit={handleSubmit}>
         {isSignup && (
-          <label className="auth-field">
-            <span>Full name</span>
-            <input
+          <Field id="auth-name" label="Full name" required className="auth-field">
+            <Input
+              id="auth-name"
               type="text"
               autoComplete="name"
               value={name}
@@ -293,12 +296,12 @@ export function AuthForm({ mode }: Props) {
               placeholder="Your name"
               required
             />
-          </label>
+          </Field>
         )}
 
-        <label className="auth-field">
-          <span>Email</span>
-          <input
+        <Field id="auth-email" label="Email" required className="auth-field">
+          <Input
+            id="auth-email"
             type="email"
             autoComplete="email"
             value={email}
@@ -306,11 +309,11 @@ export function AuthForm({ mode }: Props) {
             placeholder="you@example.com"
             required
           />
-        </label>
+        </Field>
 
-        <label className="auth-field">
-          <span>Password</span>
-          <input
+        <Field id="auth-password" label="Password" required className="auth-field">
+          <Input
+            id="auth-password"
             type="password"
             autoComplete={isSignup ? "new-password" : "current-password"}
             value={password}
@@ -319,15 +322,11 @@ export function AuthForm({ mode }: Props) {
             minLength={isSignup ? 8 : 1}
             required
           />
-        </label>
+        </Field>
 
-        <button type="submit" className="btn-primary auth-submit" disabled={busy}>
-          {busy
-            ? statusMessage ?? (isSignup ? "Creating account…" : "Signing in…")
-            : isSignup
-              ? "Create account"
-              : "Sign in"}
-        </button>
+        <Button type="submit" variant="primary" className="auth-submit" disabled={busy} loading={busy} loadingLabel={statusMessage ?? (isSignup ? "Creating account…" : "Signing in…")}>
+          {isSignup ? "Create account" : "Sign in"}
+        </Button>
       </form>
 
       <p className="auth-switch">

@@ -2,7 +2,13 @@
 
 import { useCallback, useState, type DragEvent } from "react";
 import { useOmniReachProfile } from "@/context/OmniReachProfileContext";
-import type { FileFieldValue } from "@/lib/studio-form";
+
+type FileFieldValue = {
+  file: File;
+  name: string;
+  mimeType: string;
+  size: number;
+};
 
 const PUBLISH_LOCK_MESSAGE = "Action locked. Review Tester Session metrics.";
 

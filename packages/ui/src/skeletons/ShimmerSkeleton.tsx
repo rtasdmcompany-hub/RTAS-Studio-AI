@@ -4,11 +4,10 @@ type SkeletonBarProps = {
   className?: string;
 };
 
-/** Pulsing shimmer bar — base primitive for all skeleton layouts. */
 export function SkeletonBar({ className = "" }: SkeletonBarProps) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-white/10 ${className}`.trim()}
+      className={`rtas-motion-pulse rounded-lg bg-ds-surface-glass ${className}`.trim()}
       aria-hidden
     />
   );
@@ -20,7 +19,6 @@ type GlassSkeletonPanelProps = {
   ariaLabel?: string;
 };
 
-/** Glassmorphic container that preserves layout while data resolves. */
 export function GlassSkeletonPanel({
   children,
   className = "",
@@ -28,7 +26,7 @@ export function GlassSkeletonPanel({
 }: GlassSkeletonPanelProps) {
   return (
     <div
-      className={`rounded-2xl border border-white/10 cinematic-glass-panel p-6 shadow-[0_24px_48px_rgba(0,0,0,0.45)] backdrop-blur-xl ${className}`.trim()}
+      className={`rounded-2xl border border-ds-border/40 cinematic-glass-panel p-6 shadow-ds-2xl backdrop-blur-ds-xl ${className}`.trim()}
       aria-busy="true"
       aria-label={ariaLabel}
       role="status"

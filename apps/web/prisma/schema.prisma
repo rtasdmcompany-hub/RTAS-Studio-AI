@@ -58,6 +58,7 @@ model GenerationJob {
   completedAt       DateTime?
 
   @@index([userId, status])
+  @@index([userId, createdAt(sort: Desc)])
   @@index([isPublic])
 }
 

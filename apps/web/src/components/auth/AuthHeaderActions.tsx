@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { Button, ButtonLink } from "@rtas/ui";
 import { headerUserLabel, profileDisplayName } from "@/lib/user-display-name";
 
 type Variant = "studio" | "landing";
@@ -35,16 +35,12 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
         <span className="auth-user-pill" title={fullName}>
           {label}
         </span>
-        <Link href="/profile" className="btn-ghost rtas-header__profile-link">
-          Profile
-        </Link>
-        <button
-          type="button"
-          className="btn-ghost"
-          onClick={() => signOut({ callbackUrl: "/" })}
-        >
+        <ButtonLink href="/profile" variant="ghost" className="rtas-header__profile-link">
+          Dashboard
+        </ButtonLink>
+        <Button variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>
           Sign out
-        </button>
+        </Button>
       </>
     );
   }
@@ -56,19 +52,20 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
 
   return (
     <>
-      <Link href={loginHref} className="btn-ghost">
+      <ButtonLink href={loginHref} variant="ghost">
         Sign in
-      </Link>
-      <Link
+      </ButtonLink>
+      <ButtonLink
         href={
           variant === "studio"
             ? "/auth/signup?callbackUrl=%2Fstudio"
             : "/auth/signup"
         }
-        className="btn-primary auth-signup-btn"
+        variant="primary"
+        className="auth-signup-btn"
       >
         Sign up
-      </Link>
+      </ButtonLink>
     </>
   );
 }

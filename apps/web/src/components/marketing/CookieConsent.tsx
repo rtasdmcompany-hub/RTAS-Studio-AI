@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Button } from "@rtas/ui";
 
 const STORAGE_KEY = "rtas-cookie-consent";
 
@@ -36,20 +37,22 @@ export function CookieConsent() {
           <Link href="/cookies">Cookie Policy</Link>.
         </p>
         <div className="rtas-cookie__actions">
-          <button
-            type="button"
-            className="btn-ghost rtas-cookie__btn"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rtas-cookie__btn"
             onClick={() => accept("essential")}
           >
             Essential only
-          </button>
-          <button
-            type="button"
-            className="btn-primary rtas-cookie__btn"
+          </Button>
+          <Button
+            variant="lavender"
+            size="sm"
+            className="rtas-cookie__btn"
             onClick={() => accept("all")}
           >
             Accept all
-          </button>
+          </Button>
         </div>
       </div>
     </div>

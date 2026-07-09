@@ -9,6 +9,8 @@ node_modules/
 dist/
 .env
 .env.local
+.env.prisma
+.env.prisma.*
 *.log
 .DS_Store
 .vercel

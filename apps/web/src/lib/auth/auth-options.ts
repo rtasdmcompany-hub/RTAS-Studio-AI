@@ -37,7 +37,9 @@ export const authOptions: NextAuthOptions = {
           GoogleProvider({
             clientId: getGoogleClientId(),
             clientSecret: getGoogleClientSecret(),
-            allowDangerousEmailAccountLinking: true,
+            // Never auto-link Google to an existing password account.
+            // Users must sign in with email/password, or create a Google-only account.
+            allowDangerousEmailAccountLinking: false,
             authorization: {
               params: {
                 prompt: "select_account",
@@ -79,6 +81,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
+        const existing = await findAuthUserByEmail(user.email);
+        // Block Google from silently taking over a password-based account.
+        if (existing?.passwordHash && existing.provider === "credentials") {
+          return `/auth/login?error=${encodeURIComponent(
+            "This email already has a password. Sign in with email and password instead."
+          )}`;
+        }
+
         try {
           await upsertOAuthUser({
             id: user.id,
@@ -88,6 +98,9 @@ export const authOptions: NextAuthOptions = {
           });
         } catch (err) {
           console.error("Google sign-in: could not persist user record", err);
+          return `/auth/login?error=${encodeURIComponent(
+            "Google sign-in could not complete. Please try again."
+          )}`;
         }
       }
 

@@ -44,6 +44,11 @@ from app.services.model_routing import (
     select_optimal_model,
     weighted_credits_for_duration,
 )
+from app.services.tier_fal_routing import (
+    BillingAccessError,
+    apply_tier_fal_routing,
+    assert_billing_for_live_generation,
+)
 from app.services.storage import (
     ensure_dirs,
     job_output_path,
@@ -119,6 +124,7 @@ class GenerationJobInput:
     selected_cost_per_second: float | None = None
     selection_reason: str | None = None
     credit_weight: float = 1.0
+    fal_resolution: str | None = None
     status_callback_url: str | None = None
     pipeline_job_id: str | None = None
     pipeline_progress: object | None = field(default=None, repr=False)
@@ -340,10 +346,29 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
     duration = job.duration_seconds
     provider_name = _pick_provider(job)
 
-    if (
+    if not preview_only and not body.use_free_trial and provider_name == "fal":
+        try:
+            assert_billing_for_live_generation(body)
+            tier_selection = apply_tier_fal_routing(job, body)
+            credits_used = weighted_credits_for_duration(
+                duration, tier_selection.cost_per_second
+            )
+            profile = body.profile
+            if profile is None or profile.credits < credits_used:
+                needed = credits_used
+                have = profile.credits if profile else 0
+                raise BillingAccessError(
+                    f"Insufficient credits for render (need {needed}, have {have}).",
+                    error_code="billing_required",
+                )
+        except BillingAccessError as exc:
+            raise LiveGenerationError(
+                exc.message, error_code=exc.error_code
+            ) from exc
+    elif (
         not preview_only
         and not body.use_free_trial
-        and provider_name in ("fal", "replicate")
+        and provider_name == "replicate"
     ):
         try:
             selection = select_optimal_model(job, provider_name)
@@ -352,17 +377,17 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
                 duration, selection.cost_per_second
             )
             profile = body.profile
-            if profile and profile.subscription_active and profile.credits < credits_used:
+            if profile is None or profile.credits < credits_used:
                 needed = credits_used
-                preview_only = True
-                can_download = False
-                credits_used = 0
-                logger.info(
-                    "Insufficient credits for weighted deduction job=%s need=%s have=%s",
-                    job.job_id,
-                    needed,
-                    profile.credits,
+                have = profile.credits if profile else 0
+                raise BillingAccessError(
+                    f"Insufficient credits for render (need {needed}, have {have}).",
+                    error_code="billing_required",
                 )
+        except BillingAccessError as exc:
+            raise LiveGenerationError(
+                exc.message, error_code=exc.error_code
+            ) from exc
         except ModelRoutingError as exc:
             raise LiveGenerationError(str(exc), error_code="model_routing") from exc
     elif (
