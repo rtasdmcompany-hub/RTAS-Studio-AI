@@ -1,7 +1,7 @@
 import type { UserProfile } from "@rtas/shared";
 
 /** Emails that see technical / owner diagnostics in the studio UI. */
-const DEFAULT_OWNER_EMAILS = ["rtasdmcompany@gmail.com"];
+const DEFAULT_OWNER_EMAILS: string[] = [];
 
 export function isStudioOwner(profile: UserProfile | null | undefined): boolean {
   if (!profile?.email) return false;

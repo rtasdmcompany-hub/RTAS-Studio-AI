@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
 import { proxyUploadToFastApi } from "@/lib/server/fastapi-proxy";
 import {
   UploadValidationError,
   validateUploadFormData,
 } from "@/lib/server/upload-guard";
+import {
+  checkRateLimitAsync,
+  clientIpFromRequest,
+  rateLimitResponse,
+  requireApiSession,
+} from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -14,13 +18,21 @@ export const maxDuration = 120;
  * Session-guarded upload gateway. Browser assets never hit FastAPI directly.
  */
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const auth = await requireApiSession();
+  if (!auth.ok) {
     return NextResponse.json(
       { error: "Unauthorized. Sign in to upload studio assets." },
       { status: 401 }
     );
   }
+
+  const ip = clientIpFromRequest(request) || "unknown";
+  const limited = await checkRateLimitAsync(
+    `upload:${auth.userId}:${ip}`,
+    40,
+    60_000
+  );
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
 
   let formData: FormData;
   try {
@@ -34,12 +46,13 @@ export async function POST(request: Request) {
 
   let outbound: FormData;
   try {
-    ({ outbound } = validateUploadFormData(formData));
+    ({ outbound } = await validateUploadFormData(formData));
   } catch (error) {
     if (error instanceof UploadValidationError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    const message = error instanceof Error ? error.message : "Upload validation failed";
+    const message =
+      error instanceof Error ? error.message : "Upload validation failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 

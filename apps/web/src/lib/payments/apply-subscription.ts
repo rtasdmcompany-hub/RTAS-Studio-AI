@@ -90,6 +90,9 @@ export async function applyPremiumFromWebhook(
 export async function applyPlanFromWebhook(
   payload: SubscriptionActivatedPayload
 ): Promise<UserProfile> {
+  if (!payload.userId?.trim()) {
+    throw new Error("Webhook missing user_id — refusing to apply subscription.");
+  }
   if (payload.planType === "tester") {
     throw new Error(
       "Tester publishing plans are handled by RTAS Omni Reach AI."

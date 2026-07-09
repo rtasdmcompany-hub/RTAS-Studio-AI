@@ -25,9 +25,11 @@ export function verifyPaddleSignature(
 ): boolean {
   const secret = process.env.PADDLE_WEBHOOK_SECRET;
   if (!secret) {
-    // Never accept unsigned webhooks outside local development.
-    if (process.env.NODE_ENV === "production") return false;
-    return process.env.NODE_ENV === "development";
+    // Fail closed everywhere unless explicitly opted in for local tooling.
+    return (
+      process.env.NODE_ENV === "development" &&
+      process.env.ALLOW_UNSIGNED_WEBHOOKS === "1"
+    );
   }
   if (!signatureHeader) return false;
 
@@ -50,7 +52,7 @@ export function parsePaddleWebhook(body: PaddleWebhookBody): PaymentWebhookEvent
   const eventType = body.event_type ?? "";
   const data = body.data;
   const custom = data?.custom_data ?? {};
-  const userId = custom.user_id ?? custom.userId ?? "local-user";
+  const userId = (custom.user_id ?? custom.userId ?? "").trim();
 
   const activatedTypes = [
     "subscription.created",

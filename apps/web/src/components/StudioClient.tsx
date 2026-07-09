@@ -2171,7 +2171,8 @@ export function StudioClient() {
   const uploadDisabled =
     isLoading || !category || Boolean(generationLimitReached);
   const showStudioDebugPanel =
-    process.env.NODE_ENV === "development" || pipelineDiagnostic !== null;
+    process.env.NODE_ENV === "development" ||
+    (pipelineDiagnostic !== null && isStudioOwner(profile));
   const wizardStepLabel =
     wizardStep === WIZARD_SETUP_STEP
       ? "Mode, category & style"

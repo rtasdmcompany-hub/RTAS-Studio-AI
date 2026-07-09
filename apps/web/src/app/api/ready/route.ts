@@ -12,6 +12,7 @@ import {
   isPersistentStoreConfigured,
 } from "@/lib/server/persistent-store";
 import { getObservabilityStatus } from "@/lib/observability";
+import { isAdminAuthorized } from "@/lib/server/api-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -28,16 +29,16 @@ function hasEnv(key: string): boolean {
 
 /**
  * Readiness probe — required production dependencies.
- * Returns 200 when ready to serve traffic; 503 when critical deps missing.
- * Does not print secret values.
+ * Public response is minimal. Detailed checks require admin secret.
  * GET /api/ready
  */
-export async function GET() {
+export async function GET(request: Request) {
   const isProd = process.env.NODE_ENV === "production";
   const fastApi = resolveServerFastApiUrl();
   const paymentProvider = (
     process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "paddle"
   ).toLowerCase();
+  const detailed = isAdminAuthorized(request);
 
   const checks: Record<string, CheckResult> = {
     nextAuthSecret: {
@@ -109,21 +110,26 @@ export async function GET() {
   const ready = criticalKeys.every((k) => checks[k].ok);
   const observability = getObservabilityStatus();
 
-  return NextResponse.json(
-    {
-      status: ready ? "ready" : "not_ready",
-      service: "rtas-web",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || "development",
-      paymentProvider,
-      checks,
-      observability,
+  const body = detailed
+    ? {
+        status: ready ? "ready" : "not_ready",
+        service: "rtas-web",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development",
+        paymentProvider,
+        checks,
+        observability,
+      }
+    : {
+        status: ready ? "ready" : "not_ready",
+        service: "rtas-web",
+        timestamp: new Date().toISOString(),
+      };
+
+  return NextResponse.json(body, {
+    status: ready ? 200 : 503,
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
     },
-    {
-      status: ready ? 200 : 503,
-      headers: {
-        "Cache-Control": "no-store, max-age=0",
-      },
-    }
-  );
+  });
 }

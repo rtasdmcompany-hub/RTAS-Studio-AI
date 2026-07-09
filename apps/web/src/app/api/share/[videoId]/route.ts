@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
 import { getPublicShare, publishPublicShare } from "@/lib/server/share-store";
+import {
+  checkRateLimitAsync,
+  clientIpFromRequest,
+  rateLimitResponse,
+  requireApiSession,
+} from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 
@@ -16,6 +20,30 @@ type PublishBody = {
   visualStyle?: string;
   mode?: string;
 };
+
+function isAllowedShareVideoUrl(videoUrl: string): boolean {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const fastApi = (process.env.FASTAPI_URL ?? "").replace(/\/$/, "");
+
+  if (videoUrl.startsWith("/")) return true;
+  if (appUrl && (videoUrl === appUrl || videoUrl.startsWith(`${appUrl}/`))) {
+    return true;
+  }
+  if (fastApi && videoUrl.startsWith(`${fastApi}/`)) return true;
+
+  // Known media path patterns on same deployment host
+  try {
+    const u = new URL(videoUrl);
+    if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+    if (appUrl) {
+      const appHost = new URL(appUrl).host;
+      if (u.host === appHost) return true;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
 
 /** Public read — no session required */
 export async function GET(_request: Request, context: RouteContext) {
@@ -37,13 +65,16 @@ export async function GET(_request: Request, context: RouteContext) {
 
 /** Authenticated publish — sets isPublic on the generation job */
 export async function POST(request: Request, context: RouteContext) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Sign in to share your studio videos." },
-      { status: 401 }
-    );
-  }
+  const auth = await requireApiSession();
+  if (!auth.ok) return auth.response;
+
+  const ip = clientIpFromRequest(request) || "unknown";
+  const limited = await checkRateLimitAsync(
+    `share-publish:${auth.userId}:${ip}`,
+    20,
+    60_000
+  );
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
 
   const videoId = context.params.videoId?.trim();
   if (!videoId) {
@@ -62,9 +93,16 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Video URL is required to share." }, { status: 400 });
   }
 
+  if (!isAllowedShareVideoUrl(videoUrl)) {
+    return NextResponse.json(
+      { error: "Video URL must be hosted on RTAS Studio or the configured media host." },
+      { status: 400 }
+    );
+  }
+
   try {
     const share = await publishPublicShare({
-      userId: session.user.id,
+      userId: auth.userId,
       videoId,
       title: body.title?.trim() || "RTAS Studio AI Video",
       prompt: body.prompt ?? null,

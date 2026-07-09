@@ -32,8 +32,10 @@ export function verifyLemonSqueezySignature(
 ): boolean {
   const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production") return false;
-    return process.env.NODE_ENV === "development";
+    return (
+      process.env.NODE_ENV === "development" &&
+      process.env.ALLOW_UNSIGNED_WEBHOOKS === "1"
+    );
   }
   if (!signatureHeader) return false;
 
@@ -51,7 +53,7 @@ export function parseLemonSqueezyWebhook(
   const eventName = body.meta?.event_name ?? "";
   const custom = body.meta?.custom_data ?? {};
   const attrs = body.data?.attributes;
-  const userId = custom.user_id ?? custom.userId ?? "local-user";
+  const userId = (custom.user_id ?? custom.userId ?? "").trim();
 
   const paidEvents = [
     "subscription_created",

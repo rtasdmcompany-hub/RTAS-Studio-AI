@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { FREE_TRIAL_DURATION_SECONDS, computeSegmentPlan } from "@rtas/shared";
 import { type GenerateBody } from "@/lib/generation";
-import { authOptions } from "@/lib/auth/auth-options";
 import { proxyGenerateToFastApi } from "@/lib/server/fastapi-proxy";
 import {
   shouldUseAsyncPipeline,
@@ -35,7 +33,12 @@ import {
   FREE_TRIAL_ABUSE_MESSAGE,
   isFreeTrialBlocked,
 } from "@/lib/server/trial-abuse-store";
-import { clientIpFromRequest } from "@/lib/server/api-auth";
+import {
+  checkRateLimitAsync,
+  clientIpFromRequest,
+  rateLimitResponse,
+  requireApiSession,
+} from "@/lib/server/api-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -59,12 +62,20 @@ async function releaseSlotOnFailure(
  * server-side so clients cannot bypass SaaS billing controls.
  */
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json(AUTH_REQUIRED_BODY, { status: 401 });
+  const auth = await requireApiSession();
+  if (!auth.ok) {
+    return NextResponse.json(AUTH_REQUIRED_BODY, { status: auth.response.status });
   }
 
-  const effectiveUserId = session.user.id;
+  const ip = clientIpFromRequest(request) || "unknown";
+  const limited = await checkRateLimitAsync(
+    `generate:${auth.userId}:${ip}`,
+    30,
+    60_000
+  );
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
+  const effectiveUserId = auth.userId;
   let jobId: string | null = null;
   let skipBilling = false;
   let previewOnly = false;

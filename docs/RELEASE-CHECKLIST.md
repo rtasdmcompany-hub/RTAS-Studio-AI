@@ -2,6 +2,8 @@
 
 Use this checklist for every production release. External credentials may still be pending during engineering readiness; mark those items **N/A — pending account** rather than skipping the section.
 
+Also see: [LAUNCH-CHECKLISTS.md](./LAUNCH-CHECKLISTS.md) · [RELEASE-REPORT.md](./RELEASE-REPORT.md)
+
 ---
 
 ## Pre-deployment

@@ -8,6 +8,8 @@ on:
       - "packages/**"
       - "package.json"
       - "package-lock.json"
+      - ".npmrc"
+      - "turbo.json"
       - "vercel.json"
       - "docs/**"
       - ".github/workflows/ci-web.yml"
@@ -18,6 +20,8 @@ on:
       - "packages/**"
       - "package.json"
       - "package-lock.json"
+      - ".npmrc"
+      - "turbo.json"
       - "vercel.json"
       - "docs/**"
       - ".github/workflows/ci-web.yml"
@@ -53,6 +57,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
+        # Workspace-scoped install + root typescript so hoisted @typescript-eslint/parser resolves.
         run: npm install --workspace=@rtas/web --include-workspace-root --legacy-peer-deps --no-audit --no-fund
 
       - name: Deployment-ready artifacts

@@ -34,10 +34,9 @@ function resolvePlanFromCustomData(custom) {
   return "standard";
 }
 
-function verifyPaddleSignature(rawBody, signatureHeader, secret, nodeEnv) {
+function verifyPaddleSignature(rawBody, signatureHeader, secret, nodeEnv, allowUnsigned) {
   if (!secret) {
-    if (nodeEnv === "production") return false;
-    return nodeEnv === "development";
+    return nodeEnv === "development" && allowUnsigned === true;
   }
   if (!signatureHeader) return false;
   const parts = signatureHeader.split(";");
@@ -53,10 +52,9 @@ function verifyPaddleSignature(rawBody, signatureHeader, secret, nodeEnv) {
   }
 }
 
-function verifyLemonSignature(rawBody, signatureHeader, secret, nodeEnv) {
+function verifyLemonSignature(rawBody, signatureHeader, secret, nodeEnv, allowUnsigned) {
   if (!secret) {
-    if (nodeEnv === "production") return false;
-    return nodeEnv === "development";
+    return nodeEnv === "development" && allowUnsigned === true;
   }
   if (!signatureHeader) return false;
   const digest = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
@@ -69,7 +67,7 @@ function verifyLemonSignature(rawBody, signatureHeader, secret, nodeEnv) {
 
 function parsePaddleActivated(body) {
   const custom = body.data?.custom_data ?? {};
-  const userId = custom.user_id ?? custom.userId ?? "local-user";
+  const userId = (custom.user_id ?? custom.userId ?? "").trim();
   const planType = resolvePlanFromCustomData(custom);
   return {
     type: "subscription_activated",
@@ -129,14 +127,16 @@ ok("Payment plan detection + credit assignment");
     .update(`${ts}:${rawBody}`)
     .digest("hex");
   assert.equal(
-    verifyPaddleSignature(rawBody, `ts=${ts};h1=${h1}`, secret, "production"),
+    verifyPaddleSignature(rawBody, `ts=${ts};h1=${h1}`, secret, "production", false),
     true
   );
   assert.equal(
-    verifyPaddleSignature(rawBody, `ts=${ts};h1=deadbeef`, secret, "production"),
+    verifyPaddleSignature(rawBody, `ts=${ts};h1=deadbeef`, secret, "production", false),
     false
   );
-  assert.equal(verifyPaddleSignature(rawBody, null, "", "production"), false);
+  assert.equal(verifyPaddleSignature(rawBody, null, "", "production", false), false);
+  assert.equal(verifyPaddleSignature(rawBody, null, "", "development", false), false);
+  assert.equal(verifyPaddleSignature(rawBody, null, "", "development", true), true);
   ok("Paddle webhook signature verification");
 }
 
@@ -144,8 +144,9 @@ ok("Payment plan detection + credit assignment");
   const secret = "test-lemon-secret";
   const rawBody = '{"meta":{"event_name":"subscription_created"}}';
   const digest = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
-  assert.equal(verifyLemonSignature(rawBody, digest, secret, "production"), true);
-  assert.equal(verifyLemonSignature(rawBody, null, "", "production"), false);
+  assert.equal(verifyLemonSignature(rawBody, digest, secret, "production", false), true);
+  assert.equal(verifyLemonSignature(rawBody, null, "", "production", false), false);
+  assert.equal(verifyLemonSignature(rawBody, null, "", "development", false), false);
   ok("Lemon Squeezy webhook signature verification");
 }
 

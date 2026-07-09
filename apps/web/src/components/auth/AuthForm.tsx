@@ -168,7 +168,7 @@ export function AuthForm({ mode }: Props) {
         const checkRes = await fetch("/api/auth/check-verification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email }),
         }).catch(() => null);
 
         if (checkRes?.ok) {

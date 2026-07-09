@@ -2,59 +2,75 @@
 
 **RTAS DIGITAL MARKETING COMPANY** · Under **RTAS GROUP OF COMPANIES**
 
-International AI video platform: **Prompt to Video** and **Image to Video** (5 seconds – 10 minutes).
+International AI video SaaS: **Prompt to Video** and **Image to Video**.
 
-> If you are seeing duplicate folders / mixed APIs, read `docs/ACTIVE-STACK.md` first.
+## Stack (authoritative)
 
-## Quick start (developers)
+| Layer | Technology |
+|-------|------------|
+| Web | Next.js 14 (`apps/web`) on Vercel |
+| Auth | NextAuth (credentials + Google) |
+| Database | Prisma → Postgres (Supabase/Neon) |
+| Payments | Paddle (default) or Lemon Squeezy |
+| Email | Resend (or SMTP) |
+| AI / GPU | FastAPI worker + fal.ai |
+| Persistence | Vercel KV / Upstash Redis |
+
+See `MONOREPO.md` and `docs/ACTIVE-STACK.md`.
+
+## Quick start
 
 ```bash
-# 1. Install Node.js 20 LTS from https://nodejs.org
 cd "RTAS Studio AI"
 npm install
 cp apps/web/.env.example apps/web/.env.local
-# Add API keys (see docs/SETUP-DOWNLOADS.md)
-npm run dev
+# Fill secrets — see docs/ENVIRONMENT.md
+npm run setup:env -w @rtas/web   # optional secret bootstrap
+npm run dev:web
 ```
 
 Open http://localhost:3000
 
-**Optional — Python API:**
+GPU worker (optional locally):
 
 ```bash
-cd apps/backend && pip install -r requirements.txt && uvicorn main:app --reload --port 8000
+npm run dev:api
 ```
 
-Set `NEXT_PUBLIC_FASTAPI_URL=http://localhost:8000` in `apps/web/.env.local`.
+## Production deploy (when credentials are ready)
 
-## Project structure
+1. Fill `apps/web/.env.production.example` → Vercel env for project **rtas-studio-ai-web**
+2. Link Vercel KV
+3. Add domain + DNS
+4. Deploy
+5. Smoke: `/api/health`, `/api/ready`
 
-| Folder | Purpose |
-|--------|---------|
-| `apps/web` | Next.js app — desktop + mobile web |
-| `apps/backend` | FastAPI — video generation API (`POST /api/generate`) |
-| `apps/mobile` | Expo — Android & iOS store builds |
-| `packages/shared` | Types, credits, categories, legal text |
-| `docs` | Setup, architecture, API providers |
+Full runbooks:
 
-## Your product rules (implemented in code)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md)
+- [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
+- [docs/SECURITY.md](docs/SECURITY.md)
+- [docs/RELEASE-REPORT.md](docs/RELEASE-REPORT.md)
 
-- First video: **30 seconds free**
-- Subscription: **$89/month**, **500 credits**
-- **50 credits** per 5-minute video
-- Credits expire end of billing month; early resubscribe **rolls over** remaining credits
-- After free tier: subscribe or **Skip for next time** → preview only (watermarked, no download)
-- Visual modes: **Real face** (identity-preserving), **Avatar**, **Cartoon**
-- Payments: Stripe (international) + Pakistan (JazzCash / EasyPaisa / bank — configure in dashboard)
+## Quality gates
 
-## Logo
+```bash
+npm run verify:deployment-ready -w @rtas/web
+npm run lint -w @rtas/web
+npm run typecheck -w @rtas/web
+npm run test -w @rtas/web
+npm run verify:production -w @rtas/web
+npm run build -w @rtas/web
+```
 
-Place your logo at: `apps/web/public/logo.png` (used in app header and video watermark).
+## Product rules (implemented)
+
+- Free trial path with abuse controls
+- Paid plans via Merchant of Record (Paddle / Lemon Squeezy)
+- Credits + commercial license entitlement on active subscription
+- Server-side generation gateway (clients cannot bypass billing)
 
 ## Legal
 
-Terms: in-app `/terms` and `packages/shared/src/legal/terms.ts`
-
----
-
-See **docs/SETUP-DOWNLOADS.md** for everything to install on your PC.
+Terms: `/terms` · Privacy: `/privacy`

@@ -53,6 +53,97 @@ function validateFieldId(fieldId: string): void {
   }
 }
 
+function startsWithBytes(buf: Uint8Array, sig: number[]): boolean {
+  if (buf.length < sig.length) return false;
+  return sig.every((b, i) => buf[i] === b);
+}
+
+function looksLikeJpeg(buf: Uint8Array): boolean {
+  return startsWithBytes(buf, [0xff, 0xd8, 0xff]);
+}
+
+function looksLikePng(buf: Uint8Array): boolean {
+  return startsWithBytes(buf, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+}
+
+function looksLikeGif(buf: Uint8Array): boolean {
+  return (
+    startsWithBytes(buf, [0x47, 0x49, 0x46, 0x38, 0x37, 0x61]) ||
+    startsWithBytes(buf, [0x47, 0x49, 0x46, 0x38, 0x39, 0x61])
+  );
+}
+
+function looksLikeWebp(buf: Uint8Array): boolean {
+  return (
+    startsWithBytes(buf, [0x52, 0x49, 0x46, 0x46]) &&
+    buf.length >= 12 &&
+    buf[8] === 0x57 &&
+    buf[9] === 0x45 &&
+    buf[10] === 0x42 &&
+    buf[11] === 0x50
+  );
+}
+
+function looksLikeWav(buf: Uint8Array): boolean {
+  return (
+    startsWithBytes(buf, [0x52, 0x49, 0x46, 0x46]) &&
+    buf.length >= 12 &&
+    buf[8] === 0x57 &&
+    buf[9] === 0x41 &&
+    buf[10] === 0x56 &&
+    buf[11] === 0x45
+  );
+}
+
+function looksLikeMp3(buf: Uint8Array): boolean {
+  // ID3 tag or MPEG frame sync
+  return (
+    startsWithBytes(buf, [0x49, 0x44, 0x33]) ||
+    (buf.length >= 2 && buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0)
+  );
+}
+
+function looksLikeMp4Family(buf: Uint8Array): boolean {
+  // ftyp box at offset 4
+  return (
+    buf.length >= 8 &&
+    buf[4] === 0x66 &&
+    buf[5] === 0x74 &&
+    buf[6] === 0x79 &&
+    buf[7] === 0x70
+  );
+}
+
+async function assertMagicBytes(fieldId: string, file: File): Promise<void> {
+  const header = new Uint8Array(await file.slice(0, 32).arrayBuffer());
+
+  if (IMAGE_FIELDS.has(fieldId)) {
+    const ok =
+      looksLikeJpeg(header) ||
+      looksLikePng(header) ||
+      looksLikeGif(header) ||
+      looksLikeWebp(header);
+    if (!ok) {
+      throw new UploadValidationError(
+        `File content does not match an allowed image format for ${fieldId}.`,
+        400
+      );
+    }
+    return;
+  }
+
+  if (AUDIO_FIELDS.has(fieldId)) {
+    const ok =
+      looksLikeMp3(header) || looksLikeWav(header) || looksLikeMp4Family(header);
+    if (!ok) {
+      throw new UploadValidationError(
+        `File content does not match an allowed audio format for ${fieldId}.`,
+        400
+      );
+    }
+  }
+}
+
 function validateFileMeta(fieldId: string, file: File): void {
   validateFieldId(fieldId);
 
@@ -89,10 +180,10 @@ function validateFileMeta(fieldId: string, file: File): void {
   }
 }
 
-export function validateUploadFormData(formData: FormData): {
+export async function validateUploadFormData(formData: FormData): Promise<{
   outbound: FormData;
   fileCount: number;
-} {
+}> {
   const outbound = new FormData();
   let fileCount = 0;
 
@@ -106,6 +197,7 @@ export function validateUploadFormData(formData: FormData): {
     if (!(value instanceof File)) continue;
 
     validateFileMeta(key, value);
+    await assertMagicBytes(key, value);
     outbound.append(key, value, value.name);
     fileCount += 1;
   }

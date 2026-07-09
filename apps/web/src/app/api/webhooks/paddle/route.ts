@@ -37,6 +37,12 @@ export async function POST(request: Request) {
   switch (event.type) {
     case "subscription_activated":
     case "subscription_renewed": {
+      if (!event.payload.userId?.trim()) {
+        return NextResponse.json(
+          { error: "Missing user_id in webhook custom_data" },
+          { status: 400 }
+        );
+      }
       const profile = await applyPlanFromWebhook(event.payload);
       const fal = await processFalFundingAfterPayment(event.payload);
       return NextResponse.json({

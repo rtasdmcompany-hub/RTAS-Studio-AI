@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { PRODUCT_NAME } from "@rtas/shared";
 import { sendEmail } from "@/lib/server/mailer";
 import {
-  checkRateLimit,
+  checkRateLimitAsync,
   rateLimitResponse,
   requireApiSession,
 } from "@/lib/server/api-auth";
+import { escapeHtml } from "@/lib/server/html-escape";
 
 type Body = {
   title?: string;
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const limited = checkRateLimit(`notify:${auth.userId}`, 5, 60_000);
+  const limited = await checkRateLimitAsync(`notify:${auth.userId}`, 5, 60_000);
   if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
 
   let body: Body = {};
@@ -48,9 +49,20 @@ export async function POST(request: Request) {
   // Only allow same-origin or relative video links to avoid open-redirect phishing.
   const safeVideoLink =
     videoLink &&
-    (videoLink.startsWith("/") || videoLink.startsWith(`${appUrl}/`) || videoLink === appUrl)
+    (videoLink.startsWith("/") ||
+      videoLink.startsWith(`${appUrl}/`) ||
+      videoLink === appUrl)
       ? videoLink
       : undefined;
+
+  const safeName = auth.session.user?.name
+    ? escapeHtml(auth.session.user.name)
+    : "";
+  const safeTitle = escapeHtml(title);
+  const safeDuration = escapeHtml(durationLabel);
+  const safeHref = safeVideoLink ? escapeHtml(safeVideoLink) : "";
+  const safeStudio = escapeHtml(studioUrl);
+  const safeProduct = escapeHtml(PRODUCT_NAME);
 
   const subject = `${PRODUCT_NAME} — your video is ready`;
   const text = [
@@ -63,12 +75,12 @@ export async function POST(request: Request) {
   ].join("\n");
 
   const html = `
-    <p>Hi${auth.session.user?.name ? ` ${auth.session.user.name}` : ""},</p>
-    <p>Your video <strong>${title}</strong> (${durationLabel}) is ready.</p>
+    <p>Hi${safeName ? ` ${safeName}` : ""},</p>
+    <p>Your video <strong>${safeTitle}</strong> (${safeDuration}) is ready.</p>
     ${
-      safeVideoLink
-        ? `<p><a href="${safeVideoLink}">Watch your video</a></p>`
-        : `<p><a href="${studioUrl}">Open ${PRODUCT_NAME}</a></p>`
+      safeHref
+        ? `<p><a href="${safeHref}">Watch your video</a></p>`
+        : `<p><a href="${safeStudio}">Open ${safeProduct}</a></p>`
     }
     <p>Thank you for creating with RTAS.</p>
   `;

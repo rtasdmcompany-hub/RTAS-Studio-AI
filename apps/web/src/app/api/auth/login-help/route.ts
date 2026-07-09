@@ -5,24 +5,23 @@ import {
   getNextAuthUrl,
   isGoogleAuthConfigured,
 } from "@/lib/env";
-import { findAuthUserByEmail, isEmailVerified } from "@/lib/server/auth-users";
 import {
-  checkRateLimit,
+  checkRateLimitAsync,
   clientIpFromRequest,
   rateLimitResponse,
 } from "@/lib/server/api-auth";
 
 /**
- * Login troubleshooting — no secrets returned.
- * Account details are only returned for the queried email after rate limiting
- * to reduce account enumeration abuse.
+ * Login troubleshooting — no secrets, no account enumeration.
+ * Always returns a stable public shape (Google OAuth config hints only).
  */
 export async function GET(request: Request) {
   const ip = clientIpFromRequest(request) || "unknown";
-  const limited = checkRateLimit(`login-help:${ip}`, 20, 60_000);
+  const limited = await checkRateLimitAsync(`login-help:${ip}`, 10, 60_000);
   if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
 
-  const email = new URL(request.url).searchParams.get("email")?.trim() ?? "";
+  // Intentionally ignore ?email= — never confirm account existence.
+  void new URL(request.url).searchParams.get("email");
 
   const google = {
     configured: isGoogleAuthConfigured(),
@@ -31,18 +30,8 @@ export async function GET(request: Request) {
     nextAuthUrl: getNextAuthUrl(),
   };
 
-  // Always return a stable shape; never expose hasPassword/hasGoogle to anonymous callers.
-  let account: { exists: boolean; emailVerified?: boolean } = { exists: false };
-
-  if (email) {
-    const user = await findAuthUserByEmail(email);
-    if (user) {
-      account = {
-        exists: true,
-        emailVerified: isEmailVerified(user),
-      };
-    }
-  }
-
-  return NextResponse.json({ google, account });
+  return NextResponse.json({
+    google,
+    account: { exists: false },
+  });
 }
