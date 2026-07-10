@@ -29,14 +29,15 @@ Major product changes wait for **beta user feedback**.
 # Live
 curl -sS https://rtas-studio-ai-web.vercel.app/api/health
 
-# Local quality
-npm run test -w @rtas/web
+# Local quality (CI-equivalent)
+npm run lint -w @rtas/web
 npm run typecheck -w @rtas/web
+npm run test -w @rtas/web
 npm run verify:deployment-ready -w @rtas/web
+npm run build -w @rtas/web
 ```
 
-Expected live: `/api/health` → 200.  
-`/api/ready` may be 503 until production credentials (Paddle webhook, `FASTAPI_URL`, etc.) are set — **not** an RC code defect.
+See [RC1-STATUS-REPORT.md](./RC1-STATUS-REPORT.md) for the latest gate matrix.
 
 ---
 

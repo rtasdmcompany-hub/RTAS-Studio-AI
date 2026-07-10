@@ -19,7 +19,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "prisma generate && tsc --noEmit -p tsconfig.json",
     "test": "node ./scripts/smoke-commercial.mjs",
     "test:smoke": "node ./scripts/smoke-commercial.mjs",
     "verify:production": "node ./scripts/verify-production-readiness.mjs",

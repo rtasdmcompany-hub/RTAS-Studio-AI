@@ -1,13 +1,14 @@
 # Optional: promote / redeploy via GitHub when Vercel secrets are configured.
-# Primary CD path remains Vercel Git Integration (push to main → Deploy).
+# Primary CD path remains Vercel Git Integration (push to master -> Deploy).
 # This workflow is for operators who prefer workflow_dispatch.
 #
-# Required GitHub Actions secrets (add when ready — not required for engineering readiness):
+# Required GitHub Actions secrets (add when ready - not required for RC1):
 #   VERCEL_TOKEN
 #   VERCEL_ORG_ID
 #   VERCEL_PROJECT_ID
 #
-# Usage: Actions → Deploy Web (manual) → Run workflow → select environment.
+# Usage: Actions -> Deploy Web (manual) -> Run workflow -> select environment.
+# Without secrets the job exits successfully with a skip notice (not a red failure).
 
 name: Deploy Web (manual)
 
@@ -43,34 +44,42 @@ jobs:
           node-version: "24"
           cache: npm
 
-      - name: Require Vercel secrets
+      - name: Check Vercel secrets
+        id: secrets
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "Missing VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID."
-            echo "Add them under GitHub → Settings → Secrets, or deploy from the Vercel Dashboard."
-            exit 1
+            echo "RC1 uses Vercel Git Integration for deploys. Add secrets later for manual workflow deploys."
+            echo "See docs/VERCEL-DEPLOY.md and docs/DEPLOYMENT.md."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install Vercel CLI
+        if: steps.secrets.outputs.skip != 'true'
         run: npm install -g vercel@latest
 
       - name: Pull Vercel project config
+        if: steps.secrets.outputs.skip != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           vercel pull --yes --environment=${{ github.event.inputs.environment }} --token="$VERCEL_TOKEN"
 
       - name: Build
+        if: steps.secrets.outputs.skip != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token="$VERCEL_TOKEN"
 
       - name: Deploy prebuilt
+        if: steps.secrets.outputs.skip != 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |

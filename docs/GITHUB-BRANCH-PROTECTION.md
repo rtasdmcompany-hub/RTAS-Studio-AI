@@ -4,7 +4,7 @@
 GitHub → Settings → Branches → Branch protection rules for `master` (or `main`):
 
 1. Require a pull request before merging
-2. Require status checks to pass: **Lint · Typecheck · Smoke · Build** (`CI — RTAS Web`)
+2. Require status checks to pass: **Lint · Typecheck · Smoke · Ready · Build** (`CI - RTAS Web`)
 3. Require branches to be up to date before merging
 4. Do not allow force pushes
 5. Do not allow deletions
@@ -21,7 +21,7 @@ gh api repos/rtasdmcompany-hub/RTAS-Studio-AI/branches/master/protection \
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["Lint · Typecheck · Smoke · Build"]
+    "contexts": ["Lint · Typecheck · Smoke · Ready · Build"]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": {
