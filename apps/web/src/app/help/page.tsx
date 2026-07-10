@@ -20,38 +20,54 @@ const TOPICS = [
     body: "Step-by-step studio walkthrough and category tips.",
   },
   {
-    href: "/pricing",
-    title: "Plans & credits",
-    body: "Compare Tester, Standard, and Premium — and how credits work.",
+    href: "/help/faq",
+    title: "FAQ",
+    body: "Credits, downloads, sign-in, and first-project answers.",
   },
   {
-    href: "/profile",
-    title: "Your dashboard",
-    body: "Credits, queue, library, and account status in one place.",
+    href: "/help/billing",
+    title: "Billing & credits",
+    body: "Plans, renewals, commercial license, and downloads.",
+  },
+  {
+    href: "/help/troubleshooting",
+    title: "Troubleshooting",
+    body: "Fix common issues without developer tools.",
+  },
+  {
+    href: "/help/contact",
+    title: "Contact support",
+    body: "Email, feedback, and live chat FAQ.",
+  },
+  {
+    href: "/help/changelog",
+    title: "Changelog",
+    body: "What’s new for creators.",
   },
   {
     href: "/feedback",
     title: "Feedback & requests",
-    body: "Report a bug or suggest a feature for the product team.",
+    body: "Report a bug or suggest a feature.",
+  },
+  {
+    href: "/profile",
+    title: "Your dashboard",
+    body: "Credits, queue, library, and account status.",
   },
 ] as const;
 
-const FAQ = [
+const FAQ_PREVIEW = [
   {
     q: "Where do I start after signing up?",
-    a: "Open your Dashboard to see credits, then launch Studio to create your first video. A short welcome guide appears on first visit.",
+    a: "Open your Dashboard, then launch Studio. A short welcome guide appears on first visit.",
   },
   {
     q: "What is a credit?",
-    a: "1 credit equals 1 second of finished video. Your plan grants a monthly credit pool that expires at the end of the billing period.",
+    a: "1 credit equals 1 second of finished video.",
   },
   {
     q: "Why can’t I download a preview?",
-    a: "Free previews are for review only. Subscribe or use paid credits for downloadable masters and commercial license entitlement.",
-  },
-  {
-    q: "How do I contact support?",
-    a: "Email support@rtasdigital.com or use the live chat on marketing pages. Include your account email and a short description of the issue.",
+    a: "Free previews are for review only. Paid plans unlock downloadable masters.",
   },
 ] as const;
 
@@ -70,8 +86,8 @@ export default function HelpPage() {
             <ButtonLink href="/studio" variant="lavender">
               Open Studio
             </ButtonLink>
-            <ButtonLink href="mailto:support@rtasdigital.com" variant="ghost">
-              Email support
+            <ButtonLink href="/help/contact" variant="ghost">
+              Contact support
             </ButtonLink>
           </div>
         </InnerPageSection>
@@ -94,23 +110,28 @@ export default function HelpPage() {
 
         <InnerPageSection aria-labelledby="help-faq">
           <h2 id="help-faq" className="text-xl text-zinc-100">
-            Common questions
+            Quick answers
           </h2>
           <dl className="mt-6 space-y-6 text-left">
-            {FAQ.map((item) => (
+            {FAQ_PREVIEW.map((item) => (
               <div key={item.q}>
                 <dt className="font-medium text-zinc-100">{item.q}</dt>
                 <dd className="mt-2 text-sm text-ds-text-muted">{item.a}</dd>
               </div>
             ))}
           </dl>
+          <p className="mt-6 text-sm">
+            <Link href="/help/faq" className="text-ds-accent-lavender underline-offset-2 hover:underline">
+              See all FAQ →
+            </Link>
+          </p>
         </InnerPageSection>
 
         <InnerPageSection className="text-center">
           <h2 className="text-xl text-zinc-100">Still stuck?</h2>
           <p className="mt-2 text-sm text-ds-text-muted">
-            Knowledge base and video tutorials expand as we launch internationally.
-            Until then, email support or leave feedback.
+            Knowledge base articles and video tutorials expand as we launch
+            internationally. Until then, email support or leave feedback.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/feedback" variant="primary">

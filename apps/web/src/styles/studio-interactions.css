@@ -344,6 +344,30 @@
   max-width: 22rem;
 }
 
+.studio-empty-project__hint {
+  margin: 0;
+  font-size: var(--ds-text-xs);
+}
+
+.studio-empty-project__link {
+  color: var(--ds-accent-lavender, #b8a4ff);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.studio-empty-project__link:hover,
+.studio-empty-project__link:focus-visible {
+  color: var(--ds-text);
+}
+
+.studio-gallery-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  justify-content: center;
+  margin-top: var(--ds-space-3);
+}
+
 /* —— Skeleton: soft shimmer (not flashy) —— */
 .shashka-studio--loading .rtas-motion-pulse {
   animation: none;

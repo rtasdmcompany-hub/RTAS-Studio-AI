@@ -108,6 +108,8 @@ export function StudioWorkflowPanel({
               icon="🎬"
               title="No recent projects"
               description="Your latest renders will appear here for quick access."
+              actionLabel="Start creating →"
+              actionHref="/studio"
             />
           ) : (
             <ul className="studio-workflow-panel__list">
@@ -181,7 +183,9 @@ export function StudioWorkflowPanel({
               className="studio-workflow-panel__empty-state"
               icon="📝"
               title="No prompt history"
-              description="Prompts from past generations appear here."
+              description="Prompts from past generations appear here after you create."
+              actionLabel="How to write prompts →"
+              actionHref="/how-to-use"
             />
           ) : (
             <ul className="studio-workflow-panel__list">

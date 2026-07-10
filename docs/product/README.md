@@ -25,6 +25,11 @@ Create cinematic AI video with identity-aware modes, transparent credit economic
 | Dashboard | `/profile` | Credits, projects, account |
 | How to use | `/how-to-use` | Product education |
 | Help Center | `/help` | Support hub |
+| FAQ | `/help/faq` | Common questions |
+| Billing | `/help/billing` | Credits & plans |
+| Troubleshooting | `/help/troubleshooting` | Customer-safe fixes |
+| Contact | `/help/contact` · `/support` | Support entry |
+| Changelog | `/help/changelog` | What’s new |
 | Feedback | `/feedback` | Bugs / features / CS |
 | Pricing | `/pricing` | Plans |
 | About | `/about` | Brand & trust |
@@ -32,7 +37,9 @@ Create cinematic AI video with identity-aware modes, transparent credit economic
 ## Related docs
 
 - [Onboarding journey](./onboarding-journey.md)
+- [Studio guide](./studio-guide.md)
 - [Dashboard](./dashboard.md)
+- [Credits & billing](./credits-and-billing.md)
 - [Empty states](./empty-states.md)
 - [Support channels](./support-channels.md)
 - [FAQ](./faq.md)

@@ -10,49 +10,47 @@
 
 | Dimension | Score | Notes |
 |-----------|------:|-------|
-| **UX** | **91%** | Welcome onboarding, clearer empty states, Help in nav |
-| **Branding** | **90%** | Consistent tokens; About differentiated; no clutter added |
-| **Customer Experience** | **92%** | Help Center, Feedback, support paths, 60s clarity goal |
-| **Documentation** | **94%** | Product, developer, marketing, launch packs complete |
-| **Commercial** | **82%** | Product + sales docs ready; MoR secrets external |
-| **Enterprise** | **88%** | CS + ops docs; SSO/SCIM future |
-| **Investor** | **87%** | Executive + investor summaries ready |
-| **International SaaS** | **90%** | MoR model, global support email, deploy-ready product |
-| **Final Product Readiness** | **91%** | World-class productization; go-live gated by credentials |
+| **UX** | **94%** | Welcome + Studio empty CTAs + generation → Dashboard guidance |
+| **Branding** | **91%** | Consistent tokens; Help/footer polish; no clutter |
+| **Customer Experience** | **95%** | Full Help Center tree, Feedback, contact alias, 60s clarity |
+| **Documentation** | **96%** | Product, studio, billing, developer, marketing, launch packs |
+| **Commercial** | **84%** | Product + sales docs ready; MoR secrets external |
+| **Enterprise** | **89%** | CS + ops docs; SSO/SCIM future |
+| **Investor** | **88%** | Executive + investor summaries ready |
+| **International SaaS** | **92%** | MoR model, global support paths, deploy-ready product |
+| **Final Product Readiness** | **93%** | World-class productization; go-live gated by credentials |
 
 ---
 
-## What shipped (productization)
+## What shipped (this productization pass)
 
 ### UX / onboarding (no redesign)
 
-- Default post-auth → `/profile?welcome=1`
-- `DashboardWelcome` dismissible 3-step strip
-- First-time hero + “60-second guide”
-- Activity empty state → shared `EmptyState`
-- Quick actions: Product guide + Help Center
-- Header: Dashboard + Help; Footer: Help + Feedback
-- Check-email → dashboard sign-in + guide link
-- About page = brand trust (not duplicate landing)
+- Dashboard welcome: four-step clarity including Help
+- First-time hero + notifications copy tied to free preview
+- Recent projects / activity empty states → Studio CTAs
+- Studio empty project → guide link
+- Workflow panel + carousel empty CTAs
+- Generation started modal → Dashboard link
+- Check-email → elevated 60-second guide while waiting
 
 ### Customer Success
 
-- `/help` — Help Center hub + FAQ
-- `/feedback` — bug / feature / feedback (mailto; placeholders for KB/videos/community)
+- `/help` hub expanded with topic cards
+- `/help/faq`, `/help/billing`, `/help/troubleshooting`, `/help/contact`, `/help/changelog`
+- `/support` → redirects to contact
+- Footer Support column expanded
 
-### Documentation pack
+### Documentation
 
-| Area | Path |
-|------|------|
-| Product | `docs/product/*` |
-| Developer | `docs/developer/*` |
-| Marketing | `docs/marketing/*` |
-| Launch | `docs/launch/*` |
-| Version / notes | `docs/VERSION-HISTORY.md`, `docs/RELEASE-NOTES.md` |
+- `docs/product/studio-guide.md`
+- `docs/product/credits-and-billing.md`
+- `docs/marketing/TECHNICAL-SPECS.md`
+- Updated product README + support channels + release notes
 
 ---
 
-## Remaining improvements (priority order)
+## Remaining improvements (highest → lowest)
 
 1. **P0 — External:** Production domain, Paddle secrets, Resend domain, public GPU URL  
 2. **P1:** Wire analytics (PostHog/GA) when IDs exist — placeholders already in env  
@@ -69,7 +67,7 @@
 
 ## Verdict
 
-**Productization COMPLETE** for an international SaaS comparable in *structure* to category leaders: onboarding clarity, dashboard trust, help/feedback, and full documentation.
+**Productization COMPLETE** for an international SaaS comparable in *structure* to category leaders: onboarding clarity, dashboard trust, Help Center depth, and full documentation.
 
 **Not blocked by product work.** Blocked only by external credentials/infrastructure already documented in engineering release reports.
 

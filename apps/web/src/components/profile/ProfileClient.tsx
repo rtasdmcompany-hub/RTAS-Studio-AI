@@ -325,7 +325,7 @@ export function ProfileClient({ initialProfile }: Props) {
             <h1 className="dashboard-hero__title">{greeting}</h1>
             <p className="dashboard-hero__sub">
               {isFirstTime
-                ? "Create your first cinematic video in Studio — credits and progress live here."
+                ? "Create your first cinematic video in Studio — finished renders appear in Your library below."
                 : "Pick up where you left off, check credits, and watch active renders."}
             </p>
           </div>
@@ -431,7 +431,11 @@ export function ProfileClient({ initialProfile }: Props) {
               Notifications
             </h2>
             {notifications.length === 0 ? (
-              <p className="dashboard-card__empty">You&apos;re all caught up.</p>
+              <p className="dashboard-card__empty">
+                {isFirstTime
+                  ? `${FREE_TRIAL_DURATION_SECONDS}s free preview available — open Studio to try.`
+                  : "You're all caught up."}
+              </p>
             ) : (
               <ul className="dashboard-notes">
                 {notifications.map((n) => (
@@ -508,7 +512,7 @@ export function ProfileClient({ initialProfile }: Props) {
                 className="dashboard-empty"
                 icon={null}
                 title="No projects yet"
-                description="Your recent Studio work will appear here after your first render."
+                description="Pick a category in Studio — your draft autosaves, and finished work shows up here."
                 actionLabel="Start creating →"
                 actionHref="/studio"
               />
@@ -554,9 +558,9 @@ export function ProfileClient({ initialProfile }: Props) {
                 className="dashboard-empty"
                 icon={null}
                 title="No activity yet"
-                description="Renders, queue updates, and project history will show up here after your first Studio session."
-                actionLabel="Read the guide →"
-                actionHref="/how-to-use"
+                description="Renders, queue updates, and project history appear here after your first Studio session."
+                actionLabel="Open Studio →"
+                actionHref="/studio"
               />
             ) : (
               <ol className="dashboard-timeline">

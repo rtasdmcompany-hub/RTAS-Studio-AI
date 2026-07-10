@@ -2363,6 +2363,11 @@ export function StudioClient() {
                     <p className="studio-empty-project__copy">
                       Choose a mode below. Your draft autosaves as you go — nothing is lost if you leave.
                     </p>
+                    <p className="studio-empty-project__hint">
+                      <a href="/how-to-use#categories" className="studio-empty-project__link">
+                        New here? 60-second category guide →
+                      </a>
+                    </p>
                   </div>
                 ) : null}
                 <StudioShortcutsHint className="studio-shortcuts-hint--create" />

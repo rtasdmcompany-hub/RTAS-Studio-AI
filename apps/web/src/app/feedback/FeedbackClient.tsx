@@ -117,11 +117,22 @@ export function FeedbackClient() {
             Coming soon
           </h2>
           <ul className="mt-4 grid gap-3 text-sm text-ds-text-muted md:grid-cols-2">
-            <li>Knowledge Base articles</li>
+            <li>Knowledge Base articles (expand from Help)</li>
             <li>Video tutorials</li>
             <li>Community forum</li>
             <li>In-app ticket status</li>
           </ul>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <ButtonLink href="/help/faq" variant="ghost">
+              FAQ
+            </ButtonLink>
+            <ButtonLink href="/help/troubleshooting" variant="ghost">
+              Troubleshooting
+            </ButtonLink>
+            <ButtonLink href="/help/changelog" variant="ghost">
+              Changelog
+            </ButtonLink>
+          </div>
           <p className="mt-4 text-sm text-ds-text-muted">
             Placeholders only — no fake backends. These channels activate when Customer
             Success tooling is connected.

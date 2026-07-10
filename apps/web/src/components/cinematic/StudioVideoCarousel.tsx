@@ -3,7 +3,7 @@
 import { memo, useMemo } from "react";
 import type { UserProfile } from "@rtas/shared";
 import type { GalleryDisplayItem } from "@/lib/gallery-display";
-import { Button, EmptyState } from "@rtas/ui";
+import { Button, ButtonLink, EmptyState } from "@rtas/ui";
 import { AssetVideoCard } from "@/components/gallery/AssetVideoCard";
 
 type Props = {
@@ -60,13 +60,18 @@ function StudioVideoCarouselComponent({
             className="studio-gallery-empty"
             icon="🎬"
             title="No renders yet"
-            description="Your finished videos will land here with live status. Generate once to fill this shelf."
+            description="Finished videos land here with live status. Choose a mode and generate once to fill this shelf."
             action={
-              onRefresh ? (
-                <Button variant="ghost" size="sm" onClick={onRefresh}>
-                  Refresh
-                </Button>
-              ) : undefined
+              <div className="studio-gallery-empty__actions">
+                <ButtonLink href="/how-to-use" variant="lavender" size="sm">
+                  60-second guide →
+                </ButtonLink>
+                {onRefresh ? (
+                  <Button variant="ghost" size="sm" onClick={onRefresh}>
+                    Refresh
+                  </Button>
+                ) : null}
+              </div>
             }
           />
         ) : (

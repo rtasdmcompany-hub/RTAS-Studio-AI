@@ -54,7 +54,7 @@ export function DashboardWelcome({ firstName }: Props) {
     >
       <div className="dashboard-welcome__copy">
         <p className="dashboard-welcome__eyebrow">Welcome{name !== "there" ? `, ${name}` : ""}</p>
-        <h2 className="dashboard-welcome__title">You&apos;re ready in three steps</h2>
+        <h2 className="dashboard-welcome__title">You&apos;re ready in four steps</h2>
         <ol className="dashboard-welcome__steps">
           <li>
             <strong>Open Studio</strong> — pick a category and describe your scene.
@@ -64,6 +64,9 @@ export function DashboardWelcome({ firstName }: Props) {
           </li>
           <li>
             <strong>Find results here</strong> — library, queue, and plan live on this dashboard.
+          </li>
+          <li>
+            <strong>Need help?</strong> — Help Center is always in the header.
           </li>
         </ol>
       </div>

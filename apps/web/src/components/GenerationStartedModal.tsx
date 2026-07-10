@@ -1,7 +1,6 @@
 "use client";
 
-import { Dialog } from "@rtas/ui";
-import { Button } from "@rtas/ui";
+import { Dialog, Button, ButtonLink } from "@rtas/ui";
 
 type Props = {
   open: boolean;
@@ -47,11 +46,16 @@ export function GenerationStartedModal({
           {minMinutes}–{maxMinutes} minutes
         </strong>
         . You can keep working — we&apos;ll email you and show a notification when
-        your video is ready.
+        your video is ready. Track progress anytime on your Dashboard.
       </p>
-      <Button variant="paywall" onClick={onClose}>
-        Got it — continue
-      </Button>
+      <div className="paywall-actions">
+        <Button variant="paywall" onClick={onClose}>
+          Got it — continue
+        </Button>
+        <ButtonLink href="/profile" variant="ghost">
+          Open Dashboard
+        </ButtonLink>
+      </div>
     </Dialog>
   );
 }

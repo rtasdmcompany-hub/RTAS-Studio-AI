@@ -258,6 +258,19 @@ export function CheckEmailClient() {
             : "Refresh confirmation link"}
         </Button>
 
+        {justSignedUp ? (
+          <Alert
+            variant="info"
+            message={
+              <>
+                While you wait, skim the{" "}
+                <Link href="/how-to-use">60-second product guide</Link> so Studio
+                feels familiar the moment you sign in.
+              </>
+            }
+          />
+        ) : null}
+
         <p className="auth-switch">
           Already confirmed?{" "}
           <Link href="/auth/login?callbackUrl=%2Fprofile%3Fwelcome%3D1">
