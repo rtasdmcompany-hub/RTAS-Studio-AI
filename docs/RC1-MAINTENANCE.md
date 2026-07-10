@@ -54,6 +54,7 @@ See [RC1-STATUS-REPORT.md](./RC1-STATUS-REPORT.md) for the latest gate matrix.
 
 - Only deploy **rtas-studio-ai-web**.
 - Prefer Git push to `master` (Vercel Git integration).
+- If GitHub commit status shows a failed **Vercel - rtas-studio-ai** check, disconnect that stale project from the repo (RC1 target is `rtas-studio-ai-web` only).
 - Rollback: promote previous READY deployment in Vercel ([RECOVERY.md](./RECOVERY.md)).
 
 ---
