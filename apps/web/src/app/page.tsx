@@ -10,70 +10,76 @@ import { LandingCategoryShowcase } from "@/components/marketing/LandingCategoryS
 import { ShowcaseVideos } from "@/components/marketing/ShowcaseVideos";
 import { TrustBadges } from "@/components/marketing/TrustBadges";
 import {
-  SHOWCASE_HERO_HEADLINE,
-  SHOWCASE_HERO_TAGLINE,
-} from "@/lib/preview-showcase";
+  LANDING_AUDIENCES,
+  LANDING_BRAND,
+  LANDING_HERO_HEADLINE,
+  LANDING_HERO_SUPPORT,
+  LANDING_OUTCOMES,
+} from "@/lib/landing-copy";
 
 const WORKFLOW_STEPS = [
   {
     id: "compose",
     step: "01",
     title: "Compose",
-    body: "Pick category, drop lyrics, audio, and face lock — one guided wizard, zero clutter.",
+    body: "Choose mode and category, add lyrics, audio, and face lock — only the fields you need.",
   },
   {
     id: "render",
     step: "02",
     title: "Render",
-    body: "Cinematic AI pipeline with identity-locked faces, clear credit cost, and live progress.",
+    body: "Cloud GPU pipeline with live progress, clear credit cost, and identity continuity.",
   },
   {
     id: "publish",
     step: "03",
     title: "Publish",
-    body: "Preview full-screen, download your master, and revisit every render in your library.",
+    body: "Preview full-screen, download your master, share publicly, and keep every render in your library.",
   },
 ] as const;
 
 const VALUE_GRID = [
   {
     title: "Every style. One studio.",
-    body: "Song videos, religious and faith-based content, business ads, cartoons, and stories — pick a category and only the inputs you need appear.",
+    body: "Song videos, faith content, business ads, cartoons, and stories — pick a category and the wizard adapts.",
   },
   {
     title: "Music-first pipeline.",
-    body: "Upload audio, sync lyrics, and direct emotional cinematic motion — built for musicians and storytellers.",
+    body: "Upload audio, sync lyrics, and direct cinematic motion built for musicians and storytellers.",
   },
   {
-    title: "100% face lock.",
-    body: "Real-face mode with identity shield keeps your likeness consistent shot after shot — a core RTAS advantage.",
+    title: "Identity lock.",
+    body: "Real-face mode with identity shield keeps likeness consistent across shots — a core RTAS advantage.",
   },
   {
-    title: "Credits you can trust.",
-    body: "1 credit = 1 second. Transparent pricing with secure Paddle / Lemon Squeezy checkout worldwide.",
+    title: "Credits you can explain.",
+    body: "1 credit = 1 second. Transparent pricing with merchant-of-record checkout worldwide.",
   },
 ] as const;
 
 export default function HomePage() {
   return (
     <MarketingLayout>
-      {/* Landing-only cinematic backdrop — deferred, code-split, never blocks first paint */}
       <ShowcaseVideos />
-      {/* Hero — 5 category videos (100% visible) + headline overlay */}
-      <section id="categories" className="rtas-hero-showcase">
+
+      <section id="categories" className="rtas-hero-showcase" aria-label="Hero">
         <div className="rtas-hero-showcase__videos">
           <LandingCategoryShowcase variant="hero" />
         </div>
         <div className="rtas-hero-showcase__content video-text-highlight">
+          <p className="rtas-hero-showcase__brand">{LANDING_BRAND}</p>
           <div className="rtas-hero-showcase__headline">
-            <h1>{SHOWCASE_HERO_HEADLINE}</h1>
+            <h1>{LANDING_HERO_HEADLINE}</h1>
           </div>
-          <p className="rtas-hero-showcase__tagline">
-            <strong>{PRODUCT_NAME}</strong> — {SHOWCASE_HERO_TAGLINE}
-          </p>
-          <ButtonLink href="/studio" variant="lavender-lg">
-            Start creating <span aria-hidden>→</span>
-          </ButtonLink>
+          <p className="rtas-hero-showcase__tagline">{LANDING_HERO_SUPPORT}</p>
+          <div className="rtas-hero-showcase__cta-group">
+            <ButtonLink href="/studio" variant="lavender-lg">
+              Start creating <span aria-hidden>→</span>
+            </ButtonLink>
+            <ButtonLink href="/pricing" variant="ghost">
+              View pricing
+            </ButtonLink>
+          </div>
         </div>
       </section>
 
@@ -82,11 +88,46 @@ export default function HomePage() {
         <TrustBadges limit={5} />
       </section>
 
+      <section
+        id="outcomes"
+        className="rtas-landing-outcomes video-content-panel"
+        aria-label="Product outcomes"
+      >
+        <h2 className="rtas-landing-outcomes__title">Why teams choose {PRODUCT_NAME}</h2>
+        <ul className="rtas-landing-outcomes__grid">
+          {LANDING_OUTCOMES.map((item) => (
+            <li key={item.id} className="rtas-landing-outcome">
+              <p className="rtas-landing-outcome__label">{item.label}</p>
+              <p className="rtas-landing-outcome__detail">{item.detail}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="audience"
+        className="rtas-landing-audience video-content-panel"
+        aria-label="Who it is for"
+      >
+        <h2>Built for people who ship video</h2>
+        <p className="rtas-landing-audience__lead">
+          One product surface for artists, brands, and studios — not a pile of disconnected AI tools.
+        </p>
+        <div className="rtas-landing-audience__grid">
+          {LANDING_AUDIENCES.map((audience) => (
+            <article key={audience.id} className="rtas-landing-audience__card">
+              <h3>{audience.title}</h3>
+              <p>{audience.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section id="workflow" className="rtas-workflow video-content-panel">
         <h2>One studio. Three beats.</h2>
         <p className="rtas-workflow__lead">
-          From first lyric to final export — {PRODUCT_NAME} keeps compose, render,
-          and publish in a single cinematic workspace built for global creators.
+          From first lyric to final export — compose, render, and publish stay in a single
+          cinematic workspace.
         </p>
         <div className="rtas-workflow__pipeline">
           {WORKFLOW_STEPS.map((step) => (
@@ -114,19 +155,55 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section
+        id="pricing-teaser"
+        className="rtas-landing-pricing video-content-panel"
+        aria-label="Pricing overview"
+      >
+        <h2>Simple plans. Global checkout.</h2>
+        <p className="rtas-landing-pricing__lead">
+          Start with a low-risk evaluation, then scale to monthly Pro or Production Enterprise.
+          Credits stay transparent: <strong>1 credit = 1 second</strong>.
+        </p>
+        <div className="rtas-landing-pricing__tiers">
+          <article className="rtas-landing-pricing__tier">
+            <h3>Creator Starter</h3>
+            <p className="rtas-landing-pricing__price">${TESTER_PRICE_USD}</p>
+            <p>Pay-as-you-go evaluation</p>
+          </article>
+          <article className="rtas-landing-pricing__tier rtas-landing-pricing__tier--featured">
+            <p className="rtas-landing-pricing__badge">Most popular</p>
+            <h3>Pro Studio</h3>
+            <p className="rtas-landing-pricing__price">${STANDARD_PRICE_USD}/mo</p>
+            <p>Monthly HD credits + commercial downloads</p>
+          </article>
+          <article className="rtas-landing-pricing__tier">
+            <h3>Production Enterprise</h3>
+            <p className="rtas-landing-pricing__price">${PREMIUM_PRICE_USD}/mo</p>
+            <p>Cinematic capacity for brand and music work</p>
+          </article>
+        </div>
+        <ButtonLink href="/pricing" variant="lavender" className="rtas-landing-pricing__cta">
+          Compare plans <span aria-hidden>→</span>
+        </ButtonLink>
+      </section>
+
       <section className="rtas-final-cta video-content-panel">
-        <h2>Make videos worth watching.</h2>
-        <p>Compose · Render · Publish — built for international music-video standards.</p>
+        <h2>Ship your next video today.</h2>
+        <p>
+          {PRODUCT_NAME} — compose, render, and publish at international music-video standards.
+        </p>
         <div className="rtas-final-cta__row">
           <ButtonLink href="/studio" variant="lavender">
-            Get started
+            Start creating
           </ButtonLink>
-          <ButtonLink href="/pricing" variant="ghost">
-            View pricing
+          <ButtonLink href="/how-to-use" variant="ghost">
+            60-second guide
           </ButtonLink>
         </div>
         <p className="rtas-final-cta__note">
-          Tester ${TESTER_PRICE_USD} · Standard ${STANDARD_PRICE_USD}/mo · Premium ${PREMIUM_PRICE_USD}/mo
+          From ${TESTER_PRICE_USD} evaluation · ${STANDARD_PRICE_USD}/mo Pro · ${PREMIUM_PRICE_USD}/mo
+          Enterprise
         </p>
       </section>
     </MarketingLayout>
