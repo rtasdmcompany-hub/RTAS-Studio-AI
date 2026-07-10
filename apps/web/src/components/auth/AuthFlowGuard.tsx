@@ -9,7 +9,8 @@ type Mode = "signup" | "login" | "check-email";
 
 function resolveCallbackPath(raw: string | null): string {
   if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
-  return "/studio";
+  // Default post-auth landing: dashboard with welcome guidance (60-second clarity).
+  return "/profile?welcome=1";
 }
 
 export function AuthFlowGuard({
@@ -54,6 +55,9 @@ export function AuthFlowGuard({
   return <>{children}</>;
 }
 
-export function resolveAuthCallbackUrl(raw: string | null, fallback = "/studio"): string {
+export function resolveAuthCallbackUrl(
+  raw: string | null,
+  fallback = "/profile?welcome=1"
+): string {
   return resolveCallbackPath(raw) || fallback;
 }

@@ -45,8 +45,12 @@ npm run dev:api
 4. Deploy
 5. Smoke: `/api/health`, `/api/ready`
 
-Full runbooks:
+### Product & launch docs
 
+- [docs/product/README.md](docs/product/README.md) — product overview & onboarding
+- [docs/PRODUCT-READINESS-REPORT.md](docs/PRODUCT-READINESS-REPORT.md) — product scores
+- [docs/launch/EXECUTIVE-SUMMARY.md](docs/launch/EXECUTIVE-SUMMARY.md)
+- [docs/marketing/FEATURES.md](docs/marketing/FEATURES.md)
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - [docs/RELEASE-CHECKLIST.md](docs/RELEASE-CHECKLIST.md)
 - [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)

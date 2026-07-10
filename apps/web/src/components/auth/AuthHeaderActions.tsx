@@ -45,10 +45,11 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
     );
   }
 
+  const welcomeCallback = encodeURIComponent("/profile?welcome=1");
   const loginHref =
     variant === "studio"
-      ? "/auth/login?callbackUrl=%2Fstudio"
-      : "/auth/login";
+      ? `/auth/login?callbackUrl=${welcomeCallback}`
+      : `/auth/login?callbackUrl=${welcomeCallback}`;
 
   return (
     <>
@@ -56,11 +57,7 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
         Sign in
       </ButtonLink>
       <ButtonLink
-        href={
-          variant === "studio"
-            ? "/auth/signup?callbackUrl=%2Fstudio"
-            : "/auth/signup"
-        }
+        href={`/auth/signup?callbackUrl=${welcomeCallback}`}
         variant="primary"
         className="auth-signup-btn"
       >

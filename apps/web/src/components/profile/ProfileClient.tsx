@@ -22,6 +22,7 @@ import { startCheckout } from "@/lib/checkout-client";
 import { useStudioProfile } from "@/context/StudioProfileContext";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { ProfileAssetGallery } from "@/components/gallery/ProfileAssetGallery";
+import { DashboardWelcome } from "@/components/profile/DashboardWelcome";
 import {
   loadRecentProjects,
   type RecentProject,
@@ -314,6 +315,10 @@ export function ProfileClient({ initialProfile }: Props) {
           </span>
         </nav>
 
+        <DashboardWelcome
+          firstName={profile.name ? firstName(profile.name) : undefined}
+        />
+
         <header className="dashboard-hero" id="dashboard-main">
           <div className="dashboard-hero__copy">
             <p className="dashboard-hero__eyebrow">{tierLabel} plan</p>
@@ -332,6 +337,11 @@ export function ProfileClient({ initialProfile }: Props) {
             >
               {isFirstTime ? "Create your first video" : "Open Studio"}
             </ButtonLink>
+            {isFirstTime ? (
+              <ButtonLink href="/how-to-use" variant="ghost">
+                60-second guide
+              </ButtonLink>
+            ) : null}
             {continueProject ? (
               <Link href={continueProject.href} className="dashboard-continue">
                 <span className="dashboard-continue__label">Continue</span>
@@ -468,6 +478,14 @@ export function ProfileClient({ initialProfile }: Props) {
               <span className="dashboard-action__title">View pricing</span>
               <span className="dashboard-action__desc">Compare plans and credit packs</span>
             </Link>
+            <Link href="/how-to-use" className="dashboard-action" role="listitem">
+              <span className="dashboard-action__title">Product guide</span>
+              <span className="dashboard-action__desc">Learn Studio in under a minute</span>
+            </Link>
+            <Link href="/help" className="dashboard-action" role="listitem">
+              <span className="dashboard-action__title">Help Center</span>
+              <span className="dashboard-action__desc">FAQ, support, and troubleshooting</span>
+            </Link>
           </div>
         </section>
 
@@ -532,12 +550,14 @@ export function ProfileClient({ initialProfile }: Props) {
                 <div className="dashboard-skeleton__row" />
               </div>
             ) : activityItems.length === 0 ? (
-              <div className="dashboard-empty" role="status">
-                <p className="dashboard-empty__title">No activity yet</p>
-                <p className="dashboard-empty__copy">
-                  Renders, queue updates, and project history will show up here.
-                </p>
-              </div>
+              <EmptyState
+                className="dashboard-empty"
+                icon={null}
+                title="No activity yet"
+                description="Renders, queue updates, and project history will show up here after your first Studio session."
+                actionLabel="Read the guide →"
+                actionHref="/how-to-use"
+              />
             ) : (
               <ol className="dashboard-timeline">
                 {activityItems.map((item) => (

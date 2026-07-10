@@ -41,7 +41,7 @@ type Props = {
 export function AuthForm({ mode }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/studio";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/profile?welcome=1";
   const authError = searchParams.get("error");
   const verified = searchParams.get("verified") === "1";
   const verifiedEmail = searchParams.get("email");

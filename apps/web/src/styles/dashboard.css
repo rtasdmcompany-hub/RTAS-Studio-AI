@@ -3,6 +3,58 @@
  * Branding unchanged; marketing chrome preserved.
  */
 
+.dashboard-welcome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-5);
+  padding: var(--ds-space-5);
+  border: 1px solid color-mix(in srgb, var(--ds-accent-lavender) 35%, var(--ds-border));
+  border-radius: var(--ds-radius-xl);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ds-accent-lavender) 12%, transparent),
+      transparent 55%
+    ),
+    var(--ds-surface-glass);
+}
+
+.dashboard-welcome__eyebrow {
+  margin: 0 0 var(--ds-space-1);
+  font-size: var(--ds-text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ds-text-muted);
+}
+
+.dashboard-welcome__title {
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-lg);
+  color: var(--ds-text);
+}
+
+.dashboard-welcome__steps {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--ds-text-muted);
+  font-size: var(--ds-text-sm);
+  line-height: 1.55;
+}
+
+.dashboard-welcome__steps li + li {
+  margin-top: var(--ds-space-2);
+}
+
+.dashboard-welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  align-items: center;
+}
+
 .dashboard-skip {
   position: absolute;
   left: -9999px;

@@ -9,10 +9,11 @@ import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 
 const NAV = [
   { href: "/studio", label: "Studio" },
+  { href: "/profile", label: "Dashboard" },
   { href: "/how-to-use", label: "How to use" },
+  { href: "/help", label: "Help" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
-  { href: "/terms", label: "Legal" },
 ] as const;
 
 type Props = {
@@ -24,12 +25,13 @@ type Props = {
 
 function isNavActive(pathname: string, href: string): boolean {
   if (href === "/studio") return pathname.startsWith("/studio");
+  if (href === "/profile") return pathname.startsWith("/profile");
   if (href === "/how-to-use") return pathname.startsWith("/how-to-use");
+  if (href === "/help") {
+    return pathname.startsWith("/help") || pathname.startsWith("/feedback");
+  }
   if (href === "/pricing") return pathname === "/pricing";
   if (href === "/about") return pathname === "/about";
-  if (href === "/terms") {
-    return pathname.startsWith("/terms") || pathname.startsWith("/privacy");
-  }
   return false;
 }
 

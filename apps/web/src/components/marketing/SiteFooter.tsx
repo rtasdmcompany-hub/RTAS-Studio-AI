@@ -72,7 +72,9 @@ export function SiteFooter() {
           </div>
           <div className="rtas-footer__col">
             <h3>Support</h3>
+            <Link href="/help">Help Center</Link>
             <Link href="/how-to-use">How to use</Link>
+            <Link href="/feedback">Feedback</Link>
             <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>
             <p className="rtas-footer__muted">International AI video studio</p>
           </div>

@@ -1,5 +1,7 @@
 # RTAS Studio AI — Aap ke liye shuruati guide (Roman Urdu)
 
+> **Note (2026-07):** Yeh document purana hai (pricing/trial/stack). Current product guide: in-app `/how-to-use` aur `/help`. English product docs: `docs/product/`.
+
 ## Kya ban chuka hai (pehla version)
 
 1. **Website (Desktop + Mobile browser)** — `apps/web`

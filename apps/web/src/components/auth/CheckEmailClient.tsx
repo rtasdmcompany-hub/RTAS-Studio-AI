@@ -260,7 +260,14 @@ export function CheckEmailClient() {
 
         <p className="auth-switch">
           Already confirmed?{" "}
-          <Link href="/auth/login?callbackUrl=%2Fstudio">Sign in</Link>
+          <Link href="/auth/login?callbackUrl=%2Fprofile%3Fwelcome%3D1">
+            Sign in to your dashboard
+          </Link>
+        </p>
+
+        <p className="auth-switch">
+          New here?{" "}
+          <Link href="/how-to-use">Read the 60-second product guide</Link>
         </p>
 
         <Link href="/" className="auth-home-link">
