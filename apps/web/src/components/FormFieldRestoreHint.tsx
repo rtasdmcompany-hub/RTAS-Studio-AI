@@ -86,6 +86,7 @@ export function FormFieldRestoreHint({
             type="button"
             className="form-restore-option"
             role="option"
+            aria-selected="false"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               onApplyField(lastValue);

@@ -7,6 +7,8 @@
 @import "@rtas/ui/css/components.css";
 
 @import "../styles/marketing.css";
+@import "../styles/commercial-saas.css";
+@import "../styles/premium-design-system.css";
 @import "../styles/cinematic-aesthetic.css";
 @import "../styles/inner-pages.css";
 @import "../styles/high-contrast-text.css";
@@ -1381,30 +1383,45 @@ select {
 
 .gen-stages {
   display: flex;
-  justify-content: center;
-  gap: var(--ds-space-2);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.3rem;
   margin-top: var(--ds-space-4);
   list-style: none;
-  font-size: var(--ds-text-0-65);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-align: left;
+  max-width: 16rem;
+  width: 100%;
 }
 
 .gen-stages li {
-  padding: 0.8rem 0.4rem;
-  border-radius: var(--ds-radius-xs);
-  color: var(--muted);
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.45rem;
+  color: rgba(255, 255, 255, 0.4);
   border: 1px solid transparent;
 }
 
 .gen-stages li.done {
-  color: var(--success);
-  border-color: rgba(78, 203, 140, 0.3);
+  color: rgba(196, 181, 253, 0.95);
+  border-color: rgba(165, 148, 253, 0.25);
+}
+
+.gen-stages li.done::before {
+  content: "✓ ";
+  opacity: 0.85;
 }
 
 .gen-stages li.active {
-  color: var(--accent2);
-  border-color: rgba(201, 162, 39, 0.4);
+  color: rgba(255, 255, 255, 0.95);
+  border-color: rgba(165, 148, 253, 0.4);
+  background: rgba(165, 148, 253, 0.1);
+  font-weight: 550;
+}
+
+.gen-stages li.active::before {
+  content: "→ ";
 }
 
 .player-wrap video,
@@ -3789,6 +3806,26 @@ a.btn-download:hover {
 
 .share-modal__social-btn--x {
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+.share-modal__social-btn--facebook {
+  border-color: rgba(24, 119, 242, 0.4);
+}
+
+.share-modal__social-btn--linkedin {
+  border-color: rgba(10, 102, 194, 0.4);
+}
+
+.share-modal__social-btn--reddit {
+  border-color: rgba(255, 69, 0, 0.35);
+}
+
+.share-modal__social-btn--email {
+  border-color: rgba(165, 148, 253, 0.35);
+}
+
+.share-modal__social-btn--telegram {
+  border-color: rgba(34, 158, 217, 0.45);
 }
 
 .share-modal__social-btn:disabled {

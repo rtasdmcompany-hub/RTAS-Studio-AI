@@ -77,6 +77,8 @@ export function ProfileAssetGallery({ userId }: Props) {
           description="Finished videos land here with live status. Create once in Studio to fill your library."
           actionLabel="Create your first video →"
           actionHref="/studio"
+          secondaryActionLabel="How to use"
+          secondaryActionHref="/how-to-use"
         />
       ) : gallery.items.length > 0 ? (
         <>

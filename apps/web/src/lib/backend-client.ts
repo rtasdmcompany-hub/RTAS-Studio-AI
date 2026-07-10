@@ -6,6 +6,11 @@ import {
   isPipelineFailurePayload,
   PipelineFailureError,
 } from "@/lib/pipeline-errors";
+import {
+  GENERATION_LAST_STAGE_INDEX,
+  messageForPercent,
+  stageIndexFromPercent,
+} from "@/lib/generation-progress-stages";
 
 export const BACKEND_CONNECTION_ERROR =
   "Backend server connection error. Please ensure the API service is running.";
@@ -449,21 +454,21 @@ async function pollPipelineJob(
       const percent = Math.min(88, Math.round((done / total) * 78) + 10);
       onProgress({
         percent,
-        message: `Rendering segment ${done}/${total} on GPU worker…`,
-        stageIndex: 1,
+        message: messageForPercent(percent),
+        stageIndex: stageIndexFromPercent(percent),
       });
     } else if (status === "compiling_media") {
       onProgress({
         percent: 93,
-        message: "Stitching segments into final master…",
-        stageIndex: 2,
+        message: "Finalizing...",
+        stageIndex: 6,
       });
     } else if (status === "completed") {
       const videoUrl = String(data.generatedVideoUrl ?? "");
       onProgress({
         percent: 100,
-        message: "Video ready",
-        stageIndex: 3,
+        message: "Done ✓",
+        stageIndex: GENERATION_LAST_STAGE_INDEX,
       });
       return {
         ok: true,
@@ -476,7 +481,7 @@ async function pollPipelineJob(
         canDownload: true,
         videoUrl,
         durationSeconds: Number(data.durationSeconds ?? 30),
-        message: "Long render complete",
+        message: "Done ✓",
         simulationMode: false,
       };
     } else if (status === "failed") {
@@ -486,7 +491,7 @@ async function pollPipelineJob(
     } else {
       onProgress({
         percent: 8,
-        message: String(data.statusLabel ?? "Queued on GPU worker…"),
+        message: "Uploading Assets...",
         stageIndex: 0,
       });
     }
@@ -698,7 +703,7 @@ export async function runBackendGeneration(
 
   onProgress({
     percent: 0,
-    message: "Connecting to RTAS AI API…",
+    message: "Uploading Assets...",
     stageIndex: 0,
   });
 
@@ -709,7 +714,7 @@ export async function runBackendGeneration(
   if (Object.keys(toUpload).length > 0) {
     onProgress({
       percent: 3,
-      message: "Uploading audio & images to RTAS API…",
+      message: "Uploading Assets...",
       stageIndex: 0,
     });
     const uploadRes = await postUploadToBackend(toUpload, body.jobId);
@@ -731,8 +736,8 @@ export async function runBackendGeneration(
   if (response.pipelineQueued) {
     onProgress({
       percent: 10,
-      message: response.message || "Long render queued — generating segments…",
-      stageIndex: 0,
+      message: "Analyzing Prompt...",
+      stageIndex: 1,
     });
     return pollPipelineJob(response.jobId, onProgress, options?.signal);
   }
@@ -740,8 +745,8 @@ export async function runBackendGeneration(
   if (!response.steps?.length) {
     onProgress({
       percent: 100,
-      message: response.message || "Complete",
-      stageIndex: 3,
+      message: response.message || "Done ✓",
+      stageIndex: GENERATION_LAST_STAGE_INDEX,
     });
     return response;
   }
@@ -785,7 +790,11 @@ export async function playBackendSteps(
       throw new DOMException("Generation cancelled", "AbortError");
     }
     if (s.percent !== lastPercent) {
-      onProgress(s);
+      onProgress({
+        ...s,
+        message: messageForPercent(s.percent),
+        stageIndex: stageIndexFromPercent(s.percent),
+      });
       lastPercent = s.percent;
       await delay(stepMs);
     }

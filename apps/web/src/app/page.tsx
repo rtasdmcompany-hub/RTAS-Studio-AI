@@ -8,19 +8,11 @@ import { ButtonLink } from "@rtas/ui";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { LandingCategoryShowcase } from "@/components/marketing/LandingCategoryShowcase";
 import { ShowcaseVideos } from "@/components/marketing/ShowcaseVideos";
+import { TrustBadges } from "@/components/marketing/TrustBadges";
 import {
   SHOWCASE_HERO_HEADLINE,
   SHOWCASE_HERO_TAGLINE,
 } from "@/lib/preview-showcase";
-
-const TRUST_LABELS = [
-  "Creators",
-  "Musicians",
-  "Brands",
-  "Agencies",
-  "Filmmakers",
-  "Marketers",
-] as const;
 
 const WORKFLOW_STEPS = [
   {
@@ -85,13 +77,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="rtas-trusted video-content-panel">
-        <p>Trusted by creative teams at</p>
-        <ul>
-          {TRUST_LABELS.map((label) => (
-            <li key={label}>{label}</li>
-          ))}
-        </ul>
+      <section className="rtas-trusted video-content-panel" aria-label="Trust">
+        <p className="rtas-trusted__eyebrow">Built for international creators</p>
+        <TrustBadges limit={5} />
       </section>
 
       <section id="workflow" className="rtas-workflow video-content-panel">

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { StudioSkeleton } from "@/components/ui/skeletons";
+import { StudioChromeFooter } from "@/components/marketing/StudioChromeFooter";
 
 const StudioClient = dynamic(
   () => import("./StudioClient").then((mod) => mod.StudioClient),
@@ -28,7 +29,10 @@ const BackToTop = dynamic(
 export function StudioShell() {
   return (
     <div className="studio-shell--unified">
-      <StudioClient />
+      <div className="studio-shell__main">
+        <StudioClient />
+      </div>
+      <StudioChromeFooter />
       <BackToTop />
       <LiveChatWidget />
     </div>

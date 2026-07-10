@@ -10,6 +10,13 @@ import {
   FOOTER_BRAND_LOGO_PATHS,
   FOOTER_BRAND_LOGO_SIZE,
 } from "@/lib/brand-assets";
+import {
+  SITE_COMPANY_LINKS,
+  SITE_PRODUCT_LINKS,
+  SITE_SOCIAL_LINKS,
+  SITE_SUPPORT_EMAIL,
+  SITE_SUPPORT_LINKS,
+} from "@/lib/site-links";
 
 const FOOTER_BRANDS = [
   {
@@ -35,6 +42,29 @@ const FOOTER_BRANDS = [
   },
 ] as const;
 
+function FooterLink({
+  href,
+  label,
+  external,
+}: {
+  href: string;
+  label: string;
+  external?: boolean;
+}) {
+  if (external || href.startsWith("http") || href.startsWith("mailto:")) {
+    return (
+      <a
+        href={href}
+        target={href.startsWith("http") ? "_blank" : undefined}
+        rel="noopener noreferrer"
+      >
+        {label}
+      </a>
+    );
+  }
+  return <Link href={href}>{label}</Link>;
+}
+
 export function SiteFooter() {
   return (
     <footer className="rtas-footer">
@@ -53,35 +83,63 @@ export function SiteFooter() {
               <p className="rtas-footer__brand-name">{brand.name}</p>
             </div>
           ))}
+          <p className="rtas-footer__tagline">
+            International AI video studio for creators, brands, and teams.
+          </p>
         </div>
 
         <div className="rtas-footer__cols">
           <div className="rtas-footer__col">
             <h3>Product</h3>
-            <Link href="/studio">Open Studio</Link>
-            <Link href="/how-to-use">How to use</Link>
-            <Link href="/#features">Features</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/profile">Dashboard</Link>
+            {SITE_PRODUCT_LINKS.map((link) => (
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
+            ))}
           </div>
           <div className="rtas-footer__col">
-            <h3>Legal</h3>
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/cookies">Cookie Policy</Link>
+            <h3>Company</h3>
+            {SITE_COMPANY_LINKS.map((link) => (
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
+            ))}
           </div>
           <div className="rtas-footer__col">
             <h3>Support</h3>
-            <Link href="/help">Help Center</Link>
-            <Link href="/help/faq">FAQ</Link>
-            <Link href="/help/billing">Billing</Link>
-            <Link href="/help/changelog">Changelog</Link>
-            <Link href="/feedback">Feedback</Link>
-            <Link href="/support">Contact</Link>
-            <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>
-            <p className="rtas-footer__muted">International AI video studio</p>
+            {SITE_SUPPORT_LINKS.map((link) => (
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
+            ))}
+            <a href={`mailto:${SITE_SUPPORT_EMAIL}`}>{SITE_SUPPORT_EMAIL}</a>
           </div>
         </div>
+      </div>
+
+      <div className="rtas-footer__social-row" aria-label="Social media">
+        {SITE_SOCIAL_LINKS.map((social) => (
+          <a
+            key={social.id}
+            href={social.href}
+            className={`rtas-footer__social rtas-footer__social--${social.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={social.label}
+            title={social.label}
+          >
+            <span aria-hidden>{social.glyph}</span>
+          </a>
+        ))}
       </div>
 
       <div className="rtas-footer__bottom">

@@ -1,0 +1,187 @@
+/**
+ * Premium design system — commercial SaaS surface language.
+ * Complements @rtas/design-tokens and @rtas/ui without replacing them.
+ */
+
+:root {
+  --rtas-ds-radius-control: 0.7rem;
+  --rtas-ds-radius-card: 1rem;
+  --rtas-ds-shadow-soft: 0 18px 48px rgba(0, 0, 0, 0.35);
+  --rtas-ds-border: rgba(255, 255, 255, 0.1);
+  --rtas-ds-border-strong: rgba(165, 148, 253, 0.35);
+  --rtas-ds-surface: rgba(12, 12, 18, 0.78);
+  --rtas-ds-surface-hover: rgba(165, 148, 253, 0.08);
+  --rtas-ds-text: rgba(255, 255, 255, 0.94);
+  --rtas-ds-muted: rgba(255, 255, 255, 0.5);
+  --rtas-ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Cards */
+.rtas-ds-card,
+.create-panel-unified,
+.shashka-preview-side,
+.gen-pipeline,
+.studio-side-card {
+  border-radius: var(--rtas-ds-radius-card);
+}
+
+/* Inputs / textareas — studio fields */
+.studio-shell--unified .field input,
+.studio-shell--unified .field select,
+.studio-shell--unified .field textarea,
+.studio-shell--unified .rtas-ui-input {
+  border-radius: var(--rtas-ds-radius-control);
+  border-color: var(--rtas-ds-border);
+  transition:
+    border-color 0.18s var(--rtas-ds-ease),
+    box-shadow 0.18s var(--rtas-ds-ease),
+    background 0.18s var(--rtas-ds-ease);
+}
+
+.studio-shell--unified .field input:focus,
+.studio-shell--unified .field select:focus,
+.studio-shell--unified .field textarea:focus,
+.studio-shell--unified .rtas-ui-input:focus {
+  border-color: var(--rtas-ds-border-strong);
+  box-shadow: 0 0 0 3px rgba(165, 148, 253, 0.18);
+  outline: none;
+}
+
+/* Upload zones */
+.studio-shell--unified .file-upload-row,
+.studio-shell--unified .file-dropzone,
+.studio-shell--unified [class*="upload"] {
+  transition:
+    border-color 0.2s var(--rtas-ds-ease),
+    background 0.2s var(--rtas-ds-ease);
+}
+
+.studio-shell--unified .file-upload-row:hover,
+.studio-shell--unified .file-dropzone:hover {
+  border-color: var(--rtas-ds-border-strong);
+  background: var(--rtas-ds-surface-hover);
+}
+
+/* Prompt editor breathing room */
+.studio-shell--unified .prompt-editor,
+.studio-shell--unified textarea[name*="prompt"],
+.studio-shell--unified textarea[id*="prompt"],
+.studio-shell--unified .field--directionPrompt textarea,
+.studio-shell--unified .field--lyrics textarea {
+  min-height: 7.5rem;
+  line-height: 1.55;
+  padding: 0.9rem 1rem;
+  border-radius: var(--rtas-ds-radius-control);
+}
+
+/* Pipeline success / error polish */
+.gen-pipeline--success {
+  box-shadow: 0 0 0 1px rgba(110, 231, 183, 0.25), var(--rtas-ds-shadow-soft);
+}
+
+.gen-pipeline--error {
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.28), var(--rtas-ds-shadow-soft);
+}
+
+.gen-pipeline__success-card {
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.75rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(110, 231, 183, 0.22);
+}
+
+.gen-pipeline__success-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(110, 231, 183, 0.95);
+}
+
+/* Tabs */
+.studio-workflow-panel__tab,
+.studio-shell--unified [role="tab"] {
+  border-radius: 0.55rem;
+  transition:
+    background 0.15s var(--rtas-ds-ease),
+    color 0.15s var(--rtas-ds-ease);
+}
+
+/* Badges / alerts */
+.rtas-ui-alert,
+.studio-form-notice {
+  border-radius: var(--rtas-ds-radius-control);
+}
+
+/* Loading skeletons — softer pulse */
+@keyframes rtas-ds-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.dashboard-skeleton__row,
+.studio-skeleton,
+[class*="skeleton"] {
+  animation: rtas-ds-pulse 1.6s var(--rtas-ds-ease) infinite;
+}
+
+/* Share modal project actions */
+.share-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.share-modal__action-note {
+  margin: 0 0 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.share-modal__social-btn--telegram {
+  border-color: rgba(34, 158, 217, 0.45);
+}
+
+.share-modal__social-btn--public {
+  flex: 1 1 auto;
+  min-width: 6.5rem;
+}
+
+/* Footer 3-column commercial layout */
+.rtas-footer__cols {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .rtas-footer__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .rtas-footer__cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .rtas-trust-badge,
+  .rtas-footer__social,
+  .share-modal__social-btn,
+  .rtas-ui-btn,
+  .dashboard-skeleton__row,
+  [class*="skeleton"] {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}

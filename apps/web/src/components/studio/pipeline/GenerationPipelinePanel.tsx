@@ -3,6 +3,11 @@
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { estimateProcessingWindow } from "@rtas/shared";
 import { Button } from "@rtas/ui";
+import {
+  GENERATION_PROGRESS_STAGES,
+  isProgressStageDone,
+  pipelineRailIndexFromPercent,
+} from "@/lib/generation-progress-stages";
 
 export type PipelinePhase = "running" | "error" | "success" | "cancelled";
 
@@ -13,19 +18,17 @@ export type PipelineStep = {
 };
 
 const PIPELINE_STEPS: PipelineStep[] = [
-  { id: "prepare", label: "Prepare", description: "Validating inputs & credits" },
-  { id: "queue", label: "Queue", description: "Waiting for render slot" },
-  { id: "render", label: "Render", description: "GPU frames & identity lock" },
-  { id: "finalize", label: "Finalize", description: "Encoding & delivery" },
+  { id: "upload", label: "Upload", description: "Uploading assets" },
+  { id: "prepare", label: "Prepare", description: "Analyzing prompt & optimizing settings" },
+  { id: "generate", label: "Generate", description: "Generating and rendering frames" },
+  { id: "finalize", label: "Finalize", description: "Finalizing delivery" },
 ];
 
-const RENDER_SUBSTAGES = ["Engine", "Identity", "Frames", "Render"] as const;
-
 const STAGE_EXPLANATIONS: Record<number, string> = {
-  0: "Checking your prompt, credits, and uploads so the render starts clean.",
-  1: "Holding a secure GPU slot. Your place in line is protected — you can leave this page.",
-  2: "The model is painting frames with identity lock. Longer clips take more time here.",
-  3: "Encoding the final file and preparing preview delivery.",
+  0: "Uploading your assets securely so the render can start.",
+  1: "Analyzing your prompt and preparing the AI model with optimized settings.",
+  2: "Generating and rendering frames. Longer clips take more time here.",
+  3: "Finalizing the file and preparing your preview.",
 };
 
 type Props = {
@@ -75,10 +78,7 @@ function friendlyMessage(raw: string, isError: boolean): string {
 }
 
 function stepIndexFromPercent(percent: number): number {
-  if (percent < 12) return 0;
-  if (percent < 22) return 1;
-  if (percent < 92) return 2;
-  return 3;
+  return pipelineRailIndexFromPercent(percent);
 }
 
 function formatClock(totalSec: number): string {
@@ -197,7 +197,7 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
           ? "Monitoring in background"
           : inQueue
             ? "You're in the queue"
-            : "Rendering with care";
+            : "Generating with care";
 
     const displayMessage = friendlyMessage(message, isError);
     const progressExplanation =
@@ -344,15 +344,15 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
           })}
         </ol>
 
-        {phase === "running" && currentStep >= 2 ? (
-          <ul className="gen-pipeline__substages" aria-label="Render stages">
-            {RENDER_SUBSTAGES.map((label, i) => {
-              const done =
-                clamped >= (i === 0 ? 25 : i === 1 ? 45 : i === 2 ? 70 : 95);
-              const activeStage = i === stageIndex && clamped < 100;
+        {phase === "running" || isSuccess ? (
+          <ul className="gen-pipeline__substages" aria-label="Generation stages">
+            {GENERATION_PROGRESS_STAGES.map((stage, i) => {
+              const done = isSuccess || isProgressStageDone(i, clamped);
+              const activeStage =
+                !isSuccess && i === stageIndex && clamped < 100;
               return (
                 <li
-                  key={label}
+                  key={stage.id}
                   className={[
                     done ? "done" : "",
                     activeStage ? "active" : "",
@@ -360,7 +360,7 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
                     .filter(Boolean)
                     .join(" ")}
                 >
-                  {label}
+                  {stage.shortLabel}
                 </li>
               );
             })}

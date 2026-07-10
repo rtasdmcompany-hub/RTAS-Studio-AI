@@ -1,6 +1,10 @@
 "use client";
 
 import { ProgressBar } from "@rtas/ui";
+import {
+  GENERATION_PROGRESS_STAGES,
+  isProgressStageDone,
+} from "@/lib/generation-progress-stages";
 
 type Props = {
   percent: number;
@@ -9,8 +13,6 @@ type Props = {
   stageIndex?: number;
   patienceMessage?: string;
 };
-
-const STAGE_LABELS = ["Engine", "Identity", "Frames", "Render"] as const;
 
 export function GenerationProgressOverlay({
   percent,
@@ -38,19 +40,18 @@ export function GenerationProgressOverlay({
         {patienceMessage ? (
           <p className="gen-patience-message">{patienceMessage}</p>
         ) : null}
-        <ul className="gen-stages">
-          {STAGE_LABELS.map((label, i) => {
-            const done =
-              percent >= (i === 0 ? 20 : i === 1 ? 50 : i === 2 ? 80 : 100);
-            const active = i === stageIndex && percent < 100;
+        <ul className="gen-stages" aria-label="Generation stages">
+          {GENERATION_PROGRESS_STAGES.map((stage, i) => {
+            const done = isProgressStageDone(i, clamped);
+            const active = i === stageIndex && clamped < 100;
             return (
               <li
-                key={label}
+                key={stage.id}
                 className={[done ? "done" : "", active ? "active" : ""]
                   .filter(Boolean)
                   .join(" ")}
               >
-                {label}
+                {stage.shortLabel}
               </li>
             );
           })}

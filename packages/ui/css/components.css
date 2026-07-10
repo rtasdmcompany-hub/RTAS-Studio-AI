@@ -393,6 +393,15 @@
   line-height: var(--ds-leading-relaxed);
 }
 
+.rtas-ui-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-1);
+}
+
 /* —— Spinner —— */
 .rtas-ui-spinner {
   display: inline-block;

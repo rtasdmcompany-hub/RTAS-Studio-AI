@@ -1,0 +1,480 @@
+/**
+ * Studio premium layout — visual hierarchy only.
+ * Does not change behavior; overrides spacing, density, and progressive disclosure chrome.
+ */
+
+/* —— Create: more breathing room, quieter chrome —— */
+.shashka-studio--screen-create .shashka-studio__content {
+  padding: 5.5rem clamp(1rem, 3vw, 2.5rem) 1.75rem;
+}
+
+.shashka-studio__create-screen {
+  width: min(880px, 94vw);
+}
+
+.shashka-studio--screen-create .create-panel-unified {
+  border-radius: 1.1rem;
+  box-shadow:
+    0 0 0 1px rgba(165, 148, 253, 0.12),
+    0 28px 80px rgba(0, 0, 0, 0.48);
+  background: rgba(9, 9, 14, 0.82);
+}
+
+.create-panel-unified__bar {
+  padding: 1.1rem 1.35rem 0.85rem;
+  border-bottom: 1px solid rgba(165, 148, 253, 0.1);
+}
+
+.create-panel-unified__bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.create-panel-unified__bar h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.96);
+  line-height: 1.2;
+}
+
+.create-panel-unified__tagline {
+  margin: 0 0 0.65rem;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.48);
+  font-weight: 450;
+}
+
+/* Hide tagline once the user has chosen a mode — focus on the step */
+.shashka-studio--has-mode .create-panel-unified__tagline {
+  display: none;
+}
+
+.studio-wizard-progress-wrap {
+  margin-top: 0.75rem;
+}
+
+.studio-wizard-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.studio-wizard-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8b7cf8, #c4b5fd);
+}
+
+.studio-wizard-progress__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.45rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.01em;
+}
+
+.studio-wizard-progress__step-name {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 550;
+}
+
+/* Progressive disclosure: shortcuts / advanced */
+.studio-advanced {
+  margin-top: 0.65rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.studio-advanced > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  user-select: none;
+}
+
+.studio-advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.studio-advanced > summary::after {
+  content: "+";
+  float: right;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.studio-advanced[open] > summary::after {
+  content: "–";
+}
+
+.studio-advanced > summary:hover,
+.studio-advanced > summary:focus-visible {
+  color: rgba(255, 255, 255, 0.72);
+  outline: none;
+}
+
+.studio-advanced__body {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.studio-advanced .studio-shortcuts-hint {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  opacity: 0.85;
+}
+
+/* Empty project — quieter card */
+.studio-empty-project {
+  margin: 0.5rem 0 0.25rem;
+  padding: 0.85rem 1rem;
+  border-style: solid;
+  border-color: rgba(165, 148, 253, 0.18);
+  background: rgba(165, 148, 253, 0.05);
+}
+
+.studio-empty-project__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.studio-empty-project__copy {
+  max-width: 28rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Wizard step cards */
+.shashka-wizard-step {
+  padding: 1.15rem 1.35rem 1.25rem;
+  gap: 1rem;
+}
+
+.shashka-wizard-step__head {
+  margin-bottom: 0.15rem;
+}
+
+.shashka-wizard-step__label {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.shashka-wizard-step__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+  max-width: 34rem;
+}
+
+.shashka-wizard-step__body {
+  gap: 1.1rem;
+  padding-top: 0.35rem;
+}
+
+.shashka-wizard-step__footer {
+  margin-top: auto;
+  padding-top: 1.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.studio-setup-section {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.studio-setup-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.studio-setup-section--active {
+  padding-left: 0.65rem;
+  border-left: 2px solid rgba(165, 148, 253, 0.55);
+}
+
+.studio-setup-section .section-label {
+  margin-bottom: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.studio-setup-section__prompt {
+  margin: 0 0 0.65rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.shashka-wizard-step .chip-row {
+  gap: 0.55rem;
+}
+
+.shashka-wizard-step .chip {
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+
+/* Generate = primary; Compile = secondary */
+.shashka-wizard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.shashka-console__generate {
+  flex: 1 1 12rem;
+  min-height: 2.75rem;
+  padding-inline: 1.35rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 28px rgba(139, 124, 248, 0.28);
+}
+
+.shashka-console__compile {
+  width: 100%;
+  min-height: 2.4rem;
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+.shashka-console__footnote {
+  margin-top: 0.55rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.shashka-console__footnote--compile {
+  margin-top: 0.45rem;
+  margin-bottom: 0;
+}
+
+.studio-advanced--more-actions {
+  margin-top: 0.75rem;
+}
+
+.studio-advanced--connection {
+  margin: 0 0 0.75rem;
+}
+
+/* Quiet chrome until the user starts a project */
+.shashka-studio:not(.shashka-studio--has-mode) .studio-advanced:not(.studio-advanced--connection) {
+  display: none;
+}
+
+.shashka-studio:not(.shashka-studio--has-mode) .studio-wizard-progress-wrap {
+  opacity: 0.55;
+}
+
+/* —— Preview: canvas first, tools secondary —— */
+.shashka-studio--screen-preview .shashka-studio__content {
+  max-width: 1320px;
+  padding: 5.5rem clamp(0.75rem, 2vw, 1.5rem) 1.5rem;
+}
+
+.shashka-preview-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 300px);
+  gap: 1.15rem;
+}
+
+.shashka-preview-main {
+  order: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+.shashka-preview-side {
+  order: 2;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 1rem;
+  border-color: rgba(165, 148, 253, 0.14);
+  background: rgba(9, 9, 14, 0.72);
+}
+
+.shashka-preview-main .shashka-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.shashka-preview-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.shashka-preview-frame {
+  flex: 1;
+  min-height: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #050508;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.shashka-preview-main .shashka-preview-frame {
+  min-height: min(68vh, 640px);
+}
+
+.shashka-preview-share-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.15rem 0.1rem;
+}
+
+/* Pipeline stays visible (generation focus); library/workflow collapse */
+.studio-side-card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  overflow: hidden;
+}
+
+.studio-side-card > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.studio-side-card > summary::-webkit-details-marker {
+  display: none;
+}
+
+.studio-side-card > summary::after {
+  content: "Show";
+  float: right;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+
+.studio-side-card[open] > summary::after {
+  content: "Hide";
+}
+
+.studio-side-card > summary:hover,
+.studio-side-card > summary:focus-visible {
+  color: rgba(255, 255, 255, 0.82);
+  outline: none;
+}
+
+.studio-side-card__body {
+  padding: 0 0.55rem 0.65rem;
+}
+
+.studio-side-card .studio-workflow-panel,
+.studio-side-card .shashka-carousel,
+.studio-side-card .shashka-hud {
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Soften secondary panels so pipeline + player win */
+.shashka-preview-side .gen-pipeline {
+  border-radius: 0.75rem;
+}
+
+.shashka-preview-side .studio-workflow-panel__tabs {
+  gap: 0.25rem;
+}
+
+/* Screen rail — quieter */
+.studio-screen-rail {
+  opacity: 0.72;
+}
+
+.studio-screen-rail:hover,
+.studio-screen-rail:focus-within {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .shashka-preview-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(42vh, 1fr) auto;
+  }
+
+  .shashka-preview-main {
+    order: 1;
+    min-height: 42vh;
+  }
+
+  .shashka-preview-side {
+    order: 2;
+    max-height: 46vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .shashka-studio--screen-create .shashka-studio__content,
+  .shashka-studio--screen-preview .shashka-studio__content {
+    padding-top: 4.75rem;
+    padding-inline: 0.75rem;
+  }
+
+  .create-panel-unified__bar,
+  .shashka-wizard-step {
+    padding-inline: 1rem;
+  }
+
+  .shashka-wizard-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shashka-console__generate,
+  .shashka-console__compile {
+    width: 100%;
+  }
+}

@@ -110,6 +110,8 @@ export function StudioWorkflowPanel({
               description="Your latest renders will appear here for quick access."
               actionLabel="Start creating →"
               actionHref="/studio"
+              secondaryActionLabel="How to use"
+              secondaryActionHref="/how-to-use"
             />
           ) : (
             <ul className="studio-workflow-panel__list">
@@ -186,6 +188,8 @@ export function StudioWorkflowPanel({
               description="Prompts from past generations appear here after you create."
               actionLabel="How to write prompts →"
               actionHref="/how-to-use"
+              secondaryActionLabel="Open Studio"
+              secondaryActionHref="/studio"
             />
           ) : (
             <ul className="studio-workflow-panel__list">
@@ -242,6 +246,10 @@ export function StudioWorkflowPanel({
               icon="📋"
               title="No saved workflows"
               description="Save your mode, category, style, and field values as a reusable preset."
+              actionLabel="Open Studio →"
+              actionHref="/studio"
+              secondaryActionLabel="How to use"
+              secondaryActionHref="/how-to-use"
             />
           ) : (
             <ul className="studio-workflow-panel__list">

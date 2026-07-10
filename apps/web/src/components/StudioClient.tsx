@@ -18,6 +18,7 @@ import {
   type VisualStyle,
 } from "@rtas/shared";
 import { useStudioProfile } from "@/context/StudioProfileContext";
+import { GENERATION_LAST_STAGE_INDEX } from "@/lib/generation-progress-stages";
 import {
   BACKEND_CONNECTION_ERROR,
   fetchBackendHealthStatus,
@@ -114,7 +115,7 @@ import {
 import { StudioToast, type StudioToastState } from "@/components/studio/StudioToast";
 import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
 import { StudioSkeleton } from "@/components/ui/skeletons";
-import { Button } from "@rtas/ui";
+import { Button, EmptyState } from "@rtas/ui";
 import { VideoPlayer } from "./VideoPlayer";
 import { VisualStyleSelector } from "./VisualStyleSelector";
 import { useStudioFormBackup } from "@/hooks/useStudioFormBackup";
@@ -769,7 +770,7 @@ export function StudioClient() {
         active: true,
         percent: displayPhase === "success" ? 100 : prev.percent || 0,
         message: notice.message,
-        stageIndex: displayPhase === "success" ? 3 : prev.stageIndex,
+        stageIndex: displayPhase === "success" ? GENERATION_LAST_STAGE_INDEX : prev.stageIndex,
       }));
       if (ownerView) {
         setConnectionNoticeTitle(notice.title);
@@ -1038,8 +1039,8 @@ export function StudioClient() {
         setGenUi({
           active: true,
           percent: 100,
-          message: backendRes.message || "Video ready",
-          stageIndex: 3,
+          message: backendRes.message || "Done ✓",
+          stageIndex: GENERATION_LAST_STAGE_INDEX,
         });
         if (capturedPrompt && !opts?.segmentMode) addPromptToHistory(capturedPrompt);
         if (!opts?.segmentMode) {
@@ -1325,8 +1326,8 @@ export function StudioClient() {
             ...prev,
             active: true,
             percent: Math.round((i / plan.segmentCount) * 70),
-            message: `Rendering part ${i + 1} of ${plan.segmentCount} (${segDuration}s)…`,
-            stageIndex: Math.min(i, 2),
+            message: `Rendering...`,
+            stageIndex: 5,
           }));
           setStatusText(`Part ${i + 1}/${plan.segmentCount} rendering…`);
 
@@ -1399,8 +1400,8 @@ export function StudioClient() {
         setGenUi({
           active: true,
           percent: 100,
-          message: compileData.message ?? "Full video ready",
-          stageIndex: 3,
+          message: compileData.message ?? "Done ✓",
+          stageIndex: GENERATION_LAST_STAGE_INDEX,
         });
         const longPrompt = extractCreativePrompt(form);
         if (longPrompt) addPromptToHistory(longPrompt);
@@ -2234,7 +2235,7 @@ export function StudioClient() {
       />
 
       <div
-        className={`shashka-studio shashka-studio--screen-${studioScreen}${isLoading ? " shashka-studio--locked" : ""}`}
+        className={`shashka-studio shashka-studio--screen-${studioScreen}${mode ? " shashka-studio--has-mode" : ""}${isLoading ? " shashka-studio--locked" : ""}`}
       >
         {showStudioDebugPanel ? (
           <aside
@@ -2355,22 +2356,21 @@ export function StudioClient() {
                   />
                 ) : null}
                 <p className="create-panel-unified__tagline">
-                  Step-by-step wizard — lyrics, audio, face lock, one flow.
+                  Describe your scene, generate, then preview the result.
                 </p>
                 {!mode && !showDraftBanner ? (
-                  <div className="studio-empty-project" role="status">
-                    <p className="studio-empty-project__title">Start a new project</p>
-                    <p className="studio-empty-project__copy">
-                      Choose a mode below. Your draft autosaves as you go — nothing is lost if you leave.
-                    </p>
-                    <p className="studio-empty-project__hint">
-                      <a href="/how-to-use#categories" className="studio-empty-project__link">
-                        New here? 60-second category guide →
-                      </a>
-                    </p>
-                  </div>
+                  <EmptyState
+                    className="studio-empty-project"
+                    icon="✦"
+                    title="Start a new project"
+                    description="Choose a mode below. Your draft autosaves as you go — nothing is lost if you leave."
+                    actionLabel="60-second category guide →"
+                    actionHref="/how-to-use#categories"
+                    actionVariant="ghost"
+                    secondaryActionLabel="View pricing"
+                    secondaryActionHref="/pricing"
+                  />
                 ) : null}
-                <StudioShortcutsHint className="studio-shortcuts-hint--create" />
                 <div className="studio-wizard-progress-wrap">
                   <div
                     className="studio-wizard-progress"
@@ -2392,6 +2392,12 @@ export function StudioClient() {
                     <span className="studio-wizard-progress__step-name">{wizardStepLabel}</span>
                   </div>
                 </div>
+                <details className="studio-advanced">
+                  <summary>Keyboard shortcuts</summary>
+                  <div className="studio-advanced__body">
+                    <StudioShortcutsHint className="studio-shortcuts-hint--create" />
+                  </div>
+                </details>
                 {formNotice ? (
                   <p className="studio-form-notice" role="alert">
                     {formNotice}
@@ -2415,17 +2421,22 @@ export function StudioClient() {
                   <div className="shashka-wizard-step__body">
                     <fieldset className="create-panel-fieldset" disabled={isLoading}>
                       {isStudioOwner(profile) ? (
-                        <p className="api-status" title={apiBase}>
-                          API:{" "}
-                          {backendOnline === null
-                            ? "checking…"
-                            : backendOnline
-                              ? "connected"
-                              : "offline"}
-                          {falGuard?.billingBlocked ? (
-                            <span className="api-status-warn"> · Fal paused</span>
-                          ) : null}
-                        </p>
+                        <details className="studio-advanced studio-advanced--connection">
+                          <summary>Connection</summary>
+                          <div className="studio-advanced__body">
+                            <p className="api-status" title={apiBase}>
+                              API:{" "}
+                              {backendOnline === null
+                                ? "checking…"
+                                : backendOnline
+                                  ? "connected"
+                                  : "offline"}
+                              {falGuard?.billingBlocked ? (
+                                <span className="api-status-warn"> · Fal paused</span>
+                              ) : null}
+                            </p>
+                          </div>
+                        </details>
                       ) : null}
 
                       <section
@@ -2636,23 +2647,31 @@ export function StudioClient() {
                           >
                             {isLoading ? "Rendering…" : "Generate video"}
                           </button>
-                          <button
-                            type="button"
-                            className="shashka-console__compile"
-                            disabled={!canCompileVideo}
-                            aria-busy={compileUi.active}
-                            title={
-                              backendOutputClipCount < MIN_CLIPS_TO_COMPILE
-                                ? `Need ${MIN_CLIPS_TO_COMPILE}+ clips in apps/backend/data/outputs (${backendOutputClipCount}/${MIN_CLIPS_TO_COMPILE})`
-                                : compileStatusReady
-                                  ? "Merge clips into one 5-minute video"
-                                  : "Waiting for FFmpeg or stitcher setup"
-                            }
-                            onClick={() => void onCompileClick()}
-                          >
-                            {compileUi.active ? "Compiling…" : "Compile video"}
-                          </button>
                         </div>
+                        <details className="studio-advanced studio-advanced--more-actions">
+                          <summary>More actions</summary>
+                          <div className="studio-advanced__body">
+                            <button
+                              type="button"
+                              className="shashka-console__compile"
+                              disabled={!canCompileVideo}
+                              aria-busy={compileUi.active}
+                              title={
+                                backendOutputClipCount < MIN_CLIPS_TO_COMPILE
+                                  ? `Need ${MIN_CLIPS_TO_COMPILE}+ clips in apps/backend/data/outputs (${backendOutputClipCount}/${MIN_CLIPS_TO_COMPILE})`
+                                  : compileStatusReady
+                                    ? "Merge clips into one 5-minute video"
+                                    : "Waiting for FFmpeg or stitcher setup"
+                              }
+                              onClick={() => void onCompileClick()}
+                            >
+                              {compileUi.active ? "Compiling…" : "Compile video"}
+                            </button>
+                            <p className="shashka-console__footnote shashka-console__footnote--compile">
+                              Merge saved clips into one longer video when you have enough renders.
+                            </p>
+                          </div>
+                        </details>
                         {compileUi.active ? (
                           <div
                             className="shashka-console__compile-progress"
@@ -2711,9 +2730,11 @@ export function StudioClient() {
 
           {studioScreen === "preview" ? (
           <div className="shashka-preview-layout">
-            <aside
-              className="shashka-preview-side"
-              aria-label="Generation status and your videos"
+            <div
+              ref={previewPanelRef}
+              id="studio-preview"
+              className="shashka-preview-main studio-preview-panel"
+              aria-label="Video preview"
             >
               <div className="shashka-preview-header">
                 <h2>{isLoading ? "Rendering" : "Preview"}</h2>
@@ -2738,6 +2759,39 @@ export function StudioClient() {
                 />
               )}
 
+              <div className="shashka-preview-frame">
+                <VideoPlayer
+                  src={activePlaybackSrc}
+                  title={isGenerating ? undefined : activeVideo?.title}
+                  isGenerating={isGenerating}
+                  showProgressOverlay={isGenerating}
+                  generationPercent={genUi.percent}
+                  generationMessage={genUi.message}
+                  generationStageIndex={genUi.stageIndex}
+                  generationPatienceMessage={generationPatienceMessage}
+                />
+              </div>
+              {activeVideo?.status === "ready" && activeVideo.videoUrl && !isGenerating ? (
+                <div className="shashka-preview-share-row">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="btn-share-video"
+                    onClick={() => handleShareVideo(activeVideo)}
+                  >
+                    Share Video
+                  </Button>
+                  {activeVideo.isPublic ? (
+                    <span className="shashka-preview-share-note">Public link active</span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+
+            <aside
+              className="shashka-preview-side"
+              aria-label="Generation status and your videos"
+            >
               <GenerationPipelinePanel
                 ref={progressRef}
                 active={pipelineVisible}
@@ -2787,77 +2841,56 @@ export function StudioClient() {
                 }
               />
 
-              <StudioWorkflowPanel
-                currentPrompt={currentPrompt === "—" ? "" : currentPrompt}
-                canSaveWorkflow={Boolean(mode && visualStyle && !isLoading)}
-                onApplyPrompt={handleApplyPrompt}
-                onLoadWorkflow={handleLoadWorkflow}
-                onSelectRecent={handleSelectRecent}
-                getWorkflowSnapshot={getWorkflowSnapshot}
-              />
+              <details className="studio-side-card">
+                <summary>Workflow</summary>
+                <div className="studio-side-card__body">
+                  <StudioWorkflowPanel
+                    currentPrompt={currentPrompt === "—" ? "" : currentPrompt}
+                    canSaveWorkflow={Boolean(mode && visualStyle && !isLoading)}
+                    onApplyPrompt={handleApplyPrompt}
+                    onLoadWorkflow={handleLoadWorkflow}
+                    onSelectRecent={handleSelectRecent}
+                    getWorkflowSnapshot={getWorkflowSnapshot}
+                  />
+                </div>
+              </details>
 
-              <StudioVideoCarousel
-                items={carouselItems}
-                activeVideoId={activeVideo?.id}
-                profile={profile}
-                disabled={processing}
-                hasMore={serverGallery.hasMore}
-                loadingMore={serverGallery.loadingMore}
-                onLoadMore={handleCarouselLoadMore}
-                onRefresh={handleCarouselRefresh}
-                onSelect={handleCarouselSelect}
-                onShare={handleCarouselShare}
-              />
+              <details className="studio-side-card">
+                <summary>Library</summary>
+                <div className="studio-side-card__body">
+                  <StudioVideoCarousel
+                    items={carouselItems}
+                    activeVideoId={activeVideo?.id}
+                    profile={profile}
+                    disabled={processing}
+                    hasMore={serverGallery.hasMore}
+                    loadingMore={serverGallery.loadingMore}
+                    onLoadMore={handleCarouselLoadMore}
+                    onRefresh={handleCarouselRefresh}
+                    onSelect={handleCarouselSelect}
+                    onShare={handleCarouselShare}
+                  />
+                </div>
+              </details>
 
               {isStudioOwner(profile) ? (
-                <StudioDiagnosticsHud
-                  profile={profile}
-                  backendOnline={backendOnline}
-                  premiumPipeline={premiumPipeline}
-                  statusText={statusText}
-                  apiBase={apiBase}
-                  falBillingBlocked={Boolean(falGuard?.billingBlocked)}
-                  diagnosticLock={isLoading}
-                  onTrialSkip={() => void runGenerate({ previewOnly: true })}
-                />
+                <details className="studio-side-card">
+                  <summary>Diagnostics</summary>
+                  <div className="studio-side-card__body">
+                    <StudioDiagnosticsHud
+                      profile={profile}
+                      backendOnline={backendOnline}
+                      premiumPipeline={premiumPipeline}
+                      statusText={statusText}
+                      apiBase={apiBase}
+                      falBillingBlocked={Boolean(falGuard?.billingBlocked)}
+                      diagnosticLock={isLoading}
+                      onTrialSkip={() => void runGenerate({ previewOnly: true })}
+                    />
+                  </div>
+                </details>
               ) : null}
-
             </aside>
-
-            <div
-              ref={previewPanelRef}
-              id="studio-preview"
-              className="shashka-preview-main studio-preview-panel"
-              aria-label="Video preview"
-            >
-              <div className="shashka-preview-frame">
-                <VideoPlayer
-                  src={activePlaybackSrc}
-                  title={isGenerating ? undefined : activeVideo?.title}
-                  isGenerating={isGenerating}
-                  showProgressOverlay={isGenerating}
-                  generationPercent={genUi.percent}
-                  generationMessage={genUi.message}
-                  generationStageIndex={genUi.stageIndex}
-                  generationPatienceMessage={generationPatienceMessage}
-                />
-              </div>
-              {activeVideo?.status === "ready" && activeVideo.videoUrl && !isGenerating ? (
-                <div className="shashka-preview-share-row">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="btn-share-video"
-                    onClick={() => handleShareVideo(activeVideo)}
-                  >
-                    Share Video
-                  </Button>
-                  {activeVideo.isPublic ? (
-                    <span className="shashka-preview-share-note">Public link active</span>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
           </div>
           ) : null}
         </div>

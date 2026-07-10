@@ -515,6 +515,8 @@ export function ProfileClient({ initialProfile }: Props) {
                 description="Pick a category in Studio — your draft autosaves, and finished work shows up here."
                 actionLabel="Start creating →"
                 actionHref="/studio"
+                secondaryActionLabel="See pricing"
+                secondaryActionHref="/pricing"
               />
             ) : (
               <ul className="dashboard-list">
@@ -561,6 +563,8 @@ export function ProfileClient({ initialProfile }: Props) {
                 description="Renders, queue updates, and project history appear here after your first Studio session."
                 actionLabel="Open Studio →"
                 actionHref="/studio"
+                secondaryActionLabel="Help Center"
+                secondaryActionHref="/help"
               />
             ) : (
               <ol className="dashboard-timeline">

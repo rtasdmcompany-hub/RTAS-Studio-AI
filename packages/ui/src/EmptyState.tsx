@@ -13,6 +13,10 @@ export type EmptyStateProps = {
   /** When set with actionLabel, renders a ButtonLink instead of Button. */
   actionHref?: string;
   actionVariant?: ButtonProps["variant"];
+  secondaryActionLabel?: string;
+  secondaryActionHref?: string;
+  onSecondaryAction?: () => void;
+  secondaryActionVariant?: ButtonProps["variant"];
   className?: string;
 };
 
@@ -25,6 +29,10 @@ export function EmptyState({
   onAction,
   actionHref,
   actionVariant = "lavender",
+  secondaryActionLabel,
+  secondaryActionHref,
+  onSecondaryAction,
+  secondaryActionVariant = "ghost",
   className,
 }: EmptyStateProps) {
   let defaultAction: ReactNode = null;
@@ -44,12 +52,42 @@ export function EmptyState({
     }
   }
 
+  let secondaryAction: ReactNode = null;
+  if (secondaryActionLabel) {
+    if (secondaryActionHref) {
+      secondaryAction = (
+        <ButtonLink href={secondaryActionHref} variant={secondaryActionVariant}>
+          {secondaryActionLabel}
+        </ButtonLink>
+      );
+    } else if (onSecondaryAction) {
+      secondaryAction = (
+        <Button variant={secondaryActionVariant} onClick={onSecondaryAction}>
+          {secondaryActionLabel}
+        </Button>
+      );
+    }
+  }
+
+  const primaryAction = action ?? defaultAction;
+
   return (
     <div className={cn("rtas-ui-empty", className)} role="status">
-      {icon ? <div className="rtas-ui-empty__icon" aria-hidden>{icon}</div> : null}
+      {icon ? (
+        <div className="rtas-ui-empty__icon" aria-hidden>
+          {icon}
+        </div>
+      ) : null}
       <h3 className="rtas-ui-empty__title">{title}</h3>
-      {description ? <p className="rtas-ui-empty__description">{description}</p> : null}
-      {action ?? defaultAction}
+      {description ? (
+        <p className="rtas-ui-empty__description">{description}</p>
+      ) : null}
+      {primaryAction || secondaryAction ? (
+        <div className="rtas-ui-empty__actions">
+          {primaryAction}
+          {secondaryAction}
+        </div>
+      ) : null}
     </div>
   );
 }

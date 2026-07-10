@@ -1,0 +1,367 @@
+/**
+ * Commercial SaaS chrome — trust badges, footer social, share channels,
+ * micro-interactions. Complements design tokens without changing product logic.
+ */
+
+/* —— Trust badges —— */
+.rtas-trust-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 0.75rem 1rem;
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.rtas-trust-badges--compact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.rtas-trust-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.rtas-trust-badges--compact .rtas-trust-badge {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  align-items: center;
+}
+
+.rtas-trust-badge:hover {
+  border-color: rgba(165, 148, 253, 0.35);
+  background: rgba(165, 148, 253, 0.06);
+  transform: translateY(-1px);
+}
+
+.rtas-trust-badge__mark {
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a594fd, #c4b5fd);
+  box-shadow: 0 0 0 3px rgba(165, 148, 253, 0.15);
+}
+
+.rtas-trust-badges--compact .rtas-trust-badge__mark {
+  margin-top: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  box-shadow: none;
+}
+
+.rtas-trust-badge__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.rtas-trust-badge__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.rtas-trust-badge__desc {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.rtas-trusted__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
+
+.rtas-pricing-trust {
+  margin-top: 1.5rem;
+}
+
+/* —— Footer social + denser commercial footer —— */
+.rtas-footer__tagline {
+  margin: 0.85rem 0 0;
+  max-width: 18rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.rtas-footer__social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.rtas-footer__social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.rtas-footer__social:hover,
+.rtas-footer__social:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(165, 148, 253, 0.45);
+  background: rgba(165, 148, 253, 0.12);
+  color: #fff;
+  outline: none;
+}
+
+.rtas-footer__cols {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .rtas-footer__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .rtas-footer__cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Studio shell footer — quieter, doesn't compete with canvas */
+.studio-shell__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-shell__main .shashka-studio {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.studio-chrome-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  padding: 0.55rem clamp(0.75rem, 2vw, 1.5rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(5, 5, 8, 0.94);
+  z-index: 30;
+}
+
+.studio-chrome-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+}
+
+.studio-chrome-footer__link {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.studio-chrome-footer__link:hover,
+.studio-chrome-footer__link:focus-visible {
+  color: rgba(255, 255, 255, 0.88);
+  outline: none;
+}
+
+.studio-chrome-footer__social {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.studio-chrome-footer__social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.7rem;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.studio-chrome-footer__social-link:hover,
+.studio-chrome-footer__social-link:focus-visible {
+  color: #fff;
+  border-color: rgba(165, 148, 253, 0.4);
+  background: rgba(165, 148, 253, 0.1);
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .studio-chrome-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-block: 0.65rem;
+  }
+}
+
+.studio-shell__footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(5, 5, 8, 0.92);
+}
+
+/* —— Share modal channels —— */
+.share-modal__channels-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.share-modal__social {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.share-modal__social-btn {
+  flex: unset;
+  min-width: 0;
+  padding: 0.7rem 0.55rem;
+  border-radius: 0.7rem;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.share-modal__social-btn:hover {
+  transform: translateY(-1px);
+}
+
+.share-modal__social-btn--facebook {
+  border-color: rgba(24, 119, 242, 0.4);
+}
+
+.share-modal__social-btn--linkedin {
+  border-color: rgba(10, 102, 194, 0.4);
+}
+
+.share-modal__social-btn--reddit {
+  border-color: rgba(255, 69, 0, 0.35);
+}
+
+.share-modal__social-btn--email {
+  border-color: rgba(165, 148, 253, 0.35);
+}
+
+.share-modal__public-note {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+.share-modal__public-note a {
+  color: rgba(196, 181, 253, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .share-modal__social {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* —— Premium micro-interactions (global commercial polish) —— */
+.rtas-ui-btn,
+.btn-primary,
+.btn-secondary,
+.btn-ghost,
+button.chip {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    opacity 0.15s ease;
+}
+
+.rtas-ui-btn:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+button.chip:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.rtas-ui-focus-ring:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(165, 148, 253, 0.65);
+  outline-offset: 2px;
+}
+
+/* Perceived performance: reserve space for trust strip */
+.rtas-trusted {
+  min-height: 7rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 7rem;
+}
+
+.studio-empty-project.rtas-ui-empty {
+  margin: 0.65rem 0 0.35rem;
+  padding: 1rem 1.1rem;
+  border-style: solid;
+  border-color: rgba(165, 148, 253, 0.18);
+  background: rgba(165, 148, 253, 0.05);
+  align-items: flex-start;
+  text-align: left;
+}
+
+.studio-empty-project .rtas-ui-empty__actions {
+  justify-content: flex-start;
+}

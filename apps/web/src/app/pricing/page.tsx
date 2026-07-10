@@ -7,6 +7,7 @@ import {
 } from "@rtas/shared";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { PricingPlans } from "@/components/marketing/PricingPlans";
+import { TrustBadges } from "@/components/marketing/TrustBadges";
 import {
   InnerPageContainer,
   InnerPageSection,
@@ -26,6 +27,7 @@ export default function PricingPage() {
             with Pro Studio Tier (${STANDARD_PRICE_USD}/mo), or deploy Production Enterprise
             (${PREMIUM_PRICE_USD}/mo) for 4K cinematic output.
           </p>
+          <TrustBadges className="rtas-pricing-trust" limit={4} compact />
         </InnerPageSection>
 
         <InnerPageSection className="rtas-pricing-plans-section">
