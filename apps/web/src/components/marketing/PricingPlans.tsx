@@ -153,6 +153,7 @@ export function PricingPlans() {
               <span>{tier.priceSuffix}</span>
             </p>
             <p className="rtas-pricing-tier__credits">{tier.creditsLabel}</p>
+            <p className="rtas-pricing-tier__best-for">{tier.bestFor}</p>
 
             <ul className="rtas-pricing-tier__highlights">
               {tier.highlights.map((item) => (

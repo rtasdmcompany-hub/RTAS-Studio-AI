@@ -22,6 +22,7 @@ export type PricingTier = {
   price: number;
   priceSuffix: string;
   creditsLabel: string;
+  bestFor: string;
   highlights: string[];
   features: PricingFeatureRow[];
   featured?: boolean;
@@ -32,14 +33,15 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     plan: "tester",
     name: "Creator Starter",
-    subtitle: "Pay-As-You-Go",
+    subtitle: "Pay-as-you-go evaluation",
     price: TESTER_PRICE_USD,
     priceSuffix: "one-time",
     creditsLabel: `${TESTER_CREDITS}s · ${TESTER_DURATION_DAYS}-day access`,
+    bestFor: "First real render before you subscribe",
     highlights: [
       "Full studio workflow — lyrics, identity & scenes",
-      "End-to-end pipeline evaluation before subscription",
-      "Ideal for first render and workflow validation",
+      "Validate the pipeline end-to-end",
+      "No monthly commitment",
     ],
     features: [
       { label: "Resolution", value: "720p HD evaluation", included: true },
@@ -51,16 +53,17 @@ export const PRICING_TIERS: PricingTier[] = [
   },
   {
     plan: "standard",
-    name: "Pro Studio Tier",
-    subtitle: "Monthly subscription",
+    name: "Pro Studio",
+    subtitle: "Most popular · Monthly",
     price: STANDARD_PRICE_USD,
     priceSuffix: "/month",
-    creditsLabel: `${STANDARD_CREDITS}s monthly (≈33 min)`,
+    creditsLabel: `${STANDARD_CREDITS}s monthly (~33 min)`,
+    bestFor: "Creators shipping social, ads & brand clips",
     featured: true,
     highlights: [
-      "Clean HD exports for social, ads & brand content",
-      "Commercial rights on all paid downloads",
-      "Identity Shielding across multi-scene projects",
+      "Clean 1080p masters — no watermark",
+      "Commercial rights on paid downloads",
+      "Priority identity-lock queuing",
     ],
     features: [
       { label: "Resolution", value: "1080p HD master", included: true },
@@ -73,20 +76,21 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     plan: "premium",
     name: "Production Enterprise",
-    subtitle: "Monthly subscription",
+    subtitle: "Cinematic · Monthly",
     price: PREMIUM_PRICE_USD,
     priceSuffix: "/month",
-    creditsLabel: `${PREMIUM_CREDITS}s monthly (≈33 min)`,
+    creditsLabel: `${PREMIUM_CREDITS}s monthly (~33 min)`,
+    bestFor: "Music videos, ads & premium brand films in 4K",
     highlights: [
-      "Cinematic 4K with film-grade colour science",
-      "Advanced identity-lock for hero talent continuity",
-      "Built for music videos, ads & premium brand films",
+      "Cinematic 4K with film-grade colour",
+      "Advanced identity continuity for hero talent",
+      "Priority+ queue for production deadlines",
     ],
     features: [
       { label: "Resolution", value: "4K cinematic master", included: true },
       { label: "Watermark", value: "Clean — no watermark", included: true },
       { label: "Identity-Lock queue", value: "Priority+ enterprise queue", included: true },
-      { label: "Commercial download", value: "Full enterprise license", included: true },
+      { label: "Commercial download", value: "Full commercial license", included: true },
     ],
     ctaLabel: `Go Enterprise — $${PREMIUM_PRICE_USD}/mo`,
   },

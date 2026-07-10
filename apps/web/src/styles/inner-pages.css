@@ -480,6 +480,13 @@
   margin-left: 0.1rem;
 }
 
+.rtas-pricing-tier__best-for {
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+  line-height: 1.45;
+  color: var(--rtas-lavender, #a594fd);
+}
+
 .rtas-pricing-tier__credits {
   margin: 0.4rem var(--ds-space-0) var(--ds-space-4);
   font-size: var(--ds-text-sm);

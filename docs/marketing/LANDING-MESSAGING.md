@@ -7,6 +7,7 @@ Keep the first viewport brand-first: product name, one headline, one supporting 
 - `apps/web/src/lib/landing-copy.ts` — hero + audience + outcomes
 - `apps/web/src/app/page.tsx` — landing composition
 - `apps/web/src/components/marketing/PricingPlans.tsx` — plan names
+- `docs/marketing/PRICING-STRATEGY.md` — Phase 2 pricing voice
 - `@rtas/shared` — prices and credits constants
 
 ## Voice
