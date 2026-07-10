@@ -1,0 +1,250 @@
+/* Phase 3 — Feature comparison (international SaaS) */
+
+.rtas-features-hero {
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-block: clamp(2.5rem, 6vw, 4rem) 1rem;
+}
+
+.rtas-features-hero h1 {
+  font-size: clamp(1.85rem, 4.2vw, 2.65rem);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 0.85rem;
+}
+
+.rtas-features-hero__lead {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.65;
+  color: var(--rtas-muted, rgba(255, 255, 255, 0.72));
+  margin-bottom: 1.25rem;
+}
+
+.rtas-features-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.rtas-features-caps {
+  max-width: 960px;
+  margin: 0 auto 1.5rem;
+  padding: 0 1rem;
+}
+
+.rtas-features-caps__title,
+.rtas-features-workflow__title {
+  text-align: center;
+  font-size: 1.25rem;
+  color: #fff;
+  margin: 0 0 1rem;
+}
+
+.rtas-features-caps__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.rtas-features-caps__item {
+  padding: 1rem 0 0.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.rtas-features-caps__item h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.rtas-features-caps__item p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--rtas-muted, rgba(255, 255, 255, 0.68));
+}
+
+.rtas-features-matrix-lead {
+  text-align: center;
+  max-width: 36rem;
+  margin: 0 auto 1.5rem;
+  color: var(--rtas-muted, rgba(255, 255, 255, 0.68));
+  line-height: 1.55;
+}
+
+.rtas-feature-matrix-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rtas-feature-matrix {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.rtas-feature-matrix th,
+.rtas-feature-matrix td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+.rtas-feature-matrix thead th {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+.rtas-feature-matrix__col--featured {
+  color: var(--rtas-lavender, #a594fd) !important;
+}
+
+.rtas-feature-matrix tbody th {
+  font-weight: 500;
+  color: #fff;
+  min-width: 12rem;
+}
+
+.rtas-feature-matrix__category {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rtas-lavender, #a594fd);
+}
+
+.rtas-feature-matrix__feature {
+  display: block;
+  line-height: 1.4;
+}
+
+.rtas-feature-matrix__cell {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+}
+
+.rtas-feature-matrix__cell--yes {
+  color: #9ae6b4;
+  font-weight: 600;
+}
+
+.rtas-feature-matrix__cell--no {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rtas-feature-matrix__cell--text,
+.rtas-feature-matrix__cell--partial {
+  white-space: normal;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.rtas-features-workflow {
+  max-width: 960px;
+  margin: 0 auto 2rem;
+  padding: 0 1rem;
+}
+
+.rtas-features-workflow__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.rtas-features-workflow__col {
+  padding: 1rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.rtas-features-workflow__col--rtas {
+  border-top-color: rgba(165, 148, 253, 0.45);
+}
+
+.rtas-features-workflow__col h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.rtas-features-workflow__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rtas-features-workflow__col li {
+  position: relative;
+  padding: 0.35rem 0 0.35rem 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--rtas-muted, rgba(255, 255, 255, 0.68));
+}
+
+.rtas-features-workflow__col li::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.rtas-features-workflow__col--rtas li::before {
+  content: "✓";
+  color: var(--rtas-lavender, #a594fd);
+}
+
+.rtas-features-final {
+  max-width: 40rem;
+  margin: 0 auto 3rem;
+  padding: 2rem 1rem 0;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rtas-features-final h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: #fff;
+}
+
+.rtas-features-final p {
+  margin: 0 0 1.25rem;
+  color: var(--rtas-muted, rgba(255, 255, 255, 0.68));
+  line-height: 1.55;
+}
+
+.rtas-features-final__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.rtas-value__cta-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .rtas-features-caps__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .rtas-features-caps__grid,
+  .rtas-features-workflow__grid {
+    grid-template-columns: 1fr;
+  }
+}

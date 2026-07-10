@@ -22,7 +22,7 @@ export type SiteSocialLink = {
 export const SITE_PRODUCT_LINKS: SiteNavLink[] = [
   { id: "studio", label: "Studio", href: "/studio" },
   { id: "pricing", label: "Pricing", href: "/pricing" },
-  { id: "features", label: "Features", href: "/#features" },
+  { id: "features", label: "Features", href: "/features" },
   { id: "docs", label: "Documentation", href: "/how-to-use" },
   { id: "developers", label: "Developers", href: "/help" },
   { id: "dashboard", label: "Dashboard", href: "/profile" },

@@ -153,6 +153,11 @@ export default function HomePage() {
             </article>
           ))}
         </div>
+        <div className="rtas-value__cta-row">
+          <ButtonLink href="/features" variant="ghost">
+            Full feature comparison <span aria-hidden>→</span>
+          </ButtonLink>
+        </div>
       </section>
 
       <section

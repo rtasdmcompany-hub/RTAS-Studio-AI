@@ -15,6 +15,8 @@ const nextConfig = {
     remotePatterns: [],
   },
   compress: true,
+  // Slow local / constrained CI workers can exceed the default 60s page-data budget.
+  staticPageGenerationTimeout: 180,
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },
   experimental: {

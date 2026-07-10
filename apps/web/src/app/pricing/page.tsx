@@ -85,6 +85,7 @@ export default function PricingPage() {
             ))}
           </div>
           <p className="rtas-pricing-legal">
+            <a href="/features#compare">Full feature comparison</a> ·{" "}
             <a href="/help/billing">Billing help</a> · <a href="/terms">Terms</a> ·{" "}
             <a href="/privacy">Privacy</a> · <a href="/cookies">Cookies</a>
           </p>
