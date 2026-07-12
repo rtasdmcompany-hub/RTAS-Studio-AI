@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  CATEGORY_META,
   creditsForDuration,
   FREE_TRIAL_DURATION_SECONDS,
   buildSegmentDirectionPrompt,
@@ -116,14 +115,14 @@ import {
 import { StudioToast, type StudioToastState } from "@/components/studio/StudioToast";
 import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
 import { WizardRoadmap } from "@/components/studio/WizardRoadmap";
+import { StudioCreateExperience } from "@/components/studio/StudioCreateExperience";
 import { StudioSkeleton } from "@/components/ui/skeletons";
 import {
   PREVIEW_PLACEHOLDER_VIDEO,
   runGenerationSimulation,
 } from "@/lib/generation-simulation";
-import { Button, EmptyState } from "@rtas/ui";
+import { Button } from "@rtas/ui";
 import { VideoPlayer } from "./VideoPlayer";
-import { VisualStyleSelector } from "./VisualStyleSelector";
 import { useStudioFormBackup } from "@/hooks/useStudioFormBackup";
 import { useStudioKeyboardShortcuts } from "@/hooks/useStudioKeyboardShortcuts";
 import {
@@ -584,6 +583,29 @@ export function StudioClient() {
       scrollToSetupRef(setupTitleRef);
     },
     [processing, genPhase, mode, category]
+  );
+
+  const handleQuickStart = useCallback(
+    (opts: {
+      mode: GenerationMode;
+      category: VideoCategory;
+      style: VisualStyle;
+    }) => {
+      if (processing || genPhase === "running") return;
+      setMode(opts.mode);
+      setCategory(opts.category);
+      setVisualStyle(opts.style);
+      setSetupPhase("title");
+      setForm((prev) => {
+        const next = createInitialFormState();
+        const title = prev.text[VIDEO_TITLE_FIELD_ID]?.trim();
+        if (title) next.text[VIDEO_TITLE_FIELD_ID] = title;
+        const synced = syncIdentityPipeline(next, opts.style);
+        return pruneFormToVisible(synced, opts.category, opts.mode, opts.style);
+      });
+      scrollToSetupRef(setupTitleRef);
+    },
+    [processing, genPhase]
   );
 
   const applyProgress = useCallback((step: {
@@ -2442,7 +2464,7 @@ export function StudioClient() {
               <div className="shashka-holo-widget create-panel-unified">
               <header className="create-panel-unified__bar">
                 <div className="create-panel-unified__bar-top">
-                  <h2>Create your video</h2>
+                  <h2>Create</h2>
                   <AutosaveIndicator savedAt={lastSavedAt} saving={saving} />
                 </div>
                 {showDraftBanner && pendingDraft ? (
@@ -2453,21 +2475,8 @@ export function StudioClient() {
                   />
                 ) : null}
                 <p className="create-panel-unified__tagline">
-                  Describe your scene, generate, then preview the result.
+                  Premium AI studio — compose, render, and publish with identity lock.
                 </p>
-                {!mode && !showDraftBanner ? (
-                  <EmptyState
-                    className="studio-empty-project"
-                    icon="✦"
-                    title="Start a new project"
-                    description="Choose a mode below. Your draft autosaves as you go — nothing is lost if you leave."
-                    actionLabel="60-second category guide →"
-                    actionHref="/how-to-use#categories"
-                    actionVariant="ghost"
-                    secondaryActionLabel="View pricing"
-                    secondaryActionHref="/pricing"
-                  />
-                ) : null}
                 <div className="studio-wizard-progress-wrap">
                   <div
                     className="studio-wizard-progress"
@@ -2510,12 +2519,6 @@ export function StudioClient() {
 
               {wizardStep === WIZARD_SETUP_STEP ? (
                 <div className="shashka-wizard-step shashka-wizard-step--setup">
-                  <div className="shashka-wizard-step__head">
-                    <p className="shashka-wizard-step__label">Mode, category &amp; style</p>
-                    <p className="shashka-wizard-step__hint">
-                      Choose each option in order — nothing is pre-selected.
-                    </p>
-                  </div>
                   <div className="shashka-wizard-step__body">
                     <fieldset className="create-panel-fieldset" disabled={isLoading}>
                       {isStudioOwner(profile) ? (
@@ -2537,114 +2540,27 @@ export function StudioClient() {
                         </details>
                       ) : null}
 
-                      <section
-                        className={`studio-setup-section studio-setup-section--mode${
-                          setupPhase === "mode" ? " studio-setup-section--active" : ""
-                        }`}
-                      >
-                        <p className="section-label">Mode</p>
-                        <p className="studio-setup-section__prompt">
-                          {mode ? "Selected — you can change anytime." : "Pick how your video starts."}
-                        </p>
-                        <div className="chip-row">
-                          {(
-                            [
-                              ["prompt", "Prompt → Video"],
-                              ["image", "Image → Video"],
-                            ] as const
-                          ).map(([m, label]) => (
-                            <button
-                              key={m}
-                              type="button"
-                              className={`chip ${mode === m ? "active" : ""}`}
-                              onClick={() => handleModeSelect(m)}
-                              disabled={isLoading}
-                              aria-pressed={mode === m}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-
-                      {mode ? (
-                        <section
-                          ref={setupCategoryRef}
-                          className={`studio-setup-section studio-setup-section--category${
-                            setupPhase === "category" ? " studio-setup-section--active" : ""
-                          }`}
-                        >
-                          <p className="section-label">Category</p>
-                          <p className="studio-setup-section__prompt">
-                            {category
-                              ? "Selected — pick another to change."
-                              : "Choose your video type."}
-                          </p>
-                          <div className="chip-row">
-                            {(Object.keys(CATEGORY_META) as VideoCategory[]).map((c) => (
-                              <button
-                                key={c}
-                                type="button"
-                                className={`chip ${category === c ? "active" : ""}`}
-                                onClick={() => handleCategorySelect(c)}
-                                title={CATEGORY_META[c].description}
-                                disabled={isLoading}
-                                aria-pressed={category === c}
-                              >
-                                {CATEGORY_META[c].shortLabel}
-                              </button>
-                            ))}
-                          </div>
-                        </section>
-                      ) : null}
-
-                      {mode && category ? (
-                        <section
-                          ref={setupStyleRef}
-                          className={`studio-setup-section studio-setup-section--style${
-                            setupPhase === "style" ? " studio-setup-section--active" : ""
-                          }`}
-                        >
-                          <VisualStyleSelector
-                            value={visualStyle}
-                            onChange={handleVisualStyleSelect}
-                            disabled={isLoading}
-                            compact
-                          />
-                        </section>
-                      ) : null}
-
-                      {mode && category && visualStyle ? (
-                        <section
-                          ref={setupTitleRef}
-                          className={`studio-setup-section studio-setup-section--title${
-                            setupPhase === "title" ? " studio-setup-section--active" : ""
-                          }`}
-                        >
-                          <div className="field field--video-title">
-                            <label htmlFor={VIDEO_TITLE_FIELD_ID}>Video Title</label>
-                            <input
-                              id={VIDEO_TITLE_FIELD_ID}
-                              type="text"
-                              className={
-                                fieldErrors[VIDEO_TITLE_FIELD_ID] ? "field-error" : undefined
-                              }
-                              placeholder="Name shown in Your videos list"
-                              value={form.text[VIDEO_TITLE_FIELD_ID] ?? ""}
-                              onChange={(e) => setTextField(VIDEO_TITLE_FIELD_ID, e.target.value)}
-                              disabled={isLoading}
-                              aria-invalid={Boolean(fieldErrors[VIDEO_TITLE_FIELD_ID])}
-                            />
-                            {fieldErrors[VIDEO_TITLE_FIELD_ID] ? (
-                              <p className="field-error">{fieldErrors[VIDEO_TITLE_FIELD_ID]}</p>
-                            ) : (
-                              <p className="help">
-                                This exact name appears in Your videos and the preview player.
-                              </p>
-                            )}
-                          </div>
-                        </section>
-                      ) : null}
+                      <StudioCreateExperience
+                        mode={mode}
+                        category={category}
+                        visualStyle={visualStyle}
+                        title={form.text[VIDEO_TITLE_FIELD_ID] ?? ""}
+                        disabled={isLoading}
+                        onModeSelect={handleModeSelect}
+                        onCategorySelect={handleCategorySelect}
+                        onStyleSelect={handleVisualStyleSelect}
+                        onTitleChange={(value) => setTextField(VIDEO_TITLE_FIELD_ID, value)}
+                        onQuickStart={handleQuickStart}
+                        titleError={fieldErrors[VIDEO_TITLE_FIELD_ID]}
+                        titleFieldId={VIDEO_TITLE_FIELD_ID}
+                      />
+                      <div
+                        ref={setupCategoryRef}
+                        className="studio-setup-anchor"
+                        aria-hidden
+                      />
+                      <div ref={setupStyleRef} className="studio-setup-anchor" aria-hidden />
+                      <div ref={setupTitleRef} className="studio-setup-anchor" aria-hidden />
                     </fieldset>
                   </div>
                   <div className="shashka-wizard-step__footer">
@@ -2663,7 +2579,7 @@ export function StudioClient() {
                         disabled={isLoading || !setupComplete}
                         onClick={advanceWizard}
                       >
-                        Next →
+                        Continue to editor →
                       </button>
                     </div>
                   </div>
@@ -2789,12 +2705,16 @@ export function StudioClient() {
                             </p>
                           </div>
                         ) : null}
-                        <p className="shashka-console__footnote">
-                          Est. {creditsNeeded} credits
-                          {isPaidUser
-                            ? ` · ${effectiveRemainingSeconds} left`
-                            : " · Subscribe"}
-                          {` · ${backendOutputClipCount}/${MIN_CLIPS_TO_COMPILE} backend clips`}
+                        <p className="shashka-console__footnote studio-generate-meta">
+                          <span className="studio-generate-meta__credits">
+                            Est. {creditsNeeded} credits
+                            {isPaidUser
+                              ? ` · ${effectiveRemainingSeconds} left`
+                              : " · Subscribe for commercial downloads"}
+                          </span>
+                          <span className="studio-generate-meta__hint">
+                            Generate opens Preview with live progress
+                          </span>
                         </p>
                       </>
                     ) : (

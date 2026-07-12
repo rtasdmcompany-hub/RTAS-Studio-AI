@@ -479,7 +479,7 @@
     width: 100%;
   }
 
-  .studio-chrome-footer {
+  .studio-chrome-footer:not(.studio-world-footer) {
     display: none;
   }
 

@@ -7,7 +7,15 @@ import { ButtonLink } from "@rtas/ui";
 import { RtasHeaderBrand } from "@/components/RtasHeaderBrand";
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 
-const NAV = [
+const STUDIO_NAV = [
+  { href: "/studio", label: "Studio" },
+  { href: "/showcase", label: "Showcase" },
+  { href: "/features", label: "Features" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/help", label: "Help" },
+] as const;
+
+const LANDING_NAV = [
   { href: "/studio", label: "Studio" },
   { href: "/profile", label: "Dashboard" },
   { href: "/how-to-use", label: "How to use" },
@@ -17,7 +25,7 @@ const NAV = [
 ] as const;
 
 type Props = {
-  /** Studio-only slot (e.g. credits pill) shown before auth actions */
+  /** Studio-only slot (e.g. credits) shown before auth actions */
   actionsSlot?: ReactNode;
   authVariant?: "landing" | "studio";
   className?: string;
@@ -27,6 +35,8 @@ function isNavActive(pathname: string, href: string): boolean {
   if (href === "/studio") return pathname.startsWith("/studio");
   if (href === "/profile") return pathname.startsWith("/profile");
   if (href === "/how-to-use") return pathname.startsWith("/how-to-use");
+  if (href === "/showcase") return pathname.startsWith("/showcase");
+  if (href === "/features") return pathname.startsWith("/features");
   if (href === "/help") {
     return pathname.startsWith("/help") || pathname.startsWith("/feedback");
   }
@@ -36,8 +46,10 @@ function isNavActive(pathname: string, href: string): boolean {
 }
 
 export function SiteHeader({ actionsSlot, authVariant = "landing", className }: Props) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [menuOpen, setMenuOpen] = useState(false);
+  const isStudio = authVariant === "studio" || pathname.startsWith("/studio");
+  const nav = isStudio ? STUDIO_NAV : LANDING_NAV;
 
   useEffect(() => {
     setMenuOpen(false);
@@ -54,6 +66,7 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
 
   const headerClass = [
     "rtas-header",
+    isStudio ? "rtas-header--studio rtas-header--premium" : "",
     className,
     menuOpen ? "rtas-header--menu-open" : "",
   ]
@@ -63,10 +76,10 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
   return (
     <header className={headerClass}>
       <div className="rtas-header__inner">
-        <RtasHeaderBrand logoSize={28} />
+        <RtasHeaderBrand href={isStudio ? "/studio" : "/"} logoSize={isStudio ? 40 : 28} />
 
         <nav className="rtas-header__nav" aria-label="Primary">
-          {NAV.map(({ href, label }) => {
+          {nav.map(({ href, label }) => {
             const active = isNavActive(pathname, href);
             return (
               <Link
@@ -85,9 +98,11 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
         <div className="rtas-header__actions rtas-header__actions--desktop">
           {actionsSlot}
           <AuthHeaderActions variant={authVariant} />
-          <ButtonLink href="/studio" variant="lavender" className="rtas-header__cta">
-            Start creating
-          </ButtonLink>
+          {!isStudio ? (
+            <ButtonLink href="/studio" variant="lavender" className="rtas-header__cta">
+              Start creating
+            </ButtonLink>
+          ) : null}
         </div>
 
         <button
@@ -104,7 +119,7 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
 
       {menuOpen ? (
         <nav id="rtas-mobile-nav" className="rtas-header__mobile-menu" aria-label="Mobile">
-          {NAV.map(({ href, label }) => {
+          {nav.map(({ href, label }) => {
             const active = isNavActive(pathname, href);
             return (
               <Link
@@ -124,14 +139,16 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
           <div className="rtas-header__mobile-actions">
             {actionsSlot}
             <AuthHeaderActions variant={authVariant} />
-            <ButtonLink
-              href="/studio"
-              variant="lavender"
-              className="rtas-header__mobile-cta"
-              onClick={() => setMenuOpen(false)}
-            >
-              Start creating
-            </ButtonLink>
+            {!isStudio ? (
+              <ButtonLink
+                href="/studio"
+                variant="lavender"
+                className="rtas-header__mobile-cta"
+                onClick={() => setMenuOpen(false)}
+              >
+                Start creating
+              </ButtonLink>
+            ) : null}
           </div>
         </nav>
       ) : null}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useStudioProfile } from "@/context/StudioProfileContext";
 import { creditsLabel } from "@/lib/monetization";
 import { isPaidTier } from "@rtas/shared";
@@ -9,20 +10,35 @@ export function CreditsPill() {
 
   if (!profile) {
     return (
-      <span className="credits-pill">
-        Credits: <strong>…</strong>
-      </span>
+      <Link href="/pricing" className="studio-credits" aria-busy="true">
+        <span className="studio-credits__icon" aria-hidden>
+          ◆
+        </span>
+        <span className="studio-credits__body">
+          <span className="studio-credits__label">Credits</span>
+          <strong className="studio-credits__value">…</strong>
+        </span>
+      </Link>
     );
   }
 
   const isPaid = profile.subscriptionActive || isPaidTier(profile.tier);
+  const label = creditsLabel(profile);
 
   return (
-    <span
-      className="credits-pill"
-      title={isPaid ? "Paid plan credits" : "Subscribe for credits"}
+    <Link
+      href="/pricing"
+      className={`studio-credits${isPaid ? " studio-credits--paid" : ""}`}
+      title={isPaid ? "Manage plan & credits" : "Upgrade for more credits"}
     >
-      Credits: <strong>{creditsLabel(profile)}</strong>
-    </span>
+      <span className="studio-credits__icon" aria-hidden>
+        ◆
+      </span>
+      <span className="studio-credits__body">
+        <span className="studio-credits__label">{isPaid ? "Studio credits" : "Credits"}</span>
+        <strong className="studio-credits__value">{label}</strong>
+      </span>
+      <span className="studio-credits__cta">{isPaid ? "Upgrade" : "Get credits"}</span>
+    </Link>
   );
 }
