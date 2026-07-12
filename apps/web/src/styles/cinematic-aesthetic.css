@@ -92,7 +92,14 @@
     border-color var(--transition-smooth);
 }
 
-.video-content-panel,
+.video-content-panel {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  background: transparent !important;
+  box-shadow: none;
+}
+
 .video-text-highlight,
 .auth-card {
   backdrop-filter: blur(var(--ds-blur-lg));

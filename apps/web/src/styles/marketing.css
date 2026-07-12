@@ -30,12 +30,12 @@
 }
 
 .video-content-panel {
-  background: var(--ds-surface-glass);
-  backdrop-filter: blur(var(--ds-blur-xl));
-  -webkit-backdrop-filter: blur(var(--ds-blur-xl));
-  border: 1px solid var(--ds-border-subtle);
-  border-radius: var(--ds-radius-lg);
-  box-shadow: var(--ds-shadow-panel);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Lavender buttons (marketing + shared CTAs) */
@@ -790,16 +790,13 @@
 
 .rtas-pipeline-step {
   position: relative;
-  padding: 1.3rem var(--ds-space-5) 1.15rem;
-  border-radius: var(--ds-radius-lg);
+  padding: 1.1rem 0.5rem 0.85rem;
+  border-radius: 0;
   text-align: center;
-  background: linear-gradient(
-    165deg,
-    var(--ds-color-lavender-surface) 0%,
-    rgba(12, 12, 18, 0.92) 55%
-  );
-  border: 1px solid var(--ds-color-lavender-glow-mid);
-  box-shadow: 0 12px 40px var(--ds-color-black-40);
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
 }
 
 .rtas-pipeline-step__num {
@@ -871,11 +868,13 @@
 }
 
 .rtas-value__card {
-  padding: 1.3rem var(--ds-space-5);
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-color-black-50);
-  border: 1px solid var(--ds-color-white-8);
+  padding: 1.1rem 0.5rem;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   text-align: center;
+  box-shadow: none;
 }
 
 .rtas-value__card h3 {
@@ -1838,15 +1837,13 @@
   justify-content: flex-start;
   align-items: center;
   text-align: center;
-  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1.35rem, 3.5vw, var(--ds-space-8));
-  background: rgba(0, 0, 0, 0.58) !important;
-  backdrop-filter: blur(var(--ds-blur-lg));
-  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
-  border: 1px solid var(--ds-color-white-12);
-  border-radius: var(--ds-radius-1-125);
-  box-shadow:
-    0 10px 40px var(--ds-color-black-40),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1rem, 3vw, var(--ds-space-6));
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
 }
 
 .rtas-about-page .rtas-eyebrow {
@@ -2181,18 +2178,16 @@
   max-width: 720px;
   min-height: auto;
   margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
-  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1.35rem, 3.5vw, var(--ds-space-8))
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1rem, 3vw, var(--ds-space-6))
     clamp(var(--ds-space-6), 3vh, 2rem);
   pointer-events: auto;
   text-align: center;
-  background: rgba(0, 0, 0, 0.58);
-  backdrop-filter: blur(var(--ds-blur-lg));
-  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
-  border: 1px solid var(--ds-color-white-12);
-  border-radius: var(--ds-radius-1-125);
-  box-shadow:
-    0 10px 40px var(--ds-color-black-40),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .legal-shell--marketing .legal-header {
@@ -2320,15 +2315,13 @@
 .rtas-howto-page {
   width: min(980px, 100%);
   margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
-  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(var(--ds-space-5), 3vw, 2rem);
-  background: rgba(0, 0, 0, 0.58) !important;
-  backdrop-filter: blur(var(--ds-blur-lg));
-  -webkit-backdrop-filter: blur(var(--ds-blur-lg));
-  border: 1px solid var(--ds-color-white-12);
-  border-radius: var(--ds-radius-1-125);
-  box-shadow:
-    0 10px 40px var(--ds-color-black-40),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(var(--ds-space-4), 3vw, 1.5rem);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
 }
 
 .rtas-howto-page__hero {
@@ -2384,10 +2377,11 @@
   grid-template-columns: auto 1fr;
   gap: var(--ds-space-4);
   align-items: start;
-  padding: var(--ds-space-4) 1.1rem;
-  background: var(--ds-color-white-4);
-  border: 1px solid var(--ds-color-white-8);
-  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-4) 0.25rem;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
 }
 
 .rtas-howto-step__num {
@@ -2470,20 +2464,22 @@
 
 .rtas-howto-callout {
   margin-top: var(--ds-space-4);
-  padding: 0.8rem var(--ds-space-4);
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-color-white-6);
-  border-left: 3px solid var(--rtas-lavender);
+  padding: 0.8rem 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(165, 148, 253, 0.35);
   font-size: var(--ds-text-md);
   line-height: 1.55;
 }
 
 .rtas-howto-jump {
   margin-bottom: var(--ds-space-8);
-  padding: var(--ds-space-5);
-  border-radius: var(--ds-radius-md);
-  background: var(--ds-color-white-3);
-  border: 1px solid var(--ds-color-white-8);
+  padding: var(--ds-space-4) 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .rtas-howto-jump h2 {
@@ -2517,10 +2513,11 @@
 
 .rtas-howto-category {
   margin-bottom: var(--ds-space-12);
-  padding: var(--ds-space-6);
-  border-radius: var(--ds-radius-lg);
-  background: var(--ds-color-white-3);
-  border: 1px solid var(--ds-color-white-10);
+  padding: var(--ds-space-4) 0;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   scroll-margin-top: 5.5rem;
 }
 

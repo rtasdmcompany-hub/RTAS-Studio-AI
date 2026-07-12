@@ -30,14 +30,10 @@
 }
 
 .rtas-pricing-value__item {
-  padding: 1rem 1.1rem;
+  padding: 1rem 0.35rem;
   border-radius: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    transparent 100%
-  );
+  background: transparent;
 }
 
 .rtas-pricing-value__item h3 {
