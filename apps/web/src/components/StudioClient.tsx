@@ -83,6 +83,7 @@ import {
   extractCreativePrompt,
   getWizardGroupAtStep,
   getWizardStepCount,
+  getWizardStepGroups,
   pruneFormToVisible,
   scrollToFirstFieldError,
   syncIdentityPipeline,
@@ -114,7 +115,12 @@ import {
 } from "@/components/studio/pipeline";
 import { StudioToast, type StudioToastState } from "@/components/studio/StudioToast";
 import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
+import { WizardRoadmap } from "@/components/studio/WizardRoadmap";
 import { StudioSkeleton } from "@/components/ui/skeletons";
+import {
+  PREVIEW_PLACEHOLDER_VIDEO,
+  runGenerationSimulation,
+} from "@/lib/generation-simulation";
 import { Button, EmptyState } from "@rtas/ui";
 import { VideoPlayer } from "./VideoPlayer";
 import { VisualStyleSelector } from "./VisualStyleSelector";
@@ -1096,6 +1102,73 @@ export function StudioClient() {
           return null;
         }
 
+        const msg =
+          e instanceof Error ? e.message : "Video generation failed. Please try again.";
+
+        const cloudUnavailable =
+          isBackendConnectionError(e) ||
+          isPipelineFailureError(e) ||
+          isFalAuthError(e) ||
+          isFalCreditError(e) ||
+          isReplicateAuthError(e) ||
+          isReplicateCreditError(e) ||
+          isCloudCapacityMessage(msg);
+
+        // Keep the Studio experience complete when production AI is offline.
+        if (cloudUnavailable) {
+          setBackendOnline(false);
+          setPipelineDiagnostic(null);
+          await runGenerationSimulation((percent, message, stageIndex) => {
+            applyProgress({ percent, message, stageIndex });
+          });
+
+          const playbackUrl = resolveVideoPlaybackUrl(PREVIEW_PLACEHOLDER_VIDEO, {
+            simulationMode: true,
+            preferSample: true,
+          });
+
+          const video: GeneratedVideo = {
+            id: `mock-${Date.now()}`,
+            userId: activeProfile.id,
+            title: capturedTitle,
+            category: activeCategory,
+            mode: activeMode,
+            visualStyle: activeVisualStyle,
+            durationSeconds: effectiveDuration,
+            creditsUsed: 0,
+            previewOnly: true,
+            canDownload: false,
+            status: "ready",
+            videoUrl: playbackUrl,
+            simulationMode: true,
+            creativePrompt: capturedPrompt || undefined,
+            createdAt: new Date().toISOString(),
+          };
+
+          const all = [video, ...videos.filter((v) => v.id !== video.id)];
+          setVideos(all);
+          saveVideosForUser(activeProfile.id, all);
+          setActiveVideo(video);
+          genPhaseRef.current = "success";
+          setGenPhase("success");
+          setGenUi({
+            active: true,
+            percent: 100,
+            message: "Done ✓ — preview ready (simulation)",
+            stageIndex: GENERATION_LAST_STAGE_INDEX,
+          });
+          setStatusText("Preview ready (simulation)");
+          setStudioScreen("preview");
+          pushToast({
+            tone: "success",
+            title: "Preview ready",
+            message:
+              "Cloud AI is offline — showing a studio simulation preview so you can continue.",
+          });
+          setProcessing(false);
+          return video;
+        }
+
         if (isPipelineFailureError(e)) {
           const failure = e;
           setPipelineDiagnostic({
@@ -1117,16 +1190,6 @@ export function StudioClient() {
           showGenerationFailure("GPU pipeline failed", failure.message, failure.details);
           return null;
         }
-
-        const msg =
-          e instanceof Error ? e.message : "Video generation failed. Please try again.";
-
-        const cloudUnavailable =
-          isFalAuthError(e) ||
-          isFalCreditError(e) ||
-          isReplicateAuthError(e) ||
-          isReplicateCreditError(e) ||
-          isCloudCapacityMessage(msg);
 
         if (isFalAuthError(e)) {
           const notice = noticeForOwnerOrCustomer(
@@ -2158,7 +2221,11 @@ export function StudioClient() {
   const premiumPipeline = profile
     ? hasPremiumAccess(profile, durationSeconds)
     : false;
-  const wizardTotalSteps = getWizardStepCount(category, mode, visualStyle);
+  const setupSubstep = !mode ? 0 : !category ? 1 : !visualStyle ? 2 : 3;
+  const wizardTotalSteps =
+    mode && category && visualStyle
+      ? getWizardStepCount(category, mode, visualStyle)
+      : 4;
   const currentWizardGroup = getWizardGroupAtStep(
     wizardStep,
     category,
@@ -2176,9 +2243,39 @@ export function StudioClient() {
     (pipelineDiagnostic !== null && isStudioOwner(profile));
   const wizardStepLabel =
     wizardStep === WIZARD_SETUP_STEP
-      ? "Mode, category & style"
+      ? setupSubstep === 0
+        ? "Select mode"
+        : setupSubstep === 1
+          ? "Select category"
+          : setupSubstep === 2
+            ? "Select style"
+            : "Name your video"
       : currentWizardGroup?.label ?? "Create";
-  const wizardProgressPct = Math.round(((wizardStep + 1) / wizardTotalSteps) * 100);
+  const wizardProgressCurrent =
+    wizardStep === WIZARD_SETUP_STEP ? setupSubstep + 1 : wizardStep + 1;
+  const wizardProgressPct = Math.round(
+    (wizardProgressCurrent / wizardTotalSteps) * 100
+  );
+  const roadmapLabels = useMemo(() => {
+    if (mode && category && visualStyle) {
+      const groups = getWizardStepGroups(category, mode, visualStyle);
+      return ["Setup", ...groups.map((g) => g.label), "Generate"];
+    }
+    return [
+      "Mode",
+      "Category",
+      "Style",
+      "Title",
+      "Prompt & media",
+      "Generate",
+    ];
+  }, [mode, category, visualStyle]);
+  const roadmapCurrent =
+    wizardStep === WIZARD_SETUP_STEP
+      ? 0
+      : isLastWizardStep
+        ? roadmapLabels.length - 1
+        : Math.min(wizardStep, roadmapLabels.length - 2);
 
   if (!profile) {
     return <StudioSkeleton />;
@@ -2375,10 +2472,10 @@ export function StudioClient() {
                   <div
                     className="studio-wizard-progress"
                     role="progressbar"
-                    aria-valuenow={wizardStep + 1}
+                    aria-valuenow={wizardProgressCurrent}
                     aria-valuemin={1}
                     aria-valuemax={wizardTotalSteps}
-                    aria-label={`Step ${wizardStep + 1} of ${wizardTotalSteps}`}
+                    aria-label={`Step ${wizardProgressCurrent} of ${wizardTotalSteps}`}
                   >
                     <div
                       className="studio-wizard-progress__fill"
@@ -2387,11 +2484,12 @@ export function StudioClient() {
                   </div>
                   <div className="studio-wizard-progress__meta">
                     <span>
-                      Step <strong>{wizardStep + 1}</strong> of {wizardTotalSteps}
+                      Step <strong>{wizardProgressCurrent}</strong> of {wizardTotalSteps}
                     </span>
                     <span className="studio-wizard-progress__step-name">{wizardStepLabel}</span>
                   </div>
                 </div>
+                <WizardRoadmap labels={roadmapLabels} currentStep={roadmapCurrent} />
                 <details className="studio-advanced">
                   <summary>Keyboard shortcuts</summary>
                   <div className="studio-advanced__body">
@@ -2841,7 +2939,7 @@ export function StudioClient() {
                 }
               />
 
-              <details className="studio-side-card">
+              <details className="studio-side-card" open>
                 <summary>Workflow</summary>
                 <div className="studio-side-card__body">
                   <StudioWorkflowPanel
@@ -2855,7 +2953,7 @@ export function StudioClient() {
                 </div>
               </details>
 
-              <details className="studio-side-card">
+              <details className="studio-side-card" open>
                 <summary>Library</summary>
                 <div className="studio-side-card__body">
                   <StudioVideoCarousel

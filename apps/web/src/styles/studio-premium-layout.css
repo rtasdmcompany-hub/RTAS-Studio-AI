@@ -461,6 +461,7 @@
   .shashka-studio--screen-preview .shashka-studio__content {
     padding-top: 4.75rem;
     padding-inline: 0.75rem;
+    padding-bottom: 5.75rem;
   }
 
   .create-panel-unified__bar,
@@ -477,4 +478,170 @@
   .shashka-console__compile {
     width: 100%;
   }
+
+  .studio-chrome-footer {
+    display: none;
+  }
+
+  .studio-wizard-roadmap__list {
+    gap: 0.45rem;
+  }
+
+  .studio-wizard-roadmap__label {
+    max-width: 4.5rem;
+  }
 }
+
+/* —— Production layout repair: scroll chain + navbar —— */
+
+.rtas-header--studio .rtas-header__inner {
+  max-width: none;
+  width: 100%;
+  min-height: 3.65rem;
+  padding-inline: clamp(0.85rem, 2.2vw, 1.75rem);
+  align-items: center;
+}
+
+.rtas-header--studio .rtas-header__actions {
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.rtas-header--studio .credits-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.65rem;
+  white-space: nowrap;
+}
+
+.studio-shell--unified {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.studio-shell__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shashka-studio--screen-create .shashka-studio__content {
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.shashka-studio__create-screen,
+.shashka-studio__sidebar,
+.shashka-holo-stack.create-panel,
+.shashka-holo-widget.create-panel-unified {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.shashka-wizard-step__body {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.shashka-wizard-step__footer {
+  background: linear-gradient(
+    180deg,
+    rgba(9, 9, 14, 0) 0%,
+    rgba(9, 9, 14, 0.92) 35%,
+    rgba(9, 9, 14, 0.98) 100%
+  );
+  padding-top: 0.65rem;
+  padding-bottom: 0.15rem;
+}
+
+.studio-setup-section {
+  scroll-margin-top: 0.75rem;
+}
+
+.studio-setup-section + .studio-setup-section {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.studio-wizard-roadmap {
+  margin: 0.75rem 0 0.15rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.studio-wizard-roadmap__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.15rem 0 0.35rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+  min-width: min-content;
+}
+
+.studio-wizard-roadmap__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  max-width: 9.5rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.studio-wizard-roadmap__item--active {
+  border-color: rgba(165, 148, 253, 0.45);
+  background: rgba(165, 148, 253, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.studio-wizard-roadmap__item--done {
+  border-color: rgba(154, 230, 180, 0.28);
+  color: rgba(154, 230, 180, 0.9);
+}
+
+.studio-wizard-roadmap__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.62rem;
+  font-weight: 650;
+  flex-shrink: 0;
+}
+
+.studio-wizard-roadmap__item--active .studio-wizard-roadmap__index {
+  background: rgba(165, 148, 253, 0.35);
+}
+
+.studio-wizard-roadmap__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shashka-console__footnote {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (min-width: 961px) {
+  .shashka-preview-side {
+    max-height: none;
+    overflow-y: auto;
+  }
+}
+

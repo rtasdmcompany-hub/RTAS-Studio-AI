@@ -39,6 +39,10 @@ import {
   rateLimitResponse,
   requireApiSession,
 } from "@/lib/server/api-auth";
+import {
+  buildMockGenerationSuccess,
+  shouldFallbackToMockGeneration,
+} from "@/lib/server/mock-generation";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -285,26 +289,68 @@ export async function POST(request: Request) {
     try {
       proxyResult = await proxyGenerateToFastApi(proxyPayload);
     } catch (proxyError) {
+      const details =
+        proxyError instanceof Error
+          ? proxyError.message
+          : "Unexpected GPU proxy failure";
+      console.warn("[generate] GPU proxy exception — using mock preview:", details);
+
+      const mock = buildMockGenerationSuccess({
+        durationSeconds: processedDurationSeconds,
+        promptPreview,
+        category: String(category),
+        jobId,
+      });
+
+      if (jobId && mock.videoUrl) {
+        await completeGenerationJob(jobId, mock.videoUrl);
+      }
+      // Free the render slot without charging — simulation preview only.
       await releaseSlotOnFailure(
         effectiveUserId,
         skipBilling,
         previewOnly,
         useFreeTrial
       );
-      if (jobId) {
-        await failGenerationJob(jobId);
+
+      return NextResponse.json({
+        ...mock,
+        creditsUsed: 0,
+        jobId: jobId ?? mock.jobId,
+      });
+    }
+
+    if (!proxyResult.ok && shouldFallbackToMockGeneration(proxyResult)) {
+      const errorMessage =
+        typeof proxyResult.data.error === "string"
+          ? proxyResult.data.error
+          : "GPU worker unavailable";
+      console.warn(
+        `[generate] GPU unavailable (${proxyResult.status}) — mock preview:`,
+        errorMessage
+      );
+
+      const mock = buildMockGenerationSuccess({
+        durationSeconds: processedDurationSeconds,
+        promptPreview,
+        category: String(category),
+        jobId,
+      });
+
+      if (jobId && mock.videoUrl) {
+        await completeGenerationJob(jobId, mock.videoUrl);
       }
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
 
-      const details =
-        proxyError instanceof Error
-          ? proxyError.message
-          : "Unexpected GPU proxy failure";
-      const failure = buildGpuPipelineFailure(503, details);
-
-      console.error("[generate] GPU proxy exception:", details);
-
-      return NextResponse.json(failure, {
-        status: httpStatusForPipelineFailure(failure, 503),
+      return NextResponse.json({
+        ...mock,
+        creditsUsed: 0,
+        jobId: jobId ?? mock.jobId,
       });
     }
 

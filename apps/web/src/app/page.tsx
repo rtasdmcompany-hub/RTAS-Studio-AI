@@ -202,8 +202,8 @@ export default function HomePage() {
           <ButtonLink href="/studio" variant="lavender">
             Start creating
           </ButtonLink>
-          <ButtonLink href="/how-to-use" variant="ghost">
-            60-second guide
+          <ButtonLink href="/showcase" variant="ghost">
+            Watch showcase
           </ButtonLink>
         </div>
         <p className="rtas-final-cta__note">
