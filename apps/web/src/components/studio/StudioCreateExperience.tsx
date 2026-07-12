@@ -27,21 +27,29 @@ const STYLE_CARDS: {
   id: VisualStyle;
   title: string;
   body: string;
+  image: string;
+  imageAlt: string;
 }[] = [
   {
     id: "real",
     title: "Real face",
     body: "Identity lock for consistent likeness across every shot.",
+    image: "/styles/style-real-face.jpg",
+    imageAlt: "Example of a realistic human face look for identity-locked video",
   },
   {
     id: "avatar",
     title: "Avatar",
     body: "Stylized digital presence with cinematic continuity.",
+    image: "/styles/style-avatar.jpg",
+    imageAlt: "Example of a stylized digital avatar character look",
   },
   {
     id: "cartoon",
     title: "Cartoon",
     body: "Animated storytelling with bold character design.",
+    image: "/styles/style-cartoon.jpg",
+    imageAlt: "Example of a bold cartoon character look for animated stories",
   },
 ];
 
@@ -236,7 +244,18 @@ export function StudioCreateExperience({
                 aria-pressed={visualStyle === card.id}
                 onClick={() => onStyleSelect(card.id)}
               >
-                <span className="studio-style-card__swatch" data-style={card.id} aria-hidden />
+                <span className="studio-style-card__swatch" data-style={card.id}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={card.image}
+                    alt={card.imageAlt}
+                    className="studio-style-card__image"
+                    width={480}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
                 <span className="studio-style-card__title">{card.title}</span>
                 <span className="studio-style-card__body">{card.body}</span>
               </button>

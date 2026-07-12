@@ -16,6 +16,7 @@
 @import "../styles/cinematic-aesthetic.css";
 @import "../styles/inner-pages.css";
 @import "../styles/high-contrast-text.css";
+@import "../styles/site-chrome.css";
 /* Studio-only CSS (shashka / gallery / pipeline) loads via app/studio/layout.tsx */
 
 /* Legacy semantic aliases live in @rtas/design-tokens/css/tokens.css */

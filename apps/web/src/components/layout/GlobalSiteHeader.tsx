@@ -6,7 +6,7 @@ import { CreditsPill } from "@/components/CreditsPill";
 
 const HIDE_HEADER_PREFIXES = ["/share/"] as const;
 
-/** Single global navbar — mounted from root layout on every route. */
+/** Single global navbar — premium chrome on every route. */
 export function GlobalSiteHeader() {
   const pathname = usePathname() ?? "";
 
@@ -15,12 +15,12 @@ export function GlobalSiteHeader() {
   }
 
   const isStudio = pathname.startsWith("/studio");
+  const showCredits = isStudio || pathname.startsWith("/profile");
 
   return (
     <SiteHeader
-      className={isStudio ? "rtas-header--studio" : undefined}
-      actionsSlot={isStudio ? <CreditsPill /> : undefined}
-      authVariant={isStudio ? "studio" : "landing"}
+      actionsSlot={showCredits ? <CreditsPill /> : undefined}
+      authVariant={isStudio || pathname.startsWith("/profile") ? "studio" : "landing"}
     />
   );
 }

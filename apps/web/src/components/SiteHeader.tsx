@@ -7,21 +7,14 @@ import { ButtonLink } from "@rtas/ui";
 import { RtasHeaderBrand } from "@/components/RtasHeaderBrand";
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
 
-const STUDIO_NAV = [
+/** Unified premium nav for the whole product surface */
+const SITE_NAV = [
   { href: "/studio", label: "Studio" },
   { href: "/showcase", label: "Showcase" },
   { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/help", label: "Help" },
-] as const;
-
-const LANDING_NAV = [
-  { href: "/studio", label: "Studio" },
-  { href: "/profile", label: "Dashboard" },
   { href: "/how-to-use", label: "How to use" },
   { href: "/help", label: "Help" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
 ] as const;
 
 type Props = {
@@ -33,7 +26,6 @@ type Props = {
 
 function isNavActive(pathname: string, href: string): boolean {
   if (href === "/studio") return pathname.startsWith("/studio");
-  if (href === "/profile") return pathname.startsWith("/profile");
   if (href === "/how-to-use") return pathname.startsWith("/how-to-use");
   if (href === "/showcase") return pathname.startsWith("/showcase");
   if (href === "/features") return pathname.startsWith("/features");
@@ -41,7 +33,6 @@ function isNavActive(pathname: string, href: string): boolean {
     return pathname.startsWith("/help") || pathname.startsWith("/feedback");
   }
   if (href === "/pricing") return pathname === "/pricing";
-  if (href === "/about") return pathname === "/about";
   return false;
 }
 
@@ -49,7 +40,6 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
   const pathname = usePathname() ?? "";
   const [menuOpen, setMenuOpen] = useState(false);
   const isStudio = authVariant === "studio" || pathname.startsWith("/studio");
-  const nav = isStudio ? STUDIO_NAV : LANDING_NAV;
 
   useEffect(() => {
     setMenuOpen(false);
@@ -66,7 +56,8 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
 
   const headerClass = [
     "rtas-header",
-    isStudio ? "rtas-header--studio rtas-header--premium" : "",
+    "rtas-header--premium",
+    isStudio ? "rtas-header--studio" : "",
     className,
     menuOpen ? "rtas-header--menu-open" : "",
   ]
@@ -76,10 +67,10 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
   return (
     <header className={headerClass}>
       <div className="rtas-header__inner">
-        <RtasHeaderBrand href={isStudio ? "/studio" : "/"} logoSize={isStudio ? 40 : 28} />
+        <RtasHeaderBrand href="/" logoSize={40} />
 
         <nav className="rtas-header__nav" aria-label="Primary">
-          {nav.map(({ href, label }) => {
+          {SITE_NAV.map(({ href, label }) => {
             const active = isNavActive(pathname, href);
             return (
               <Link
@@ -119,7 +110,7 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
 
       {menuOpen ? (
         <nav id="rtas-mobile-nav" className="rtas-header__mobile-menu" aria-label="Mobile">
-          {nav.map(({ href, label }) => {
+          {SITE_NAV.map(({ href, label }) => {
             const active = isNavActive(pathname, href);
             return (
               <Link
