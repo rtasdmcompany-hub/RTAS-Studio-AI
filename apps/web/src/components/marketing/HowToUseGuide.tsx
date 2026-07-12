@@ -90,8 +90,8 @@ function GuideMedia({
 export function HowToUseGuide() {
   return (
     <InnerPageContainer>
-      <InnerPageSection className="rtas-howto-page__hero text-center">
-        <p className="rtas-eyebrow">Product documentation</p>
+        <InnerPageSection className="rtas-howto-page__hero text-center">
+        <p className="rtas-eyebrow">How to use</p>
         <h1 className="text-zinc-100">Studio Workflow Guide</h1>
         <p className="rtas-howto-page__lead">
           Enterprise-grade instructions for every video category — from secure authentication

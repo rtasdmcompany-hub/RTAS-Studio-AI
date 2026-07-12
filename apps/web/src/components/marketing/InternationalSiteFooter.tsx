@@ -7,23 +7,12 @@ import {
 } from "@rtas/shared";
 import {
   SITE_COMPANY_LINKS,
+  SITE_LEGAL_LINKS,
   SITE_PRODUCT_LINKS,
+  SITE_RESOURCE_LINKS,
   SITE_SOCIAL_LINKS,
   SITE_SUPPORT_EMAIL,
-  SITE_SUPPORT_LINKS,
 } from "@/lib/site-links";
-
-const RESOURCE_LINKS = [
-  { id: "how", label: "How to use", href: "/how-to-use" },
-  { id: "showcase", label: "AI Showcase", href: "/showcase" },
-  { id: "features", label: "Features", href: "/features" },
-  { id: "faq", label: "FAQ", href: "/help/faq" },
-  { id: "billing", label: "Billing", href: "/help/billing" },
-];
-
-const LEGAL_LINKS = SITE_SUPPORT_LINKS.filter((l) =>
-  ["privacy", "terms", "cookies"].includes(l.id)
-);
 
 function FooterLink({ href, label }: { href: string; label: string }) {
   if (href.startsWith("http") || href.startsWith("mailto:")) {
@@ -47,6 +36,7 @@ type Props = {
 
 /**
  * Single international footer used on Studio and all marketing pages.
+ * Columns are deduped — each destination appears once.
  */
 export function InternationalSiteFooter({ className = "" }: Props) {
   return (
@@ -95,16 +85,15 @@ export function InternationalSiteFooter({ className = "" }: Props) {
           </div>
           <div className="studio-world-footer__col">
             <h3>Resources</h3>
-            {RESOURCE_LINKS.map((link) => (
+            {SITE_RESOURCE_LINKS.map((link) => (
               <FooterLink key={link.id} href={link.href} label={link.label} />
             ))}
           </div>
           <div className="studio-world-footer__col">
             <h3>Legal</h3>
-            {LEGAL_LINKS.map((link) => (
+            {SITE_LEGAL_LINKS.map((link) => (
               <FooterLink key={link.id} href={link.href} label={link.label} />
             ))}
-            <FooterLink href="/support" label="Contact" />
           </div>
         </div>
       </div>

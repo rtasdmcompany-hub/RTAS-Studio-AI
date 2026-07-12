@@ -10,7 +10,7 @@ const HowToUseGuide = dynamic(
     ),
   {
     loading: () => (
-      <div className="inner-page-container max-w-6xl mx-auto px-4 pt-28 pb-16">
+      <div className="inner-page-container max-w-6xl mx-auto px-4 pt-0 pb-10">
         <div className="rtas-ui-loading-overlay" role="status" aria-live="polite">
           Loading guide…
         </div>

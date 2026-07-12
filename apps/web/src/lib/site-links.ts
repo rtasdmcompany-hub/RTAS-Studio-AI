@@ -18,42 +18,51 @@ export type SiteSocialLink = {
   glyph: string;
 };
 
-/** Product column */
+/** Product column — unique product surfaces only */
 export const SITE_PRODUCT_LINKS: SiteNavLink[] = [
   { id: "studio", label: "Studio", href: "/studio" },
   { id: "pricing", label: "Pricing", href: "/pricing" },
   { id: "features", label: "Features", href: "/features" },
   { id: "showcase", label: "Showcase", href: "/showcase" },
-  { id: "docs", label: "Documentation", href: "/how-to-use" },
-  { id: "developers", label: "Developers", href: "/help" },
   { id: "dashboard", label: "Dashboard", href: "/profile" },
+];
+
+/** Resources — guides & technical docs (no product duplicates) */
+export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
+  { id: "how", label: "How to use", href: "/how-to-use" },
+  { id: "docs", label: "Documentation", href: "/docs" },
+  { id: "developers", label: "Developers", href: "/developers" },
+  { id: "faq", label: "FAQ", href: "/help/faq" },
+  { id: "billing", label: "Billing", href: "/help/billing" },
+  { id: "help", label: "Help Center", href: "/help" },
 ];
 
 /** Company column */
 export const SITE_COMPANY_LINKS: SiteNavLink[] = [
   { id: "about", label: "About", href: "/about" },
-  { id: "careers", label: "Careers", href: "/support" },
-  { id: "blog", label: "Blog", href: "/help/changelog" },
-  { id: "contact", label: "Contact", href: "/support" },
+  { id: "careers", label: "Careers", href: "/careers" },
+  { id: "blog", label: "Blog", href: "/blog" },
+  { id: "contact", label: "Contact", href: "/help/contact" },
 ];
 
-/** Support column */
+/** Support column (help hub + legal aliases where needed) */
 export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "help", label: "Help Center", href: "/help" },
-  { id: "contact-support", label: "Contact", href: "/support" },
+  { id: "contact-support", label: "Contact", href: "/help/contact" },
   { id: "privacy", label: "Privacy", href: "/privacy" },
   { id: "terms", label: "Terms", href: "/terms" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
-  { id: "status", label: "Status", href: "/api/health" },
+  { id: "status", label: "System status", href: "/status" },
   { id: "faq", label: "FAQ", href: "/help/faq" },
   { id: "billing", label: "Billing", href: "/help/billing" },
 ];
 
-/** Legal (subset used where a dedicated Legal column is shown) */
+/** Legal column — no Contact duplicate */
 export const SITE_LEGAL_LINKS: SiteNavLink[] = [
   { id: "privacy", label: "Privacy", href: "/privacy" },
   { id: "terms", label: "Terms", href: "/terms" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
+  { id: "status", label: "System status", href: "/status" },
 ];
 
 /**

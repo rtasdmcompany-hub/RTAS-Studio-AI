@@ -57,7 +57,6 @@
 .rtas-marketing-main:has(.inner-page-container) {
   padding-top: var(--rtas-page-gap) !important;
   padding-bottom: var(--rtas-page-gap-bottom) !important;
-  padding-inline: clamp(0.75rem, 2.5vw, 1.5rem);
 }
 
 /* Studio: breathe under header; never clip footer */

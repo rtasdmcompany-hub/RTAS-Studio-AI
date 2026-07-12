@@ -448,8 +448,8 @@
   transform: translate(-50%, -50%);
   text-align: center;
   width: min(calc(0.8 * min(1280px, 100vw - 1.5rem)), 94vw);
-  max-height: min(36vh, calc(50dvh - 2rem));
-  overflow: auto;
+  max-height: none;
+  overflow: hidden;
   padding: clamp(0.55rem, 1.4vw, 0.95rem) clamp(0.85rem, 2.2vw, 1.6rem);
   pointer-events: auto;
 }
@@ -502,7 +502,8 @@
 
   .rtas-hero-showcase__content {
     width: min(94vw, 100%);
-    max-height: min(40vh, calc(52dvh - 1.5rem));
+    max-height: none;
+    overflow: hidden;
     padding: 0.55rem 0.75rem;
   }
 
@@ -1830,14 +1831,14 @@
 .rtas-about-page {
   width: min(960px, 100%);
   max-width: 960px;
-  margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
-  min-height: calc(100dvh - var(--rtas-header-height, 4.25rem) - 6rem);
+  margin: 0 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
-  padding: clamp(var(--ds-space-8), 4vh, 2.5rem) clamp(1.35rem, 3.5vw, var(--ds-space-8));
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1.35rem, 3.5vw, var(--ds-space-8));
   background: rgba(0, 0, 0, 0.58) !important;
   backdrop-filter: blur(var(--ds-blur-lg));
   -webkit-backdrop-filter: blur(var(--ds-blur-lg));
