@@ -4,9 +4,15 @@ import type { ElementType, HTMLAttributes, ReactNode } from "react";
 export const INNER_PAGE_CONTAINER_CLASS =
   "inner-page-container max-w-6xl mx-auto px-4 pt-0 pb-10 flex flex-col gap-6";
 
-/** Flat content section — no glass box; text sits on the page atmosphere. */
+/**
+ * Section shell — flat by default so main headings stay box-free.
+ * Add `inner-page-section--panel` when a whole block needs a card surface.
+ */
 export const INNER_PAGE_SECTION_CLASS =
   "inner-page-section p-4 md:p-6 text-ds-text bg-transparent border-0 shadow-none rounded-none";
+
+export const INNER_PAGE_SECTION_PANEL_CLASS =
+  "inner-page-section inner-page-section--panel backdrop-blur-ds-xl border border-white/10 rounded-2xl p-6 md:p-8 text-ds-text shadow-ds-2xl";
 
 type ContainerProps = {
   children: ReactNode;

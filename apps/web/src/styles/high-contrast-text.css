@@ -10,7 +10,7 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/* —— Landing hero overlay stays readable; content panels stay flat —— */
+/* —— Heroes stay flat; optional panels + content cards use equal glass —— */
 .video-content-panel {
   background: transparent !important;
   backdrop-filter: none !important;
@@ -25,6 +25,32 @@ html {
   backdrop-filter: blur(var(--ds-blur-md)) !important;
   -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
   border-color: var(--ds-color-white-12) !important;
+}
+
+.inner-page-section {
+  color: var(--ds-text-body) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.inner-page-section--panel {
+  background: rgba(8, 8, 12, 0.55) !important;
+  backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+}
+
+.legal-prose-shell {
+  background: rgba(8, 8, 12, 0.55) !important;
+  backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-lg)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 1rem;
+  box-shadow: none !important;
 }
 
 .rtas-header,
@@ -93,16 +119,7 @@ html {
   text-shadow: 0 1px 10px var(--ds-color-black-85);
 }
 
-/* —— Inner pages (pricing, legal, how-to) — flat, no glass boxes —— */
-.inner-page-section {
-  color: var(--ds-text-body) !important;
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
+/* —— Inner page typography —— */
 .inner-page-section :is(p, li, dd, .legal-subtitle, .legal-meta, .legal-lead, .rtas-eyebrow) {
   color: var(--ds-text-body) !important;
 }
@@ -121,14 +138,6 @@ html {
 .inner-page-section a:not(.rtas-btn-lavender):not(.rtas-btn-ghost) {
   color: var(--ds-link-bright) !important;
   font-weight: var(--ds-font-medium);
-}
-
-.legal-prose-shell {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 .legal-home-link {
