@@ -320,7 +320,7 @@
   flex-shrink: 0;
   margin-top: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(8, 8, 12, 0.4), rgba(5, 5, 8, 0.98));
+  background: linear-gradient(180deg, rgba(8, 8, 12, 0.92), rgba(5, 5, 8, 0.98));
 }
 
 .studio-world-footer__inner {
@@ -340,11 +340,17 @@
 }
 
 .studio-world-footer__tagline {
-  margin: 0 0 0.85rem;
-  max-width: 22rem;
+  margin: 0 auto 0.85rem;
+  max-width: 28rem;
   font-size: 0.875rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.55);
+}
+
+.rtas-marketing-shell .studio-world-footer {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
 }
 
 .studio-world-footer__contact {
