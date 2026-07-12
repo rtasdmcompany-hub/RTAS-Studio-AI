@@ -459,9 +459,9 @@
 @media (max-width: 640px) {
   .shashka-studio--screen-create .shashka-studio__content,
   .shashka-studio--screen-preview .shashka-studio__content {
-    padding-top: 4.75rem;
+    padding-top: 0.5rem;
     padding-inline: 0.75rem;
-    padding-bottom: 5.75rem;
+    padding-bottom: 1.5rem;
   }
 
   .create-panel-unified__bar,
@@ -516,19 +516,19 @@
 }
 
 .studio-shell--unified {
-  height: 100dvh;
-  max-height: 100dvh;
-  overflow: hidden;
+  height: auto;
+  max-height: none;
+  overflow: visible;
 }
 
 .studio-shell__main {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .shashka-studio--screen-create .shashka-studio__content {
-  overflow: hidden;
+  overflow: visible;
   align-items: stretch;
 }
 

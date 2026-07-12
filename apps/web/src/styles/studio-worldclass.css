@@ -7,7 +7,7 @@
 /* Studio-specific sticky header width override */
 .studio-shell--unified {
   height: auto;
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--rtas-header-height, 4.25rem));
   max-height: none;
   overflow: visible;
 }
@@ -17,10 +17,10 @@
 }
 
 .shashka-studio--screen-create .shashka-studio__content {
-  padding: 1.25rem clamp(0.85rem, 2.5vw, 2rem) 2rem;
+  padding: 0.35rem clamp(0.85rem, 2.5vw, 2rem) 1.5rem;
   overflow: visible;
   height: auto;
-  min-height: calc(100dvh - 4.5rem);
+  min-height: 0;
 }
 
 .shashka-studio__create-screen {
@@ -382,9 +382,9 @@
 
 /* Preview polish */
 .shashka-studio--screen-preview .shashka-studio__content {
-  padding-top: 1.25rem;
+  padding-top: 0.35rem;
   height: auto;
-  min-height: calc(100dvh - 4.5rem);
+  min-height: 0;
   overflow: visible;
 }
 

@@ -2,9 +2,24 @@
  * Shared premium header + international footer for every page.
  */
 
+:root {
+  --rtas-header-height: 4.25rem;
+  --rtas-page-gap: 1.75rem;
+  --rtas-page-gap-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --rtas-header-height: 3.75rem;
+    --rtas-page-gap: 1.25rem;
+    --rtas-page-gap-bottom: 1.5rem;
+  }
+}
+
 /* —— Sticky premium header —— */
-.rtas-header--premium {
-  position: sticky;
+.rtas-header--premium,
+.rtas-header.rtas-header--premium {
+  position: sticky !important;
   top: 0;
   z-index: 120;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -19,11 +34,48 @@
 .rtas-header--premium .rtas-header__inner {
   max-width: min(1280px, 100%);
   width: 100%;
-  min-height: 4.25rem;
+  min-height: var(--rtas-header-height);
   margin: 0 auto;
   padding: 0.7rem clamp(1rem, 2.5vw, 2rem);
   gap: 1.25rem;
   align-items: center;
+}
+
+/* —— Standard content gap under header / above footer —— */
+.rtas-marketing-main {
+  padding-top: var(--rtas-page-gap) !important;
+  padding-bottom: var(--rtas-page-gap-bottom) !important;
+}
+
+/* Full-bleed heroes sit flush under the sticky header */
+.rtas-marketing-main:has(.rtas-hero-showcase),
+.rtas-marketing-main:has(.rtas-ai-showcase-bleed) {
+  padding-top: 0 !important;
+}
+
+/* Inner-page routes previously zeroed padding — restore the standard gap */
+.rtas-marketing-main:has(.inner-page-container) {
+  padding-top: var(--rtas-page-gap) !important;
+  padding-bottom: var(--rtas-page-gap-bottom) !important;
+  padding-inline: clamp(0.75rem, 2.5vw, 1.5rem);
+}
+
+/* Studio: breathe under header; never clip footer */
+.studio-shell--unified {
+  display: flex;
+  flex-direction: column;
+  height: auto !important;
+  min-height: calc(100dvh - var(--rtas-header-height));
+  max-height: none !important;
+  overflow: visible !important;
+  padding-top: var(--rtas-page-gap);
+}
+
+.studio-shell__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible !important;
+  padding-bottom: var(--rtas-page-gap-bottom);
 }
 
 .rtas-header--studio.rtas-header--premium .rtas-header__inner {

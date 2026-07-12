@@ -72,7 +72,6 @@
 .rtas-marketing-main:has(.inner-page-container) {
   display: block;
   width: 100%;
-  padding: var(--ds-space-0);
 }
 
 .inner-page-section .rtas-howto-category,

@@ -99,9 +99,9 @@
   text-decoration: none;
 }
 
-/* Header */
+/* Header — sticky chrome (gap tokens live in site-chrome.css) */
 .rtas-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -1830,14 +1830,14 @@
 .rtas-about-page {
   width: min(960px, 100%);
   max-width: 960px;
-  margin: clamp(4.7rem, 10vh, 5.5rem) auto clamp(var(--ds-space-9), 5vh, var(--ds-space-14));
-  min-height: calc(100dvh - 11rem);
+  margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
+  min-height: calc(100dvh - var(--rtas-header-height, 4.25rem) - 6rem);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: clamp(var(--ds-space-10), 5vh, 3.2rem) clamp(1.35rem, 3.5vw, var(--ds-space-8));
+  padding: clamp(var(--ds-space-8), 4vh, 2.5rem) clamp(1.35rem, 3.5vw, var(--ds-space-8));
   background: rgba(0, 0, 0, 0.58) !important;
   backdrop-filter: blur(var(--ds-blur-lg));
   -webkit-backdrop-filter: blur(var(--ds-blur-lg));
@@ -1919,7 +1919,7 @@
 .rtas-pricing-hero {
   max-width: 720px;
   margin: var(--ds-space-0) auto;
-  padding: var(--ds-space-20) var(--ds-space-6) var(--ds-space-6);
+  padding: 0.5rem var(--ds-space-6) var(--ds-space-6);
   text-align: center;
 }
 
@@ -2179,8 +2179,8 @@
   width: min(720px, 100%);
   max-width: 720px;
   min-height: auto;
-  margin: clamp(var(--ds-space-2), 1.5vh, var(--ds-space-4)) auto var(--ds-space-8);
-  padding: clamp(var(--ds-space-20), 10vh, 5.75rem) clamp(1.35rem, 3.5vw, var(--ds-space-8))
+  margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(1.35rem, 3.5vw, var(--ds-space-8))
     clamp(var(--ds-space-6), 3vh, 2rem);
   pointer-events: auto;
   text-align: center;
@@ -2302,7 +2302,7 @@
 
 @media (max-width: 640px) {
   .legal-shell.legal-shell--marketing {
-    padding-top: 4.6rem;
+    padding-top: var(--rtas-page-gap, 1.25rem);
     padding-left: var(--ds-space-4);
     padding-right: var(--ds-space-4);
   }
@@ -2318,8 +2318,8 @@
 
 .rtas-howto-page {
   width: min(980px, 100%);
-  margin: clamp(4.7rem, 10vh, 5.5rem) auto clamp(var(--ds-space-10), 5vh, var(--ds-space-14));
-  padding: clamp(var(--ds-space-8), 4vh, 2.7rem) clamp(var(--ds-space-5), 3vw, 2rem);
+  margin: 0 auto var(--rtas-page-gap-bottom, 2rem);
+  padding: clamp(var(--ds-space-6), 3vh, 2rem) clamp(var(--ds-space-5), 3vw, 2rem);
   background: rgba(0, 0, 0, 0.58) !important;
   backdrop-filter: blur(var(--ds-blur-lg));
   -webkit-backdrop-filter: blur(var(--ds-blur-lg));
@@ -2701,7 +2701,7 @@
 .rtas-profile-wrap {
   max-width: 640px;
   margin: var(--ds-space-0) auto;
-  padding: var(--ds-space-24) var(--ds-space-6) var(--ds-space-12);
+  padding: 0.5rem var(--ds-space-6) var(--ds-space-8);
 }
 
 .rtas-profile-wrap .profile-card {
@@ -2747,7 +2747,7 @@
 }
 
 .rtas-marketing-shell .rtas-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -2755,7 +2755,7 @@
 }
 
 .rtas-marketing-shell .auth-shell {
-  padding-top: var(--ds-space-20);
+  padding-top: var(--rtas-page-gap, 1.75rem);
   pointer-events: auto;
 }
 
