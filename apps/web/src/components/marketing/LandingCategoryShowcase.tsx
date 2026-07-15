@@ -3,9 +3,56 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-function ShowcaseVideo({ src }: { src: string }) {
+type ShowcaseCard = {
+  id: string;
+  label: string;
+  blurb: string;
+  video: string;
+  poster: string;
+};
+
+const SHOWCASE_CARDS: ShowcaseCard[] = [
+  {
+    id: "rap",
+    label: "Rap",
+    blurb: "Lyric-synced urban music videos",
+    video: "/showcase/rap.mp4",
+    poster: "/categories/category-song.jpg",
+  },
+  {
+    id: "solo",
+    label: "Solo",
+    blurb: "Solo performance & narrative clips",
+    video: "/showcase/solo.mp4",
+    poster: "/styles/style-real-face.jpg",
+  },
+  {
+    id: "commercial",
+    label: "Commercial",
+    blurb: "Product ads & brand promos",
+    video: "/showcase/commercial.mp4",
+    poster: "/categories/category-business.jpg",
+  },
+  {
+    id: "cartoon",
+    label: "Cartoon",
+    blurb: "Stylized animated storytelling",
+    video: "/showcase/cartoon.mp4",
+    poster: "/categories/category-cartoon.jpg",
+  },
+  {
+    id: "islamic",
+    label: "Islamic",
+    blurb: "Faith-forward cinematic storytelling",
+    video: "/showcase/islamic.mp4",
+    poster: "/categories/category-religious.jpg",
+  },
+];
+
+function ShowcaseVideo({ src, poster }: { src: string; poster: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const play = useCallback(() => {
     const video = ref.current;
@@ -39,13 +86,29 @@ function ShowcaseVideo({ src }: { src: string }) {
   }, []);
 
   useEffect(() => {
-    if (shouldLoad) play();
-  }, [src, shouldLoad, play]);
+    if (shouldLoad && !failed) play();
+  }, [src, shouldLoad, failed, play]);
+
+  if (failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={poster}
+        alt=""
+        className="w-full h-full object-cover"
+        width={480}
+        height={720}
+        loading="lazy"
+        decoding="async"
+      />
+    );
+  }
 
   return (
     <video
       ref={ref}
       src={shouldLoad ? src : undefined}
+      poster={poster}
       autoPlay={shouldLoad}
       muted
       loop
@@ -54,6 +117,7 @@ function ShowcaseVideo({ src }: { src: string }) {
       className="w-full h-full object-cover"
       onLoadedData={play}
       onCanPlay={play}
+      onError={() => setFailed(true)}
     />
   );
 }
@@ -70,60 +134,23 @@ export function LandingCategoryShowcase({
 
   return (
     <div className={rootClass}>
-      <Link href="/studio" className="rtas-category-card" aria-label="Rap — open studio">
-        <span className="rtas-category-card__media">
-          <ShowcaseVideo src="/showcase/rap.mp4" />
-          <span className="rtas-category-card__sheen" aria-hidden />
-        </span>
-        <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Rap</span>
-          <span className="rtas-category-card__blurb">Lyric-synced urban music videos</span>
-        </span>
-      </Link>
-
-      <Link href="/studio" className="rtas-category-card" aria-label="Solo — open studio">
-        <span className="rtas-category-card__media">
-          <ShowcaseVideo src="/showcase/solo.mp4" />
-          <span className="rtas-category-card__sheen" aria-hidden />
-        </span>
-        <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Solo</span>
-          <span className="rtas-category-card__blurb">Solo performance &amp; narrative clips</span>
-        </span>
-      </Link>
-
-      <Link href="/studio" className="rtas-category-card" aria-label="Commercial — open studio">
-        <span className="rtas-category-card__media">
-          <ShowcaseVideo src="/showcase/commercial.mp4" />
-          <span className="rtas-category-card__sheen" aria-hidden />
-        </span>
-        <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Commercial</span>
-          <span className="rtas-category-card__blurb">Product ads &amp; brand promos</span>
-        </span>
-      </Link>
-
-      <Link href="/studio" className="rtas-category-card" aria-label="Cartoon — open studio">
-        <span className="rtas-category-card__media">
-          <ShowcaseVideo src="/showcase/cartoon.mp4" />
-          <span className="rtas-category-card__sheen" aria-hidden />
-        </span>
-        <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Cartoon</span>
-          <span className="rtas-category-card__blurb">Stylized animated storytelling</span>
-        </span>
-      </Link>
-
-      <Link href="/studio" className="rtas-category-card" aria-label="Islamic — open studio">
-        <span className="rtas-category-card__media">
-          <ShowcaseVideo src="/showcase/islamic.mp4" />
-          <span className="rtas-category-card__sheen" aria-hidden />
-        </span>
-        <span className="rtas-category-card__body">
-          <span className="rtas-category-card__label">Islamic</span>
-          <span className="rtas-category-card__blurb">Faith-forward cinematic storytelling</span>
-        </span>
-      </Link>
+      {SHOWCASE_CARDS.map((card) => (
+        <Link
+          key={card.id}
+          href="/studio"
+          className="rtas-category-card"
+          aria-label={`${card.label} — open studio`}
+        >
+          <span className="rtas-category-card__media">
+            <ShowcaseVideo src={card.video} poster={card.poster} />
+            <span className="rtas-category-card__sheen" aria-hidden />
+          </span>
+          <span className="rtas-category-card__body">
+            <span className="rtas-category-card__label">{card.label}</span>
+            <span className="rtas-category-card__blurb">{card.blurb}</span>
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }

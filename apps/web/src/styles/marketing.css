@@ -202,7 +202,7 @@
   margin-left: var(--ds-space-8);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .rtas-header__nav {
     display: flex;
   }
@@ -254,13 +254,13 @@
   flex-shrink: 0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .rtas-header__menu-btn {
     display: none;
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .rtas-header__actions--desktop {
     display: none;
   }

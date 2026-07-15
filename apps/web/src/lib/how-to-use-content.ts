@@ -105,7 +105,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     steps: [
       {
         title: "Initialize Song category",
-        detail: "Studio setup → Category → Song Video to activate lyric-sync pipelines.",
+        detail: "Studio setup → Category → Music to activate lyric-sync pipelines.",
       },
       {
         title: "Load Lyric-Synced Motion Timelines",
@@ -131,15 +131,15 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
   },
   {
     id: "religious",
-    title: "Religious / Faith Video",
+    title: "Islamic / Faith",
     media: {
       type: "video",
       src: "/showcase/islamic.mp4",
-      alt: "Religious faith-based video example",
+      alt: "Respectful mosque and faith-based video example",
     },
     summary:
-      "Produce reverent, globally accessible faith content with tone-controlled direction prompts and optional Real-Face Mode for speakers and community leaders.",
-    valueTags: ["Tone-Controlled Direction", "Real-Face Mode", "Multi-Tradition Scripts"],
+      "Produce respectful mosque and faith content with tone-controlled direction prompts and optional Real-Face Mode for speakers and community leaders.",
+    valueTags: ["Tone-Controlled Direction", "Real-Face Mode", "Faith Scripts"],
     bestFor: [
       "Prayer and worship visuals",
       "Holiday and festival campaigns",
@@ -151,7 +151,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
       length: "15–60 seconds for social distribution",
     },
     steps: [
-      { title: "Select Religious category", detail: "Category → Religious Video." },
+      { title: "Select Faith category", detail: "Category → Islamic / Faith." },
       {
         title: "Define thematic focus",
         detail: "Examples: gratitude, forgiveness, holiday, daily reflection, parable.",
@@ -173,8 +173,8 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
   },
   {
     id: "cartoon",
-    title: "Kids Cartoon",
-    media: { type: "video", src: "/showcase/cartoon.mp4", alt: "Kids cartoon animation example" },
+    title: "Kids",
+    media: { type: "video", src: "/showcase/cartoon.mp4", alt: "Kids animation example" },
     summary:
       "Launch stylized animation pipelines for age-appropriate storytelling with character-locked prompts and family-safe visual defaults.",
     valueTags: ["Stylized Animation Pipeline", "Character Lock Prompts", "Age-Safe Defaults"],
@@ -185,7 +185,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
       length: "15–60 seconds per episode segment",
     },
     steps: [
-      { title: "Select Cartoon category", detail: "Category → Kids Cartoon." },
+      { title: "Select Kids category", detail: "Category → Kids." },
       { title: "Define character roster", detail: "Name each character and describe visual traits." },
       { title: "Outline story arc", detail: "Beginning, conflict, and resolution in clear beats." },
       { title: "Set audience age band", detail: "Examples: ages 3–6 or 7–10 for tone calibration." },
