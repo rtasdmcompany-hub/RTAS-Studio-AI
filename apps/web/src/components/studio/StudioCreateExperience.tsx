@@ -110,319 +110,112 @@ const CATEGORY_PREVIEWS: Record<
   },
 };
 
-const QUICK_STARTS: {
-  id: string;
-  title: string;
-  body: string;
-  mode: GenerationMode;
-  category: VideoCategory;
-  style: VisualStyle;
-}[] = [
-  {
-    id: "music",
-    title: "Music video",
-    body: "Lyric-synced performance with identity lock",
-    mode: "prompt",
-    category: "song",
-    style: "real",
-  },
-  {
-    id: "ad",
-    title: "Brand ad",
-    body: "Product-forward commercial in minutes",
-    mode: "image",
-    category: "business",
-    style: "real",
-  },
-  {
-    id: "story",
-    title: "Short story",
-    body: "Narrative scenes with cinematic pacing",
-    mode: "prompt",
-    category: "story",
-    style: "avatar",
-  },
-  {
-    id: "kids",
-    title: "Cartoon clip",
-    body: "Stylized animation for kids & social",
-    mode: "prompt",
-    category: "cartoon",
-    style: "cartoon",
-  },
-  {
-    id: "wedding",
-    title: "Wedding film",
-    body: "Romantic ceremony & reception moments",
-    mode: "prompt",
-    category: "story",
-    style: "real",
-  },
-  {
-    id: "fashion",
-    title: "Fashion lookbook",
-    body: "Editorial product and runway energy",
-    mode: "image",
-    category: "business",
-    style: "real",
-  },
-  {
-    id: "education",
-    title: "Education explainer",
-    body: "Clear lesson beats for courses & schools",
-    mode: "prompt",
-    category: "story",
-    style: "avatar",
-  },
-  {
-    id: "gaming",
-    title: "Gaming trailer",
-    body: "Stylized action for game worlds & streams",
-    mode: "prompt",
-    category: "cartoon",
-    style: "cartoon",
-  },
-];
-
-/** Inspiration cards map to existing VideoCategory values only (no new enums). */
-const TEMPLATES: {
+/** Curated project picks — maps only to existing VideoCategory / VisualStyle. */
+const PROJECT_CARDS: {
   id: string;
   title: string;
   tag: string;
+  body: string;
   mode: GenerationMode;
   category: VideoCategory;
-  style: VisualStyle;
-  examplePrompt: string;
-  duration: string;
-  notes: string;
+  suggestedStyle: VisualStyle;
+  examplePrompt?: string;
+  duration?: string;
+  notes?: string;
 }[] = [
   {
     id: "music-video",
     title: "Music Video",
     tag: "Music",
+    body: "Lyric-synced performance with identity lock",
     mode: "prompt",
     category: "song",
-    style: "real",
+    suggestedStyle: "real",
     examplePrompt:
       "Neon concert stage, singer locked in frame, lyric-synced cuts, sweeping crane into chorus.",
     duration: "60",
     notes: "Handheld verse → locked-off chorus; whip pans between lyric beats.",
   },
   {
-    id: "islamic",
-    title: "Islamic",
-    tag: "Faith",
-    mode: "prompt",
-    category: "religious",
-    style: "real",
-    examplePrompt:
-      "Respectful dusk mosque exterior, soft golden light, calm narration, serene atmosphere.",
-    duration: "45",
-    notes: "Slow push-ins, gentle dissolves; no abrupt cuts or flashy motion.",
-  },
-  {
-    id: "business",
-    title: "Business",
-    tag: "Business",
-    mode: "prompt",
-    category: "business",
-    style: "avatar",
-    examplePrompt:
-      "Polished brand host in a modern office, clear value proposition, confident pacing.",
-    duration: "30",
-    notes: "Clean medium shots, soft slide transitions, logo end-card hold.",
-  },
-  {
-    id: "commercial",
-    title: "Commercial",
+    id: "brand-ad",
+    title: "Brand ad",
     tag: "Ads",
+    body: "Product-forward commercial in minutes",
     mode: "image",
     category: "business",
-    style: "real",
+    suggestedStyle: "real",
     examplePrompt:
       "Product hero on reflective surface, cinematic lighting, lifestyle cutaways that sell the benefit.",
     duration: "30",
     notes: "Macro product inserts → lifestyle B-roll; smash cut to CTA.",
   },
   {
+    id: "short-story",
+    title: "Short story",
+    tag: "Film",
+    body: "Narrative scenes with cinematic pacing",
+    mode: "prompt",
+    category: "story",
+    suggestedStyle: "avatar",
+    examplePrompt: "Cinematic short story with emotional beats and locked character continuity.",
+    duration: "45",
+  },
+  {
+    id: "cartoon-clip",
+    title: "Cartoon clip",
+    tag: "Kids",
+    body: "Stylized animation for kids & social",
+    mode: "prompt",
+    category: "cartoon",
+    suggestedStyle: "cartoon",
+    examplePrompt: "Playful cartoon characters in a colorful world, family-safe energy.",
+    duration: "30",
+  },
+  {
+    id: "islamic",
+    title: "Faith film",
+    tag: "Faith",
+    body: "Respectful dusk atmosphere and calm narration",
+    mode: "prompt",
+    category: "religious",
+    suggestedStyle: "real",
+    examplePrompt:
+      "Respectful dusk mosque exterior, soft golden light, calm narration, serene atmosphere.",
+    duration: "45",
+    notes: "Slow push-ins, gentle dissolves; no abrupt cuts or flashy motion.",
+  },
+  {
     id: "podcast",
     title: "Podcast",
-    tag: "Podcast",
+    tag: "Audio",
+    body: "Host-forward talk with clean studio framing",
     mode: "prompt",
     category: "podcast",
-    style: "real",
-    examplePrompt:
-      "Warm studio close-up of host at mic, subtle room bokeh, conversational energy.",
+    suggestedStyle: "real",
+    examplePrompt: "Warm podcast studio, host locked in medium shot, soft key light, calm pacing.",
     duration: "60",
-    notes: "Static A-cam with occasional push; soft crossfade between talking points.",
-  },
-  {
-    id: "movie-trailer",
-    title: "Movie Trailer",
-    tag: "Trailer",
-    mode: "prompt",
-    category: "story",
-    style: "real",
-    examplePrompt:
-      "Dark cinematic teaser, rising tension, hero silhouette, dramatic title sting.",
-    duration: "45",
-    notes: "Quick cuts, impact frames, sound-design pauses before title card.",
-  },
-  {
-    id: "documentary",
-    title: "Documentary",
-    tag: "Doc",
-    mode: "prompt",
-    category: "story",
-    style: "real",
-    examplePrompt:
-      "Observational landscape open, interview-style presence, thoughtful voiceover mood.",
-    duration: "90",
-    notes: "Slow pans, archival-feel dissolves, lingering establishing shots.",
   },
   {
     id: "wedding",
-    title: "Wedding",
-    tag: "Wedding",
+    title: "Wedding film",
+    tag: "Story",
+    body: "Romantic ceremony & reception moments",
     mode: "prompt",
     category: "story",
-    style: "real",
-    examplePrompt:
-      "Soft romantic ceremony light, vows moment, golden-hour couple walk.",
+    suggestedStyle: "real",
+    examplePrompt: "Romantic wedding film — soft golden hour, emotional close-ups, elegant pacing.",
     duration: "60",
-    notes: "Shallow DOF, gentle steadicam, warm cross-dissolves.",
   },
   {
     id: "fashion",
-    title: "Fashion",
-    tag: "Fashion",
+    title: "Fashion lookbook",
+    tag: "Ads",
+    body: "Editorial product and runway energy",
     mode: "image",
     category: "business",
-    style: "real",
-    examplePrompt:
-      "Editorial runway energy, fabric motion, confident walk, high-fashion lighting.",
+    suggestedStyle: "real",
+    examplePrompt: "Editorial fashion lookbook, confident walk cycles, crisp product inserts.",
     duration: "30",
-    notes: "Tracking shots along walk; hard cuts to detail inserts.",
-  },
-  {
-    id: "education",
-    title: "Education",
-    tag: "Education",
-    mode: "prompt",
-    category: "story",
-    style: "avatar",
-    examplePrompt:
-      "Friendly explainer host, clear lesson beats, on-screen concept moments.",
-    duration: "45",
-    notes: "Static teaching frame with soft zooms; wipe between chapters.",
-  },
-  {
-    id: "gaming",
-    title: "Gaming",
-    tag: "Gaming",
-    mode: "prompt",
-    category: "cartoon",
-    style: "cartoon",
-    examplePrompt:
-      "Bold stylized boss reveal, dynamic camera orbit, high-energy trailer vibe.",
-    duration: "30",
-    notes: "Orbit + snap zooms; glitch-style transition into logo.",
-  },
-  {
-    id: "travel",
-    title: "Travel",
-    tag: "Travel",
-    mode: "prompt",
-    category: "story",
-    style: "real",
-    examplePrompt:
-      "Sunrise city overlook, traveler silhouette, wanderlust montage energy.",
-    duration: "45",
-    notes: "Drone-style opens, match cuts on motion, warm color grade.",
-  },
-  {
-    id: "kids",
-    title: "Kids",
-    tag: "Kids",
-    mode: "prompt",
-    category: "cartoon",
-    style: "cartoon",
-    examplePrompt:
-      "Bright playful cartoon world, friendly characters, simple joyful story beat.",
-    duration: "30",
-    notes: "Bounce zooms, colorful pops, soft star wipe transitions.",
-  },
-  {
-    id: "story",
-    title: "Story",
-    tag: "Story",
-    mode: "prompt",
-    category: "story",
-    style: "avatar",
-    examplePrompt:
-      "Narrative short with emotional arc, character close-ups, cinematic pacing.",
-    duration: "60",
-    notes: "Motivated camera moves; motivated dissolves at act turns.",
-  },
-  {
-    id: "short-film",
-    title: "Short Film",
-    tag: "Film",
-    mode: "prompt",
-    category: "story",
-    style: "real",
-    examplePrompt:
-      "Intimate short-film scene, naturalistic lighting, quiet dramatic tension.",
-    duration: "90",
-    notes: "Longer takes, subtle push-ins, cut on glance / breath.",
-  },
-  {
-    id: "youtube",
-    title: "YouTube",
-    tag: "YouTube",
-    mode: "prompt",
-    category: "business",
-    style: "real",
-    examplePrompt:
-      "Creator talking-head with punchy hook, B-roll inserts, clear end-screen CTA.",
-    duration: "60",
-    notes: "Jump cuts on speech; pattern interrupts every 8–12s.",
-  },
-  {
-    id: "tiktok",
-    title: "TikTok",
-    tag: "TikTok",
-    mode: "prompt",
-    category: "cartoon",
-    style: "cartoon",
-    examplePrompt:
-      "Vertical-first hook in first second, bold motion, trend-ready visual gag.",
-    duration: "15",
-    notes: "Snap zooms, text-safe framing, beat-synced hard cuts.",
-  },
-  {
-    id: "instagram",
-    title: "Instagram",
-    tag: "Instagram",
-    mode: "image",
-    category: "business",
-    style: "real",
-    examplePrompt:
-      "Aesthetic product reel, clean lifestyle frames, soft brand finish.",
-    duration: "30",
-    notes: "Smooth steadicam; fade-to-brand color hold at end.",
-  },
-  {
-    id: "facebook",
-    title: "Facebook",
-    tag: "Facebook",
-    mode: "prompt",
-    category: "business",
-    style: "avatar",
-    examplePrompt:
-      "Friendly brand message for feed, clear offer, community-first tone.",
-    duration: "30",
-    notes: "Centered framing for mute autoplay; caption-friendly holds.",
   },
 ];
 
@@ -458,10 +251,31 @@ type StudioCreateExperienceProps = {
   titleFieldId: string;
 };
 
-function sectionClass(phase: SetupAccordionPhase, active: SetupAccordionPhase) {
-  return `studio-picker-section studio-accordion-section${
-    active === phase ? " is-expanded" : " is-collapsed"
-  }`;
+function SummaryChip({
+  label,
+  value,
+  onEdit,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onEdit: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="studio-wizard-summary-chip"
+      disabled={disabled}
+      onClick={onEdit}
+    >
+      <span className="studio-wizard-summary-chip__label">{label}</span>
+      <span className="studio-wizard-summary-chip__value">{value}</span>
+      <span className="studio-wizard-summary-chip__edit" aria-hidden>
+        Edit
+      </span>
+    </button>
+  );
 }
 
 export function StudioCreateExperience({
@@ -481,344 +295,283 @@ export function StudioCreateExperience({
   titleError,
   titleFieldId,
 }: StudioCreateExperienceProps) {
-  const modeRef = useRef<HTMLElement>(null);
-  const categoryRef = useRef<HTMLElement>(null);
-  const styleRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLElement>(null);
+  const activeRef = useRef<HTMLElement>(null);
+
+  // Map setup phases to guided steps: project → style → title
+  const activeStep: "project" | "style" | "title" =
+    setupPhase === "title"
+      ? "title"
+      : setupPhase === "style" || (mode && category && !visualStyle)
+        ? "style"
+        : "project";
 
   useEffect(() => {
-    const map: Record<SetupAccordionPhase, RefObject<HTMLElement | null>> = {
-      mode: modeRef,
-      category: categoryRef,
-      style: styleRef,
-      title: titleRef,
-    };
-    const target = map[setupPhase].current;
+    const target = activeRef.current;
     if (!target) return;
     const timer = window.setTimeout(() => {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+      target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 60);
     return () => window.clearTimeout(timer);
-  }, [setupPhase]);
+  }, [activeStep, setupPhase]);
 
   const modeLabel = MODE_CARDS.find((c) => c.id === mode)?.title;
   const categoryLabel = category ? CATEGORY_META[category].shortLabel : null;
   const styleLabel = STYLE_CARDS.find((c) => c.id === visualStyle)?.title;
+  const projectSummary =
+    categoryLabel && modeLabel ? `${categoryLabel} · ${modeLabel}` : categoryLabel || modeLabel;
+
+  const applyProject = (card: (typeof PROJECT_CARDS)[number]) => {
+    onQuickStart({
+      mode: card.mode,
+      category: card.category,
+      style: card.suggestedStyle,
+    });
+    onTemplateApply?.({
+      mode: card.mode,
+      category: card.category,
+      style: card.suggestedStyle,
+      title: card.title,
+      directionPrompt: card.examplePrompt
+        ? `${card.examplePrompt}${card.notes ? `\n\nCamera / transitions: ${card.notes}` : ""}`
+        : undefined,
+      duration: card.duration,
+      notes: card.notes,
+    });
+  };
 
   return (
-    <div className="studio-create-experience">
-      {!mode ? (
-        <section className="studio-welcome" aria-labelledby="studio-welcome-title">
-          <p className="studio-welcome__eyebrow">AI Studio</p>
-          <h2 id="studio-welcome-title" className="studio-welcome__title">
-            What are we creating today?
-          </h2>
-          <p className="studio-welcome__lead">
-            Compose with identity lock, render in the cloud, and publish with commercial-ready
-            masters — all in one premium workspace.
-          </p>
-
-          <div className="studio-quick-grid" aria-label="Quick start">
-            {QUICK_STARTS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="studio-quick-card"
-                disabled={disabled}
-                onClick={() =>
-                  onQuickStart({
-                    mode: item.mode,
-                    category: item.category,
-                    style: item.style,
-                  })
-                }
-              >
-                <span className="studio-quick-card__title">{item.title}</span>
-                <span className="studio-quick-card__body">{item.body}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section
-        ref={modeRef}
-        className={sectionClass("mode", setupPhase)}
-        aria-labelledby="studio-mode-title"
-      >
-        <div className="studio-picker-section__head studio-accordion-section__head">
-          <div className="studio-accordion-section__title-row">
-            <h3 id="studio-mode-title">1 · Choose mode</h3>
-            {mode && setupPhase !== "mode" && modeLabel ? (
-              <button
-                type="button"
-                className="studio-accordion-summary-chip"
-                disabled={disabled}
-                onClick={() => onSetupPhaseChange("mode")}
-              >
-                {modeLabel}
-              </button>
-            ) : null}
-          </div>
-          {setupPhase === "mode" ? <p>How your video begins</p> : null}
+    <div className="studio-create-experience studio-create-experience--guided">
+      {(mode || category || visualStyle || title.trim()) && (
+        <div className="studio-wizard-summary" aria-label="Completed setup steps">
+          {projectSummary ? (
+            <SummaryChip
+              label="1 · Project"
+              value={projectSummary}
+              disabled={disabled}
+              onEdit={() => {
+                onSetupPhaseChange("mode");
+              }}
+            />
+          ) : null}
+          {styleLabel ? (
+            <SummaryChip
+              label="2 · Style"
+              value={styleLabel}
+              disabled={disabled}
+              onEdit={() => onSetupPhaseChange("style")}
+            />
+          ) : null}
+          {title.trim().length >= 2 && activeStep !== "title" ? (
+            <SummaryChip
+              label="3 · Title"
+              value={title.trim()}
+              disabled={disabled}
+              onEdit={() => onSetupPhaseChange("title")}
+            />
+          ) : null}
         </div>
-        <div className="studio-accordion-section__panel" aria-hidden={setupPhase !== "mode"}>
-          <div className="studio-mode-grid">
-            {MODE_CARDS.map((card) => (
+      )}
+
+      {activeStep === "project" ? (
+        <section
+          ref={activeRef as RefObject<HTMLElement>}
+          className="studio-guided-step is-active"
+          aria-labelledby="studio-project-title"
+        >
+          <header className="studio-guided-step__head">
+            <p className="studio-guided-step__eyebrow">Step 1 of 3</p>
+            <h2 id="studio-project-title" className="studio-guided-step__title">
+              Choose project
+            </h2>
+            <p className="studio-guided-step__lead">
+              Pick a starting point. You&apos;ll confirm style next — one step at a time.
+            </p>
+          </header>
+
+          <div className="studio-project-grid" role="list">
+            {PROJECT_CARDS.map((card) => (
               <button
                 key={card.id}
                 type="button"
-                className={`studio-mode-card${mode === card.id ? " is-active" : ""}`}
+                className="studio-project-card"
                 disabled={disabled}
-                aria-pressed={mode === card.id}
-                tabIndex={setupPhase === "mode" ? undefined : -1}
-                onClick={() => onModeSelect(card.id)}
+                role="listitem"
+                onClick={() => applyProject(card)}
               >
-                <span className="studio-mode-card__badge">{card.badge}</span>
-                <span className="studio-mode-card__title">{card.title}</span>
-                <span className="studio-mode-card__body">{card.body}</span>
+                <span className="studio-project-card__media" aria-hidden>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={CATEGORY_PREVIEWS[card.category].image}
+                    alt=""
+                    width={360}
+                    height={240}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+                <span className="studio-project-card__tag">{card.tag}</span>
+                <span className="studio-project-card__title">{card.title}</span>
+                <span className="studio-project-card__body">{card.body}</span>
               </button>
             ))}
           </div>
-        </div>
-      </section>
 
-      {mode ? (
-        <section
-          ref={categoryRef}
-          className={sectionClass("category", setupPhase)}
-          aria-labelledby="studio-category-title"
-        >
-          <div className="studio-picker-section__head studio-accordion-section__head">
-            <div className="studio-accordion-section__title-row">
-              <h3 id="studio-category-title">2 · Category</h3>
-              {category && setupPhase !== "category" && categoryLabel ? (
-                <button
-                  type="button"
-                  className="studio-accordion-summary-chip"
-                  disabled={disabled}
-                  onClick={() => onSetupPhaseChange("category")}
-                >
-                  {categoryLabel}
-                </button>
+          <details className="studio-guided-advanced">
+            <summary>Custom mode & category</summary>
+            <div className="studio-guided-advanced__body">
+              <p className="studio-guided-advanced__hint">Or build from scratch:</p>
+              <div className="studio-mode-grid">
+                {MODE_CARDS.map((card) => (
+                  <button
+                    key={card.id}
+                    type="button"
+                    className={`studio-mode-card${mode === card.id ? " is-active" : ""}`}
+                    disabled={disabled}
+                    aria-pressed={mode === card.id}
+                    onClick={() => onModeSelect(card.id)}
+                  >
+                    <span className="studio-mode-card__badge">{card.badge}</span>
+                    <span className="studio-mode-card__title">{card.title}</span>
+                    <span className="studio-mode-card__body">{card.body}</span>
+                  </button>
+                ))}
+              </div>
+              {mode ? (
+                <div className="studio-category-grid studio-category-grid--compact">
+                  {(Object.keys(CATEGORY_META) as VideoCategory[]).map((c) => {
+                    const preview = CATEGORY_PREVIEWS[c];
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`studio-category-card${category === c ? " is-active" : ""}`}
+                        disabled={disabled}
+                        aria-pressed={category === c}
+                        title={CATEGORY_META[c].description}
+                        onClick={() => onCategorySelect(c)}
+                      >
+                        <span className="studio-category-card__media" aria-hidden>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={preview.image}
+                            alt=""
+                            className="studio-category-card__image"
+                            width={360}
+                            height={480}
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </span>
+                        <span className="studio-category-card__label">
+                          {CATEGORY_META[c].shortLabel}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               ) : null}
             </div>
-            {setupPhase === "category" ? (
-              <p>Pick the format that matches your brief</p>
-            ) : null}
-          </div>
-          <div
-            className="studio-accordion-section__panel"
-            aria-hidden={setupPhase !== "category"}
-          >
-            <div className="studio-category-grid">
-              {(Object.keys(CATEGORY_META) as VideoCategory[]).map((c) => {
-                const preview = CATEGORY_PREVIEWS[c];
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    className={`studio-category-card${category === c ? " is-active" : ""}`}
-                    disabled={disabled}
-                    aria-pressed={category === c}
-                    title={CATEGORY_META[c].description}
-                    tabIndex={setupPhase === "category" ? undefined : -1}
-                    onClick={() => onCategorySelect(c)}
-                  >
-                    <span className="studio-category-card__media" aria-hidden>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={preview.image}
-                        alt=""
-                        className="studio-category-card__image"
-                        width={360}
-                        height={480}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </span>
-                    <span className="studio-category-card__label">
-                      {CATEGORY_META[c].shortLabel}
-                    </span>
-                    <span className="studio-category-card__desc">
-                      {CATEGORY_META[c].description}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          </details>
         </section>
       ) : null}
 
-      {mode && category ? (
+      {activeStep === "style" && mode && category ? (
         <section
-          ref={styleRef}
-          className={sectionClass("style", setupPhase)}
+          ref={activeRef as RefObject<HTMLElement>}
+          className="studio-guided-step is-active"
           aria-labelledby="studio-style-title"
         >
-          <div className="studio-picker-section__head studio-accordion-section__head">
-            <div className="studio-accordion-section__title-row">
-              <h3 id="studio-style-title">3 · Visual style</h3>
-              {visualStyle && setupPhase !== "style" && styleLabel ? (
-                <button
-                  type="button"
-                  className="studio-accordion-summary-chip"
-                  disabled={disabled}
-                  onClick={() => onSetupPhaseChange("style")}
-                >
-                  {styleLabel}
-                </button>
-              ) : null}
-            </div>
-            {setupPhase === "style" ? (
-              <p>Identity and look for the whole project</p>
-            ) : null}
-          </div>
-          <div
-            className="studio-accordion-section__panel"
-            aria-hidden={setupPhase !== "style"}
-          >
-            <div className="studio-style-grid">
-              {STYLE_CARDS.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  className={`studio-style-card${visualStyle === card.id ? " is-active" : ""}`}
-                  disabled={disabled}
-                  aria-pressed={visualStyle === card.id}
-                  tabIndex={setupPhase === "style" ? undefined : -1}
-                  onClick={() => onStyleSelect(card.id)}
-                >
-                  <span className="studio-style-card__swatch" data-style={card.id}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={card.image}
-                      alt={card.imageAlt}
-                      className="studio-style-card__image"
-                      width={480}
-                      height={300}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </span>
-                  <span className="studio-style-card__title">{card.title}</span>
-                  <span className="studio-style-card__body">{card.body}</span>
-                  <dl className="studio-style-card__facts">
-                    <div className="studio-style-card__fact">
-                      <dt>Output style</dt>
-                      <dd>{card.facts.outputStyle}</dd>
-                    </div>
-                    <div className="studio-style-card__fact">
-                      <dt>Quality</dt>
-                      <dd>{card.facts.quality}</dd>
-                    </div>
-                    <div className="studio-style-card__fact">
-                      <dt>Identity</dt>
-                      <dd>{card.facts.identity}</dd>
-                    </div>
-                    <div className="studio-style-card__fact">
-                      <dt>Best for</dt>
-                      <dd>{card.facts.useCases}</dd>
-                    </div>
-                  </dl>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {mode && category && visualStyle ? (
-        <section
-          ref={titleRef}
-          className={sectionClass("title", setupPhase)}
-          aria-labelledby="studio-title-heading"
-        >
-          <div className="studio-picker-section__head studio-accordion-section__head">
-            <div className="studio-accordion-section__title-row">
-              <h3 id="studio-title-heading">4 · Project title</h3>
-              {title.trim().length >= 2 && setupPhase !== "title" ? (
-                <button
-                  type="button"
-                  className="studio-accordion-summary-chip"
-                  disabled={disabled}
-                  onClick={() => onSetupPhaseChange("title")}
-                >
-                  {title.trim()}
-                </button>
-              ) : null}
-            </div>
-            {setupPhase === "title" ? (
-              <p>Shown in your library and preview player</p>
-            ) : null}
-          </div>
-          <div
-            className="studio-accordion-section__panel"
-            aria-hidden={setupPhase !== "title"}
-          >
-            <div className="studio-title-field">
-              <label htmlFor={titleFieldId}>Video title</label>
-              <input
-                id={titleFieldId}
-                type="text"
-                className={titleError ? "field-error" : undefined}
-                placeholder="e.g. Midnight Drive — Official Video"
-                value={title}
-                onChange={(e) => onTitleChange(e.target.value)}
-                disabled={disabled}
-                tabIndex={setupPhase === "title" ? undefined : -1}
-                aria-invalid={Boolean(titleError)}
-              />
-              {titleError ? (
-                <p className="field-error">{titleError}</p>
-              ) : (
-                <p className="help">This exact name appears in Your videos.</p>
-              )}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {!mode ? (
-        <section className="studio-inspiration" aria-labelledby="studio-inspiration-title">
-          <div className="studio-picker-section__head">
-            <h3 id="studio-inspiration-title">Templates & inspiration</h3>
-            <p>
-              Music, faith, social, film, and more — each maps to an existing Studio category
+          <header className="studio-guided-step__head">
+            <p className="studio-guided-step__eyebrow">Step 2 of 3</p>
+            <h2 id="studio-style-title" className="studio-guided-step__title">
+              Choose style
+            </h2>
+            <p className="studio-guided-step__lead">
+              Identity and look for the whole project.
             </p>
-          </div>
-          <div className="studio-template-grid">
-            {TEMPLATES.map((tpl) => (
+          </header>
+          <div className="studio-style-grid">
+            {STYLE_CARDS.map((card) => (
               <button
-                key={tpl.id}
+                key={card.id}
                 type="button"
-                className="studio-template-card"
+                className={`studio-style-card${visualStyle === card.id ? " is-active" : ""}`}
                 disabled={disabled}
-                onClick={() => {
-                  onQuickStart({
-                    mode: tpl.mode,
-                    category: tpl.category,
-                    style: tpl.style,
-                  });
-                  onTemplateApply?.({
-                    mode: tpl.mode,
-                    category: tpl.category,
-                    style: tpl.style,
-                    title: tpl.title,
-                    directionPrompt: `${tpl.examplePrompt}\n\nCamera / transitions: ${tpl.notes}`,
-                    duration: tpl.duration,
-                    notes: tpl.notes,
-                  });
-                }}
+                aria-pressed={visualStyle === card.id}
+                onClick={() => onStyleSelect(card.id)}
               >
-                <span className="studio-template-card__tag">{tpl.tag}</span>
-                <h4>{tpl.title}</h4>
-                <p className="studio-template-card__body">{tpl.examplePrompt}</p>
-                <p className="studio-template-card__notes">{tpl.notes}</p>
-                <span className="studio-template-card__duration">{tpl.duration}s</span>
+                <span className="studio-style-card__swatch" data-style={card.id}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={card.image}
+                    alt={card.imageAlt}
+                    className="studio-style-card__image"
+                    width={480}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+                <span className="studio-style-card__title">{card.title}</span>
+                <span className="studio-style-card__body">{card.body}</span>
+                <dl className="studio-style-card__facts">
+                  <div className="studio-style-card__fact">
+                    <dt>Output style</dt>
+                    <dd>{card.facts.outputStyle}</dd>
+                  </div>
+                  <div className="studio-style-card__fact">
+                    <dt>Quality</dt>
+                    <dd>{card.facts.quality}</dd>
+                  </div>
+                  <div className="studio-style-card__fact">
+                    <dt>Identity</dt>
+                    <dd>{card.facts.identity}</dd>
+                  </div>
+                  <div className="studio-style-card__fact">
+                    <dt>Best for</dt>
+                    <dd>{card.facts.useCases}</dd>
+                  </div>
+                </dl>
               </button>
             ))}
+          </div>
+        </section>
+      ) : null}
+
+      {activeStep === "title" && mode && category && visualStyle ? (
+        <section
+          ref={activeRef as RefObject<HTMLElement>}
+          className="studio-guided-step is-active"
+          aria-labelledby="studio-title-heading"
+        >
+          <header className="studio-guided-step__head">
+            <p className="studio-guided-step__eyebrow">Step 3 of 3</p>
+            <h2 id="studio-title-heading" className="studio-guided-step__title">
+              Name your project
+            </h2>
+            <p className="studio-guided-step__lead">
+              Shown in your library and preview player. Then continue to character, product, voice,
+              and prompt.
+            </p>
+          </header>
+          <div className="studio-title-field">
+            <label htmlFor={titleFieldId}>Video title</label>
+            <input
+              id={titleFieldId}
+              type="text"
+              className={titleError ? "field-error" : undefined}
+              placeholder="e.g. Midnight Drive — Official Video"
+              value={title}
+              onChange={(e) => onTitleChange(e.target.value)}
+              disabled={disabled}
+              aria-invalid={Boolean(titleError)}
+              autoFocus
+            />
+            {titleError ? (
+              <p className="field-error">{titleError}</p>
+            ) : (
+              <p className="help">This exact name appears in Your videos.</p>
+            )}
           </div>
         </section>
       ) : null}

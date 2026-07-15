@@ -31,14 +31,157 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+.rtas-header--premium {
+  overflow-x: clip;
+  max-width: 100vw;
+}
+
 .rtas-header--premium .rtas-header__inner {
-  max-width: min(1280px, 100%);
+  max-width: min(1440px, 100%);
   width: 100%;
+  min-width: 0;
   min-height: var(--rtas-header-height);
   margin: 0 auto;
-  padding: 0.7rem clamp(1rem, 2.5vw, 2rem);
-  gap: 1.25rem;
+  padding: 0.55rem clamp(0.75rem, 1.8vw, 1.75rem);
+  gap: clamp(0.45rem, 1.2vw, 1.1rem);
   align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.rtas-header--premium .rtas-header__brand {
+  min-width: 0;
+}
+
+.rtas-header--premium .rtas-header__brand .brand-logo--icon {
+  width: auto;
+  height: auto;
+  max-width: 2.5rem;
+  max-height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.rtas-header--premium .rtas-header__brand-text {
+  min-width: 0;
+}
+
+.rtas-header--premium .rtas-header__actions {
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rtas-header--premium .rtas-header__actions--desktop {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.rtas-header--premium .rtas-header__cta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Progressive density — never overflow desktop chrome */
+.rtas-header--density-comfortable .rtas-header__link {
+  padding: 0.4rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.rtas-header--density-compact .rtas-header__link {
+  padding: 0.35rem 0.45rem;
+  font-size: 0.78rem;
+}
+
+.rtas-header--density-compact .rtas-header__product {
+  display: none !important;
+}
+
+.rtas-header--density-compact .studio-profile__meta,
+.rtas-header--density-tight .studio-profile__meta {
+  display: none;
+}
+
+.rtas-header--density-compact .studio-profile__trigger,
+.rtas-header--density-tight .studio-profile__trigger {
+  max-width: none;
+  padding-right: 0.35rem;
+}
+
+.rtas-header--density-compact .studio-credits__cta,
+.rtas-header--density-tight .studio-credits__cta {
+  display: none;
+}
+
+.rtas-header--density-compact .studio-credits__label,
+.rtas-header--density-tight .studio-credits__label {
+  display: none;
+}
+
+.rtas-header--density-tight .rtas-header__wordmark {
+  font-size: 0.92rem;
+}
+
+.rtas-header--density-tight .rtas-header__product {
+  display: none !important;
+}
+
+.rtas-header--density-tight .rtas-header__brand .brand-logo--icon {
+  max-width: 1.85rem;
+  max-height: 1.85rem;
+}
+
+.rtas-header--density-tight .studio-credits {
+  padding: 0.25rem 0.4rem;
+  min-height: 2.2rem;
+  gap: 0.35rem;
+}
+
+.rtas-header--density-tight .studio-credits__value {
+  font-size: 0.78rem;
+}
+
+.rtas-header__more {
+  position: relative;
+}
+
+.rtas-header__more-summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rtas-header__more-summary::-webkit-details-marker {
+  display: none;
+}
+
+.rtas-header__more-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 220;
+  min-width: 11rem;
+  padding: 0.4rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 12, 18, 0.97);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+}
+
+.rtas-header__more-link {
+  display: block;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.86);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.rtas-header__more-link:hover,
+.rtas-header__more-link--active {
+  background: rgba(165, 148, 253, 0.14);
+  color: #fff;
+  text-decoration: none;
 }
 
 /* —— Standard content gap under header / above footer —— */
@@ -102,21 +245,42 @@
 .rtas-header--premium .rtas-header__nav {
   display: none;
   align-items: center;
-  gap: 0.15rem;
-  flex: 1;
+  gap: 0.1rem;
+  flex: 1 1 auto;
+  min-width: 0;
   justify-content: center;
   margin-left: 0;
+  overflow: hidden;
 }
 
-/* Desktop nav only at lg+ — avoid 768–899px gap where marketing CSS
-   hides the hamburger but premium nav was not yet visible. */
-@media (min-width: 1024px) {
-  .rtas-header--premium .rtas-header__nav {
+/* Full inline nav from 1280px — below that, drawer prevents clipping */
+@media (min-width: 1280px) {
+  .rtas-header--premium:not(.rtas-header--drawer-nav) .rtas-header__nav {
     display: flex;
+  }
+
+  .rtas-header--premium:not(.rtas-header--drawer-nav) .rtas-header__menu-btn {
+    display: none !important;
+  }
+
+  .rtas-header--premium:not(.rtas-header--drawer-nav) .rtas-header__actions--desktop {
+    display: flex !important;
   }
 }
 
-@media (max-width: 1023px) {
+.rtas-header--drawer-nav .rtas-header__nav {
+  display: none !important;
+}
+
+.rtas-header--drawer-nav .rtas-header__menu-btn {
+  display: flex !important;
+}
+
+.rtas-header--drawer-nav .rtas-header__actions--desktop {
+  display: none !important;
+}
+
+@media (max-width: 1279px) {
   .rtas-header--premium .rtas-header__nav {
     display: none !important;
   }
@@ -130,17 +294,16 @@
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1280px) {
-  .rtas-header--premium .rtas-header__link {
-    padding: 0.4rem 0.55rem;
-    font-size: 0.8rem;
-  }
-
+@media (min-width: 1280px) and (max-width: 1439px) {
   .rtas-header--premium .rtas-header__actions {
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .studio-credits__label {
+    display: none;
+  }
+
+  .studio-profile__email {
     display: none;
   }
 }

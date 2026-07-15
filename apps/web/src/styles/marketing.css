@@ -30,12 +30,12 @@
 }
 
 .video-content-panel {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+  background: rgba(4, 4, 8, 0.72);
+  backdrop-filter: blur(var(--ds-blur-md));
+  -webkit-backdrop-filter: blur(var(--ds-blur-md));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ds-radius-xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 /* Lavender buttons (marketing + shared CTAs) */
@@ -254,13 +254,15 @@
   flex-shrink: 0;
 }
 
-@media (min-width: 1024px) {
-  .rtas-header__menu-btn {
+/* Premium header owns breakpoints (site-chrome.css). Keep hamburger
+   available until 1280 so credits + profile never clip on mid desktops. */
+@media (min-width: 1280px) {
+  .rtas-header:not(.rtas-header--drawer-nav) .rtas-header__menu-btn {
     display: none;
   }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1279px) {
   .rtas-header__actions--desktop {
     display: none;
   }
@@ -454,14 +456,14 @@
   pointer-events: auto;
 }
 
-/* Lighter glass over hero videos — background stays visible */
+/* Darker glass over hero videos — WCAG AA readable text */
 .rtas-hero-showcase__content.video-text-highlight {
-  background: rgba(0, 0, 0, 0.38);
+  background: rgba(0, 0, 0, 0.88);
   backdrop-filter: blur(var(--ds-blur-md));
   -webkit-backdrop-filter: blur(var(--ds-blur-md));
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.28),
+    0 24px 64px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 var(--ds-color-white-6);
 }
 

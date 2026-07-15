@@ -10,18 +10,21 @@ html {
   text-rendering: optimizeLegibility;
 }
 
-/* —— Heroes stay flat; optional panels + content cards use equal glass —— */
+/* —— Heroes: readable glass panels; video sections get a dark scrim —— */
 .video-content-panel {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
+  position: relative;
+  background: rgba(4, 4, 8, 0.72) !important;
+  backdrop-filter: blur(var(--ds-blur-md)) !important;
+  -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45) !important;
+  padding: clamp(1.25rem, 3vw, 2rem) !important;
 }
 
 .video-text-highlight,
 .rtas-hero-showcase__content.video-text-highlight {
-  background: var(--ds-color-black-82) !important;
+  background: rgba(0, 0, 0, 0.88) !important;
   backdrop-filter: blur(var(--ds-blur-md)) !important;
   -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
   border-color: var(--ds-color-white-12) !important;

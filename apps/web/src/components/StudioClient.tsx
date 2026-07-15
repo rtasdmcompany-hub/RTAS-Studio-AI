@@ -473,16 +473,21 @@ export function StudioClient() {
     lastSavedAt,
     saving,
     showDraftBanner,
+    draftRestored,
+    clearDraftRestored,
   } = useStudioFormBackup({
     mode,
     category,
     visualStyle,
     form,
+    wizardStep,
+    setupPhase,
     setMode,
     setCategory,
     setVisualStyle,
     setForm,
     setWizardStep,
+    setSetupPhase,
   });
 
   const pushToast = useCallback(
@@ -492,6 +497,16 @@ export function StudioClient() {
     },
     []
   );
+
+  useEffect(() => {
+    if (!draftRestored) return;
+    pushToast({
+      tone: "success",
+      title: "Draft restored",
+      message: "Your project was restored automatically.",
+    });
+    clearDraftRestored();
+  }, [draftRestored, clearDraftRestored, pushToast]);
 
   const dismissToast = useCallback(() => setStudioToast(null), []);
 
@@ -601,16 +616,16 @@ export function StudioClient() {
       style: VisualStyle;
     }) => {
       if (processing || genPhase === "running") return;
+      // Project pick sets mode + category; style is confirmed on the next guided step.
       setMode(opts.mode);
       setCategory(opts.category);
-      setVisualStyle(opts.style);
-      setSetupPhase("title");
+      setVisualStyle(null);
+      setSetupPhase("style");
       setForm((prev) => {
         const next = createInitialFormState();
         const title = prev.text[VIDEO_TITLE_FIELD_ID]?.trim();
         if (title) next.text[VIDEO_TITLE_FIELD_ID] = title;
-        const synced = syncIdentityPipeline(next, opts.style);
-        return pruneFormToVisible(synced, opts.category, opts.mode, opts.style);
+        return pruneFormToVisible(next, opts.category, opts.mode, opts.style);
       });
     },
     [processing, genPhase]
@@ -2371,30 +2386,36 @@ export function StudioClient() {
     (pipelineDiagnostic !== null && isStudioOwner(profile));
   const wizardStepLabel =
     wizardStep === WIZARD_SETUP_STEP
-      ? setupSubstep === 0
-        ? "Select mode"
-        : setupSubstep === 1
-          ? "Select category"
-          : setupSubstep === 2
-            ? "Select style"
-            : "Name your video"
+      ? setupSubstep === 0 || setupSubstep === 1
+        ? "Choose project"
+        : setupSubstep === 2
+          ? "Choose style"
+          : "Name project"
       : currentWizardGroup?.label ?? "Create";
   const wizardProgressCurrent =
-    wizardStep === WIZARD_SETUP_STEP ? setupSubstep + 1 : wizardStep + 1;
+    wizardStep === WIZARD_SETUP_STEP
+      ? setupSubstep <= 1
+        ? 1
+        : setupSubstep === 2
+          ? 2
+          : 3
+      : wizardStep + 2;
   const wizardProgressPct = Math.round(
-    (wizardProgressCurrent / wizardTotalSteps) * 100
+    (wizardProgressCurrent / Math.max(wizardTotalSteps + 2, 1)) * 100
   );
   const roadmapLabels = useMemo(() => {
     if (mode && category && visualStyle) {
       const groups = getWizardStepGroups(category, mode, visualStyle);
-      return ["Setup", ...groups.map((g) => g.label), "Generate"];
+      return ["Project", "Style", ...groups.map((g) => g.label), "Generate"];
     }
     return [
-      "Mode",
-      "Category",
+      "Project",
       "Style",
       "Title",
-      "Prompt & media",
+      "Character",
+      "Product",
+      "Voice",
+      "Prompt",
       "Generate",
     ];
   }, [mode, category, visualStyle]);
@@ -2740,7 +2761,7 @@ export function StudioClient() {
                         disabled={isLoading || !setupComplete}
                         onClick={advanceWizard}
                       >
-                        Continue to editor →
+                        Continue →
                       </button>
                     </div>
                   </div>

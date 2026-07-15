@@ -70,23 +70,22 @@ export function getWizardStepGroups(
     groups.push({ id, label, fields });
   };
 
-  addGroup("title-direction", "Title & directional prompt", [
-    VIDEO_TITLE_FIELD_ID,
-    "directionPrompt",
-  ]);
-  addGroup("lyrics-style", "Lyrics & style", ["lyrics", "musicStyle"]);
-  addGroup("duration-prompt", "Length & scene", ["duration", "mainPrompt"]);
-  addGroup("audio", "Audio track", ["audioSource"]);
-  addGroup("images", "Images", [
+  /* Guided editor flow: Character → Product → Voice → Prompt → Advanced */
+  if (visualStyle === "real") {
+    addGroup("face-upload", "Upload character", ["faceReference", "faceConsent"]);
+    addGroup("face-lock", "Identity lock", [], { allowEmpty: true });
+  }
+
+  addGroup("images", "Upload product", [
     "sourceImage",
     "referenceImage",
     "productImage",
     "coverImage",
   ]);
-  if (visualStyle === "real") {
-    addGroup("face-upload", "Face photo & consent", ["faceReference", "faceConsent"]);
-    addGroup("face-lock", "Identity lock", [], { allowEmpty: true });
-  }
+  addGroup("audio", "Upload voice", ["audioSource"]);
+  addGroup("title-direction", "Prompt", ["directionPrompt", "mainPrompt"]);
+  addGroup("lyrics-style", "Lyrics & music style", ["lyrics", "musicStyle"]);
+  addGroup("duration-prompt", "Advanced settings", ["duration"]);
 
   for (const field of detailFields) {
     if (!used.has(field.id)) {

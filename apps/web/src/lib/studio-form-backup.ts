@@ -8,16 +8,22 @@ import {
 const DRAFT_KEY = "rtas_studio_draft";
 export const DRAFTS_LIST_KEY = "rtas_studio_drafts_v1";
 const FIELD_HISTORY_KEY = "rtas_studio_field_history";
-const BACKUP_VERSION = 1;
+const BACKUP_VERSION = 2;
 const CURRENT_DRAFT_ID = "current";
 
 export type StudioDraftSnapshot = {
-  version: typeof BACKUP_VERSION;
+  version: typeof BACKUP_VERSION | 1;
   savedAt: string;
   mode: GenerationMode;
   category: VideoCategory | null;
-  visualStyle: VisualStyle;
+  visualStyle: VisualStyle | null;
   text: Record<string, string>;
+  /** Guided wizard step index (0 = setup) */
+  wizardStep?: number;
+  /** Setup accordion phase */
+  setupPhase?: "mode" | "category" | "style" | "title";
+  /** Optional template / project card id */
+  selectedTemplateId?: string | null;
 };
 
 export type StudioDraftListItem = {
@@ -51,18 +57,21 @@ function sanitizeText(raw: unknown): Record<string, string> {
 
 function parseDraft(raw: unknown): StudioDraftSnapshot | null {
   if (!isObject(raw)) return null;
-  if (raw.version !== BACKUP_VERSION) return null;
+  if (raw.version !== 1 && raw.version !== BACKUP_VERSION) return null;
 
   const mode = raw.mode;
-  const visualStyle = raw.visualStyle;
+  let visualStyle: VisualStyle | null = null;
   if (typeof mode !== "string" || !VALID_MODES.has(mode as GenerationMode)) {
     return null;
   }
-  if (
-    typeof visualStyle !== "string" ||
-    !VALID_STYLES.has(visualStyle as VisualStyle)
-  ) {
-    return null;
+  if (raw.visualStyle != null) {
+    if (
+      typeof raw.visualStyle !== "string" ||
+      !VALID_STYLES.has(raw.visualStyle as VisualStyle)
+    ) {
+      return null;
+    }
+    visualStyle = raw.visualStyle as VisualStyle;
   }
 
   let category: VideoCategory | null = null;
@@ -73,13 +82,32 @@ function parseDraft(raw: unknown): StudioDraftSnapshot | null {
     category = raw.category as VideoCategory;
   }
 
+  const setupPhases = new Set(["mode", "category", "style", "title"]);
+  const setupPhase =
+    typeof raw.setupPhase === "string" && setupPhases.has(raw.setupPhase)
+      ? (raw.setupPhase as StudioDraftSnapshot["setupPhase"])
+      : undefined;
+  const wizardStep =
+    typeof raw.wizardStep === "number" && Number.isFinite(raw.wizardStep)
+      ? Math.max(0, Math.floor(raw.wizardStep))
+      : undefined;
+  const selectedTemplateId =
+    typeof raw.selectedTemplateId === "string"
+      ? raw.selectedTemplateId
+      : raw.selectedTemplateId === null
+        ? null
+        : undefined;
+
   return {
     version: BACKUP_VERSION,
     savedAt: typeof raw.savedAt === "string" ? raw.savedAt : new Date().toISOString(),
     mode: mode as GenerationMode,
     category,
-    visualStyle: visualStyle as VisualStyle,
+    visualStyle,
     text: sanitizeText(raw.text),
+    wizardStep,
+    setupPhase,
+    selectedTemplateId,
   };
 }
 
@@ -109,6 +137,7 @@ let draftSaveSuppressed = false;
 export function suppressStudioDraftSave(): void {
   draftSaveSuppressed = true;
   clearStudioDraft();
+  void import("@/lib/studio-draft-files").then((m) => m.clearAllDraftFiles());
 }
 
 export function resumeStudioDraftSave(): void {
@@ -277,7 +306,9 @@ export function deleteDraft(id: string): boolean {
   return true;
 }
 
-export function saveStudioDraft(snapshot: Omit<StudioDraftSnapshot, "version" | "savedAt">): void {
+export function saveStudioDraft(
+  snapshot: Omit<StudioDraftSnapshot, "version" | "savedAt">
+): void {
   if (typeof window === "undefined") return;
   if (draftSaveSuppressed) return;
   const payload: StudioDraftSnapshot = {
@@ -287,6 +318,9 @@ export function saveStudioDraft(snapshot: Omit<StudioDraftSnapshot, "version" | 
     category: snapshot.category,
     visualStyle: snapshot.visualStyle,
     text: snapshot.text,
+    wizardStep: snapshot.wizardStep,
+    setupPhase: snapshot.setupPhase,
+    selectedTemplateId: snapshot.selectedTemplateId,
   };
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
@@ -358,7 +392,7 @@ export function draftDiffersFrom(
   draft: StudioDraftSnapshot,
   mode: GenerationMode,
   category: VideoCategory | null,
-  visualStyle: VisualStyle,
+  visualStyle: VisualStyle | null,
   text: Record<string, string>
 ): boolean {
   if (draft.mode !== mode) return true;
