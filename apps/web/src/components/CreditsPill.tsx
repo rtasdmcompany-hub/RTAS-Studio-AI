@@ -38,7 +38,7 @@ export function CreditsPill() {
         <span className="studio-credits__label">{isPaid ? "Studio credits" : "Credits"}</span>
         <strong className="studio-credits__value">{label}</strong>
       </span>
-      <span className="studio-credits__cta">{isPaid ? "Upgrade" : "Get credits"}</span>
+      <span className="studio-credits__cta">{isPaid ? "Manage plan" : "Upgrade Credits"}</span>
     </Link>
   );
 }

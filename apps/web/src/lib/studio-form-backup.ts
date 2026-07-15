@@ -6,8 +6,10 @@ import {
 } from "@rtas/shared";
 
 const DRAFT_KEY = "rtas_studio_draft";
+export const DRAFTS_LIST_KEY = "rtas_studio_drafts_v1";
 const FIELD_HISTORY_KEY = "rtas_studio_field_history";
 const BACKUP_VERSION = 1;
+const CURRENT_DRAFT_ID = "current";
 
 export type StudioDraftSnapshot = {
   version: typeof BACKUP_VERSION;
@@ -16,6 +18,15 @@ export type StudioDraftSnapshot = {
   category: VideoCategory | null;
   visualStyle: VisualStyle;
   text: Record<string, string>;
+};
+
+export type StudioDraftListItem = {
+  id: string;
+  name: string;
+  savedAt: string;
+  snapshot: StudioDraftSnapshot;
+  thumbnail?: string;
+  categoryLabel?: string;
 };
 
 export type FieldHistory = Record<string, string>;
@@ -108,6 +119,164 @@ export function isStudioDraftSaveSuppressed(): boolean {
   return draftSaveSuppressed;
 }
 
+function draftDisplayName(snapshot: StudioDraftSnapshot, fallback = "Current draft"): string {
+  const title = snapshot.text.videoTitle?.trim();
+  if (title) return title;
+  const prompt =
+    snapshot.text.directionPrompt?.trim() ||
+    snapshot.text.mainPrompt?.trim() ||
+    snapshot.text.prompt?.trim();
+  if (prompt) return truncatePreview(prompt, 48);
+  return fallback;
+}
+
+function categoryLabelFor(category: VideoCategory | null): string | undefined {
+  if (!category) return undefined;
+  return CATEGORY_META[category]?.shortLabel ?? CATEGORY_META[category]?.label;
+}
+
+function createDraftId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `draft_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function parseDraftListItem(raw: unknown): StudioDraftListItem | null {
+  if (!isObject(raw)) return null;
+  if (typeof raw.id !== "string" || !raw.id.trim()) return null;
+  if (typeof raw.name !== "string") return null;
+  const snapshot = parseDraft(raw.snapshot);
+  if (!snapshot) return null;
+  return {
+    id: raw.id,
+    name: raw.name.trim() || draftDisplayName(snapshot, "Untitled draft"),
+    savedAt:
+      typeof raw.savedAt === "string" ? raw.savedAt : snapshot.savedAt,
+    snapshot,
+    thumbnail: typeof raw.thumbnail === "string" ? raw.thumbnail : undefined,
+    categoryLabel:
+      typeof raw.categoryLabel === "string"
+        ? raw.categoryLabel
+        : categoryLabelFor(snapshot.category),
+  };
+}
+
+function readDraftsList(): StudioDraftListItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(DRAFTS_LIST_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map(parseDraftListItem)
+      .filter((item): item is StudioDraftListItem => item != null);
+  } catch {
+    return [];
+  }
+}
+
+function writeDraftsList(items: StudioDraftListItem[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DRAFTS_LIST_KEY, JSON.stringify(items));
+  } catch {
+    /* quota or private mode */
+  }
+}
+
+function upsertDraftListItem(item: StudioDraftListItem): StudioDraftListItem {
+  const list = readDraftsList().filter((d) => d.id !== item.id);
+  list.unshift(item);
+  writeDraftsList(list);
+  return item;
+}
+
+export function listStudioDrafts(): StudioDraftListItem[] {
+  return readDraftsList().sort(
+    (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
+  );
+}
+
+export function loadDraftById(id: string): StudioDraftListItem | null {
+  return readDraftsList().find((d) => d.id === id) ?? null;
+}
+
+export function searchDrafts(query: string): StudioDraftListItem[] {
+  const q = query.trim().toLowerCase();
+  const drafts = listStudioDrafts();
+  if (!q) return drafts;
+  return drafts.filter((d) => {
+    const haystack = [
+      d.name,
+      d.categoryLabel ?? "",
+      d.snapshot.text.videoTitle ?? "",
+      d.snapshot.text.directionPrompt ?? "",
+      d.snapshot.text.mainPrompt ?? "",
+      d.snapshot.category ?? "",
+      d.snapshot.mode,
+      d.snapshot.visualStyle,
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(q);
+  });
+}
+
+export function saveNamedDraft(name?: string): StudioDraftListItem | null {
+  const current = loadStudioDraft();
+  if (!current || !draftHasRestorableContent(current)) return null;
+  const savedAt = new Date().toISOString();
+  const snapshot: StudioDraftSnapshot = { ...current, savedAt };
+  const item: StudioDraftListItem = {
+    id: createDraftId(),
+    name: (name?.trim() || draftDisplayName(snapshot, "Untitled draft")).trim(),
+    savedAt,
+    snapshot,
+    categoryLabel: categoryLabelFor(snapshot.category),
+  };
+  return upsertDraftListItem(item);
+}
+
+export function renameDraft(id: string, name: string): StudioDraftListItem | null {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  const list = readDraftsList();
+  const idx = list.findIndex((d) => d.id === id);
+  if (idx < 0) return null;
+  const updated: StudioDraftListItem = { ...list[idx], name: trimmed };
+  list[idx] = updated;
+  writeDraftsList(list);
+  return updated;
+}
+
+export function duplicateDraft(id: string): StudioDraftListItem | null {
+  const source = loadDraftById(id);
+  if (!source) return null;
+  const savedAt = new Date().toISOString();
+  const item: StudioDraftListItem = {
+    id: createDraftId(),
+    name: `${source.name} (copy)`,
+    savedAt,
+    snapshot: { ...source.snapshot, savedAt },
+    thumbnail: source.thumbnail,
+    categoryLabel: source.categoryLabel ?? categoryLabelFor(source.snapshot.category),
+  };
+  return upsertDraftListItem(item);
+}
+
+export function deleteDraft(id: string): boolean {
+  const list = readDraftsList();
+  const next = list.filter((d) => d.id !== id);
+  if (next.length === list.length) return false;
+  writeDraftsList(next);
+  if (id === CURRENT_DRAFT_ID) {
+    clearStudioDraft();
+  }
+  return true;
+}
+
 export function saveStudioDraft(snapshot: Omit<StudioDraftSnapshot, "version" | "savedAt">): void {
   if (typeof window === "undefined") return;
   if (draftSaveSuppressed) return;
@@ -121,6 +290,15 @@ export function saveStudioDraft(snapshot: Omit<StudioDraftSnapshot, "version" | 
   };
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+    if (draftHasRestorableContent(payload)) {
+      upsertDraftListItem({
+        id: CURRENT_DRAFT_ID,
+        name: draftDisplayName(payload, "Current draft"),
+        savedAt: payload.savedAt,
+        snapshot: payload,
+        categoryLabel: categoryLabelFor(payload.category),
+      });
+    }
   } catch {
     /* quota or private mode */
   }

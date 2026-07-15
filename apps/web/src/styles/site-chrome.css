@@ -108,9 +108,40 @@
   margin-left: 0;
 }
 
-@media (min-width: 900px) {
+/* Desktop nav only at lg+ — avoid 768–899px gap where marketing CSS
+   hides the hamburger but premium nav was not yet visible. */
+@media (min-width: 1024px) {
   .rtas-header--premium .rtas-header__nav {
     display: flex;
+  }
+}
+
+@media (max-width: 1023px) {
+  .rtas-header--premium .rtas-header__nav {
+    display: none !important;
+  }
+
+  .rtas-header--premium .rtas-header__menu-btn {
+    display: flex !important;
+  }
+
+  .rtas-header--premium .rtas-header__actions--desktop {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .rtas-header--premium .rtas-header__link {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8rem;
+  }
+
+  .rtas-header--premium .rtas-header__actions {
+    gap: 0.4rem;
+  }
+
+  .studio-credits__label {
+    display: none;
   }
 }
 
@@ -366,6 +397,119 @@
   gap: 0.4rem;
 }
 
+/* Header notifications */
+.studio-notify {
+  position: relative;
+}
+
+.studio-notify-skeleton {
+  display: inline-block;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.studio-notify__trigger {
+  position: relative;
+  display: inline-flex;
+  width: 2.4rem;
+  height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.studio-notify__trigger:hover {
+  border-color: rgba(165, 148, 253, 0.4);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.studio-notify__dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #f472b6;
+  box-shadow: 0 0 0 2px rgba(6, 6, 10, 0.9);
+}
+
+.studio-notify__menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 210;
+  width: min(18rem, 86vw);
+  padding: 0.55rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(12, 12, 18, 0.97);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+}
+
+.studio-notify__title {
+  margin: 0 0 0.45rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.studio-notify__empty {
+  margin: 0;
+  padding: 0.65rem 0.55rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.studio-notify__item {
+  display: block;
+  padding: 0.65rem 0.7rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0.55rem;
+  text-decoration: none;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.studio-notify__item:hover {
+  background: rgba(165, 148, 253, 0.12);
+  text-decoration: none;
+}
+
+.studio-notify__item--warn {
+  color: #f9a8d4;
+}
+
+.studio-notify__item--ok {
+  color: #bbf7d0;
+}
+
+.studio-notify__footer {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #c4b5fd;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.studio-notify__footer:hover {
+  text-decoration: underline;
+}
+
 /* —— International site footer —— */
 .studio-world-footer {
   flex-shrink: 0;
@@ -448,6 +592,10 @@
   gap: 1rem;
 }
 
+.studio-world-footer__cols--five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .studio-world-footer__col h3 {
   margin: 0 0 0.75rem;
   font-size: 0.72rem;
@@ -490,7 +638,8 @@
     grid-template-columns: 1fr;
   }
 
-  .studio-world-footer__cols {
+  .studio-world-footer__cols,
+  .studio-world-footer__cols--five {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -500,7 +649,8 @@
 }
 
 @media (max-width: 640px) {
-  .studio-world-footer__cols {
+  .studio-world-footer__cols,
+  .studio-world-footer__cols--five {
     grid-template-columns: 1fr;
   }
 

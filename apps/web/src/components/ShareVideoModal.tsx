@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import type { GeneratedVideo } from "@rtas/shared";
 import { filenameFromVideoUrl } from "@rtas/shared";
 import { Alert, Button, Dialog } from "@rtas/ui";
@@ -8,6 +8,7 @@ import {
   buildEmailShareUrl,
   buildFacebookShareUrl,
   buildLinkedInShareUrl,
+  buildPinterestShareUrl,
   buildPublicShareUrl,
   buildRedditShareUrl,
   buildTelegramShareUrl,
@@ -23,13 +24,26 @@ type Props = {
   onPublished?: (videoId: string) => void;
 };
 
+/** Channels that open a web intent vs copy-link for native apps */
+const COPY_LINK_CHANNELS = new Set([
+  "youtube",
+  "instagram",
+  "tiktok",
+  "discord",
+]);
+
 const SOCIAL_CHANNELS = [
-  { id: "x", label: "X", className: "share-modal__social-btn--x" },
+  { id: "youtube", label: "YouTube", className: "share-modal__social-btn--youtube" },
+  { id: "instagram", label: "Instagram", className: "share-modal__social-btn--instagram" },
+  { id: "tiktok", label: "TikTok", className: "share-modal__social-btn--tiktok" },
   { id: "facebook", label: "Facebook", className: "share-modal__social-btn--facebook" },
   { id: "linkedin", label: "LinkedIn", className: "share-modal__social-btn--linkedin" },
-  { id: "whatsapp", label: "WhatsApp", className: "share-modal__social-btn--whatsapp" },
-  { id: "telegram", label: "Telegram", className: "share-modal__social-btn--telegram" },
+  { id: "pinterest", label: "Pinterest", className: "share-modal__social-btn--pinterest" },
   { id: "reddit", label: "Reddit", className: "share-modal__social-btn--reddit" },
+  { id: "discord", label: "Discord", className: "share-modal__social-btn--discord" },
+  { id: "telegram", label: "Telegram", className: "share-modal__social-btn--telegram" },
+  { id: "whatsapp", label: "WhatsApp", className: "share-modal__social-btn--whatsapp" },
+  { id: "x", label: "X", className: "share-modal__social-btn--x" },
   { id: "email", label: "Email", className: "share-modal__social-btn--email" },
 ] as const;
 
@@ -98,12 +112,12 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
   const handleCopyPrompt = async () => {
     const prompt = video?.creativePrompt?.trim();
     if (!prompt) {
-      setActionNote("No prompt saved for this render yet.");
+      setActionNote("No creative prompt is available for this video yet.");
       return;
     }
     const ok = await copyTextToClipboard(prompt);
     setCopiedPrompt(ok);
-    setActionNote(ok ? null : "Could not copy prompt.");
+    setActionNote(ok ? null : "Unable to copy prompt. Try again.");
     if (ok) {
       window.setTimeout(() => setCopiedPrompt(false), 2200);
     }
@@ -113,8 +127,8 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
     if (!video?.videoUrl || !video.canDownload) {
       setActionNote(
         video?.canDownload === false
-          ? "Download requires an active commercial subscription."
-          : "Video file is not ready to download yet."
+          ? "Downloading requires an active commercial plan."
+          : "This video is not ready to download yet."
       );
       return;
     }
@@ -126,12 +140,26 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    setActionNote("Download started.");
   };
 
   const handleDownloadImage = () => {
-    setActionNote(
-      "Poster image download will be available when thumbnail export ships. Use Download Video for now."
-    );
+    const url = video?.thumbnailUrl;
+    if (!url) {
+      setActionNote(
+        "No thumbnail is available for this render yet. Download the MP4 instead."
+      );
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(video?.title || "rtas-thumb").replace(/[^\w\-]+/g, "-").slice(0, 48)}.jpg`;
+    a.rel = "noopener";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setActionNote("Thumbnail download started.");
   };
 
   if (!video) return null;
@@ -150,6 +178,8 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
         return buildTelegramShareUrl(publicUrl, video.title);
       case "reddit":
         return buildRedditShareUrl(publicUrl, video.title);
+      case "pinterest":
+        return buildPinterestShareUrl(publicUrl, video.title);
       case "email":
         return buildEmailShareUrl(publicUrl, video.title);
       default:
@@ -157,11 +187,30 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
     }
   };
 
+  const handleChannelClick = async (
+    e: MouseEvent,
+    id: (typeof SOCIAL_CHANNELS)[number]["id"]
+  ) => {
+    if (blocked) {
+      e.preventDefault();
+      return;
+    }
+    if (!COPY_LINK_CHANNELS.has(id)) return;
+    e.preventDefault();
+    const ok = await copyTextToClipboard(publicUrl);
+    const label = SOCIAL_CHANNELS.find((c) => c.id === id)?.label ?? id;
+    setActionNote(
+      ok
+        ? `Link copied. Open ${label} and paste to share.`
+        : "Unable to copy link. Use Copy link instead."
+    );
+  };
+
   const description = publishing
     ? "Publishing your public link…"
     : error
-      ? "We could not publish this link yet."
-      : "Your video is live for anyone with the link. Share, download, or copy the prompt.";
+      ? "We couldn’t publish this share link yet."
+      : "Anyone with the link can watch. Share to social, copy the prompt, or download assets.";
 
   const blocked = publishing || Boolean(error);
 
@@ -171,7 +220,7 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
       onClose={onClose}
       variant="paywall"
       titleId="share-modal-title"
-      title="Share your AI video"
+      title="Share your video"
       description={description}
       closeOnEscape
       closeOnOverlayClick
@@ -196,22 +245,26 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
           onClick={() => void handleCopy()}
           disabled={blocked}
         >
-          {copied ? "Copied!" : "Copy Link"}
+          {copied ? "Copied" : "Copy link"}
         </Button>
       </div>
 
       <p className="share-modal__channels-label">Share to</p>
-      <div className="share-modal__social" aria-label="Share to social">
+      <div className="share-modal__social" aria-label="Share to social channels">
         {SOCIAL_CHANNELS.map((channel) => (
           <a
             key={channel.id}
             href={hrefFor(channel.id)}
-            target={channel.id === "email" ? undefined : "_blank"}
-            rel={channel.id === "email" ? undefined : "noopener noreferrer"}
+            target={channel.id === "email" || COPY_LINK_CHANNELS.has(channel.id) ? undefined : "_blank"}
+            rel={
+              channel.id === "email" || COPY_LINK_CHANNELS.has(channel.id)
+                ? undefined
+                : "noopener noreferrer"
+            }
             className={`share-modal__social-btn ${channel.className}`}
             aria-disabled={blocked}
             onClick={(e) => {
-              if (blocked) e.preventDefault();
+              void handleChannelClick(e, channel.id);
             }}
           >
             {channel.label}
@@ -219,18 +272,28 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
         ))}
       </div>
 
-      <p className="share-modal__channels-label">Project actions</p>
-      <div className="share-modal__actions" aria-label="Project actions">
+      <p className="share-modal__channels-label">Assets & prompt</p>
+      <div className="share-modal__actions" aria-label="Download assets and copy prompt">
         <Button
           variant="secondary"
           size="sm"
           onClick={handleDownloadVideo}
           disabled={!video.videoUrl}
         >
-          Download Video
+          Download MP4
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleDownloadImage}>
-          Download Image
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDownloadImage}
+          disabled={!video.thumbnailUrl}
+          title={
+            video.thumbnailUrl
+              ? "Download thumbnail image"
+              : "No thumbnail is available for this render yet"
+          }
+        >
+          Download thumbnail
         </Button>
         <Button
           variant="ghost"
@@ -238,7 +301,7 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
           onClick={() => void handleCopyPrompt()}
           disabled={!video.creativePrompt?.trim()}
         >
-          {copiedPrompt ? "Prompt copied!" : "Copy Prompt"}
+          {copiedPrompt ? "Prompt copied" : "Copy prompt"}
         </Button>
         <a
           href={publicUrl}
@@ -246,7 +309,7 @@ export function ShareVideoModal({ open, video, onClose, onPublished }: Props) {
           rel="noopener noreferrer"
           className="share-modal__social-btn share-modal__social-btn--public"
         >
-          Public page
+          Open public page
         </a>
       </div>
 

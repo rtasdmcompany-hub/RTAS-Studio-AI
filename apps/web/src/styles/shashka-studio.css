@@ -226,6 +226,11 @@
   margin: var(--ds-space-0);
 }
 
+.shashka-preview-main .shashka-preview-frame .rtas-player__bar {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .shashka-preview-main .shashka-preview-frame .player-wrap {
   flex: 1;
   width: 100%;
@@ -948,6 +953,112 @@
   font-size: var(--ds-text-0-62);
   letter-spacing: 0.04em;
   color: rgba(240, 242, 248, 0.88);
+}
+
+.shashka-face-shield__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.28rem;
+  font-size: var(--ds-text-0-55);
+  letter-spacing: 0.03em;
+  color: rgba(240, 242, 248, 0.62);
+  line-height: 1.35;
+}
+
+.shashka-face-shield__metric-sep {
+  opacity: 0.45;
+}
+
+.shashka-face-shield__status {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: var(--ds-text-0-55);
+  letter-spacing: 0.04em;
+  color: rgba(201, 162, 39, 0.85);
+}
+
+.shashka-face-shield__tips {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  width: 100%;
+  max-width: 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.shashka-face-shield__tips li {
+  position: relative;
+  padding-left: 0.85rem;
+  font-size: var(--ds-text-0-58);
+  line-height: 1.35;
+  color: rgba(240, 242, 248, 0.55);
+}
+
+.shashka-face-shield__tips li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: rgba(201, 162, 39, 0.65);
+}
+
+.shashka-face-hero-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.45rem;
+}
+
+.shashka-face-hero__warn {
+  margin: 0;
+  max-width: 20rem;
+  text-align: center;
+  font-size: var(--ds-text-0-58);
+  line-height: 1.4;
+  color: rgba(240, 208, 96, 0.78);
+}
+
+.shashka-face-hero__warn--pending {
+  color: rgba(196, 181, 253, 0.78);
+}
+
+.shashka-face-hero__tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.shashka-face-hero__tips li {
+  position: relative;
+  padding-left: 0.85rem;
+  font-size: var(--ds-text-0-55);
+  line-height: 1.35;
+  color: rgba(240, 242, 248, 0.5);
+  text-align: left;
+}
+
+.shashka-face-hero__tips li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: rgba(165, 148, 253, 0.65);
 }
 
 /* Wizard steps — fit viewport, no page scroll */
@@ -1775,11 +1886,13 @@
   cursor: not-allowed;
 }
 
-.shashka-preview-share-row {
+.shashka-preview-share-row,
+.studio-result-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: var(--ds-space-3);
+  justify-content: flex-start;
+  gap: var(--ds-space-2) var(--ds-space-3);
   margin-top: 0.8rem;
 }
 

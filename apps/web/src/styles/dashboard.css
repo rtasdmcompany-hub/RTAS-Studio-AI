@@ -8,9 +8,9 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--ds-space-4);
-  margin-bottom: var(--ds-space-5);
-  padding: var(--ds-space-5);
+  gap: var(--ds-space-5);
+  margin-bottom: var(--ds-space-6);
+  padding: var(--ds-space-5) var(--ds-space-6);
   border: 1px solid color-mix(in srgb, var(--ds-accent-lavender) 35%, var(--ds-border));
   border-radius: var(--ds-radius-xl);
   background:
@@ -80,8 +80,9 @@
 }
 
 .profile-page--dashboard {
-  max-width: 960px;
+  max-width: 1000px;
   padding-top: var(--ds-space-6);
+  padding-bottom: var(--ds-space-8);
 }
 
 .dashboard-nav {
@@ -119,9 +120,9 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--ds-space-4);
-  margin-bottom: var(--ds-space-5);
-  padding-bottom: var(--ds-space-5);
+  gap: var(--ds-space-5);
+  margin-bottom: var(--ds-space-6);
+  padding-bottom: var(--ds-space-6);
   border-bottom: 1px solid var(--ds-border-subtle);
 }
 
@@ -215,41 +216,69 @@
 .dashboard-status {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--ds-space-3);
-  margin-bottom: var(--ds-space-6);
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-7);
 }
 
 .dashboard-card {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-1);
-  padding: var(--ds-space-4);
+  padding: var(--ds-space-5);
   border-radius: var(--ds-radius-lg);
   border: 1px solid var(--ds-border-subtle);
   background: var(--ds-surface);
   box-shadow: var(--ds-shadow-panel);
-  min-height: 8.5rem;
+  min-height: 9rem;
   transition:
     border-color var(--ds-transition-fast),
-    transform var(--ds-transition-fast);
+    transform var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
+}
+
+.dashboard-card:hover {
+  border-color: color-mix(in srgb, var(--ds-accent-lavender) 28%, var(--ds-border-subtle));
+  box-shadow: var(--ds-shadow-panel), 0 0 0 1px color-mix(in srgb, var(--ds-accent-lavender) 12%, transparent);
 }
 
 /* When composed with @rtas/ui Card, dashboard layout tokens win */
 .rtas-ui-card.dashboard-card {
-  padding: var(--ds-space-4);
+  padding: var(--ds-space-5);
 }
 
 .dashboard-empty.rtas-ui-empty {
   border-style: dashed;
-  padding: var(--ds-space-6) var(--ds-space-4);
+  padding: var(--ds-space-6) var(--ds-space-5);
+  align-items: flex-start;
+  text-align: left;
+  gap: var(--ds-space-3);
+}
+
+.dashboard-empty .rtas-ui-empty__icon {
+  margin: 0;
+  line-height: 0;
+  color: var(--ds-accent-lavender);
+}
+
+.dashboard-empty-illu {
+  display: block;
+  color: inherit;
 }
 
 .dashboard-empty .rtas-ui-empty__title {
   font-size: var(--ds-text-md);
+  margin: 0;
 }
 
 .dashboard-empty .rtas-ui-empty__description {
   font-size: var(--ds-text-sm);
+  max-width: 26rem;
+  line-height: var(--ds-leading-relaxed);
+}
+
+.dashboard-empty .rtas-ui-empty__actions {
+  margin-top: var(--ds-space-1);
+  justify-content: flex-start;
 }
 
 .dashboard-card--credits {
@@ -374,14 +403,15 @@
 }
 
 .dashboard-section {
-  margin-bottom: var(--ds-space-6);
+  margin-bottom: var(--ds-space-7);
 }
 
 .dashboard-section__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--ds-space-3);
+  gap: var(--ds-space-2) var(--ds-space-3);
   margin-bottom: var(--ds-space-3);
 }
 
@@ -392,6 +422,22 @@
   letter-spacing: var(--ds-tracking-wide);
   text-transform: uppercase;
   color: var(--ds-text-subdued);
+}
+
+.dashboard-section__sub,
+.dashboard-section__lead {
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-sm);
+  color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-relaxed);
+  max-width: 40rem;
+}
+
+.dashboard-section__head .dashboard-section__sub {
+  flex-basis: 100%;
+  margin-bottom: 0;
+  order: 3;
+  font-size: var(--ds-text-xs);
 }
 
 .dashboard-section__link {
@@ -418,7 +464,7 @@
 
 .dashboard-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--ds-space-3);
 }
 
@@ -426,7 +472,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-1);
-  padding: var(--ds-space-4);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  min-height: 5.5rem;
   border-radius: var(--ds-radius-lg);
   border: 1px solid var(--ds-border-subtle);
   background: var(--ds-surface);
@@ -438,7 +485,8 @@
   transition:
     border-color var(--ds-transition-fast),
     background var(--ds-transition-fast),
-    transform var(--ds-transition-fast);
+    transform var(--ds-transition-fast),
+    box-shadow var(--ds-transition-fast);
 }
 
 .dashboard-action:hover,
@@ -446,6 +494,7 @@
   border-color: var(--ds-color-lavender-border-soft);
   background: var(--ds-color-lavender-glow-faint);
   transform: translateY(-1px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ds-accent-lavender) 10%, transparent);
 }
 
 .dashboard-action:focus-visible {
@@ -472,7 +521,7 @@
 .dashboard-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--ds-space-4);
+  gap: var(--ds-space-5);
   margin-bottom: var(--ds-space-2);
 }
 
@@ -621,17 +670,31 @@
 .dashboard-account__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--ds-space-3);
+  gap: var(--ds-space-4);
+}
+
+.dashboard-billing-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-4);
 }
 
 .dashboard-plans {
   margin-top: var(--ds-space-4);
+  padding: var(--ds-space-4);
+  border-radius: var(--ds-radius-lg);
+  border: 1px solid var(--ds-border-subtle);
+  background: var(--ds-surface-glass);
 }
 
 .dashboard-plans__hint {
-  margin: 0 0 var(--ds-space-2);
-  font-size: var(--ds-text-xs);
+  margin: 0 0 var(--ds-space-3);
+  font-size: var(--ds-text-sm);
   color: var(--ds-text-subdued);
+  line-height: var(--ds-leading-relaxed);
+  max-width: 36rem;
 }
 
 .profile-page--dashboard .profile-checkout-row {
@@ -670,6 +733,11 @@
 
   .dashboard-hero__actions {
     width: 100%;
+  }
+
+  .dashboard-billing-cta {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

@@ -7,6 +7,7 @@ import {
 } from "@rtas/shared";
 import {
   SITE_COMPANY_LINKS,
+  SITE_DEVELOPER_LINKS,
   SITE_LEGAL_LINKS,
   SITE_PRODUCT_LINKS,
   SITE_RESOURCE_LINKS,
@@ -14,8 +15,16 @@ import {
   SITE_SUPPORT_EMAIL,
 } from "@/lib/site-links";
 
-function FooterLink({ href, label }: { href: string; label: string }) {
-  if (href.startsWith("http") || href.startsWith("mailto:")) {
+function FooterLink({
+  href,
+  label,
+  external,
+}: {
+  href: string;
+  label: string;
+  external?: boolean;
+}) {
+  if (external || href.startsWith("http") || href.startsWith("mailto:")) {
     return (
       <a
         href={href}
@@ -30,13 +39,11 @@ function FooterLink({ href, label }: { href: string; label: string }) {
 }
 
 type Props = {
-  /** Extra class for studio shell vs marketing shell */
   className?: string;
 };
 
 /**
  * Single international footer used on Studio and all marketing pages.
- * Columns are deduped — each destination appears once.
  */
 export function InternationalSiteFooter({ className = "" }: Props) {
   return (
@@ -70,29 +77,60 @@ export function InternationalSiteFooter({ className = "" }: Props) {
           </div>
         </div>
 
-        <div className="studio-world-footer__cols">
+        <div className="studio-world-footer__cols studio-world-footer__cols--five">
           <div className="studio-world-footer__col">
             <h3>Product</h3>
             {SITE_PRODUCT_LINKS.map((link) => (
-              <FooterLink key={link.id} href={link.href} label={link.label} />
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
             ))}
           </div>
           <div className="studio-world-footer__col">
             <h3>Company</h3>
             {SITE_COMPANY_LINKS.map((link) => (
-              <FooterLink key={link.id} href={link.href} label={link.label} />
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
+            ))}
+          </div>
+          <div className="studio-world-footer__col">
+            <h3>Developers</h3>
+            {SITE_DEVELOPER_LINKS.map((link) => (
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
             ))}
           </div>
           <div className="studio-world-footer__col">
             <h3>Resources</h3>
             {SITE_RESOURCE_LINKS.map((link) => (
-              <FooterLink key={link.id} href={link.href} label={link.label} />
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
             ))}
           </div>
           <div className="studio-world-footer__col">
             <h3>Legal</h3>
             {SITE_LEGAL_LINKS.map((link) => (
-              <FooterLink key={link.id} href={link.href} label={link.label} />
+              <FooterLink
+                key={link.id}
+                href={link.href}
+                label={link.label}
+                external={link.external}
+              />
             ))}
           </div>
         </div>

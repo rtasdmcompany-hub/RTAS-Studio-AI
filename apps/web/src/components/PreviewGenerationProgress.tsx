@@ -1,6 +1,10 @@
 "use client";
 
 import { forwardRef } from "react";
+import {
+  getReportIssueMailto,
+  softenGenerationError,
+} from "@/lib/generation-error-ui";
 
 type Props = {
   percent: number;
@@ -9,23 +13,6 @@ type Props = {
   phase?: "running" | "error" | "success";
   patienceMessage?: string;
 };
-
-function friendlyProgressMessage(raw: string, isError: boolean): string {
-  if (!raw) return "";
-  if (!isError) return raw;
-
-  const lower = raw.toLowerCase();
-  if (lower.includes("duration") && lower.includes("literal_error")) {
-    return "Cloud render could not read video length. Restart the API (start-studio.cmd), pick your length again, and retry.";
-  }
-  if (lower.includes("insufficient fal.ai balance")) {
-    return "Fal.ai balance is low. Add credit at fal.ai/dashboard/billing, restart the API, then try again.";
-  }
-  if (raw.length > 180) {
-    return raw.split("\n")[0]?.slice(0, 160) ?? "Generation failed. Please check your inputs and try again.";
-  }
-  return raw;
-}
 
 /** Compact progress strip — left column on preview screen. */
 export const PreviewGenerationProgress = forwardRef<HTMLDivElement, Props>(
@@ -37,12 +24,15 @@ export const PreviewGenerationProgress = forwardRef<HTMLDivElement, Props>(
 
     const clamped = Math.min(100, Math.max(0, percent));
     const isError = phase === "error";
+    const softened = isError ? softenGenerationError(message) : null;
     const label = isError
-      ? "Generation failed"
+      ? softened?.title ?? "Generation failed"
       : phase === "success"
         ? "Video ready"
         : "Rendering video…";
-    const displayMessage = friendlyProgressMessage(message, isError);
+    const displayMessage = isError
+      ? softened?.summary ?? ""
+      : message;
 
     return (
       <div
@@ -69,6 +59,20 @@ export const PreviewGenerationProgress = forwardRef<HTMLDivElement, Props>(
         </div>
         {displayMessage ? (
           <p className="preview-progress-message">{displayMessage}</p>
+        ) : null}
+        {isError && softened?.details ? (
+          <details className="preview-progress-details">
+            <summary>Technical details</summary>
+            <pre className="preview-progress-details__pre">{softened.details}</pre>
+          </details>
+        ) : null}
+        {isError ? (
+          <a
+            className="preview-progress-report"
+            href={getReportIssueMailto(message)}
+          >
+            Report Issue
+          </a>
         ) : null}
         {patienceMessage && phase === "running" ? (
           <p className="preview-progress-patience">{patienceMessage}</p>

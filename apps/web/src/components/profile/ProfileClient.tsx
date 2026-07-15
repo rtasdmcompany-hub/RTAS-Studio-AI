@@ -24,6 +24,10 @@ import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { ProfileAssetGallery } from "@/components/gallery/ProfileAssetGallery";
 import { DashboardWelcome } from "@/components/profile/DashboardWelcome";
 import {
+  EmptyActivityIcon,
+  EmptyProjectsIcon,
+} from "@/components/profile/dashboard-empty-icons";
+import {
   loadRecentProjects,
   type RecentProject,
 } from "@/lib/studio-workflow-store";
@@ -220,21 +224,21 @@ export function ProfileClient({ initialProfile }: Props) {
       items.push({
         id: "active",
         tone: "info",
-        text: `${activeJobs.length} render${activeJobs.length === 1 ? "" : "s"} in progress`,
+        text: `${activeJobs.length} generation${activeJobs.length === 1 ? "" : "s"} currently rendering`,
       });
     }
     if (generationLimitReached) {
       items.push({
         id: "limit",
         tone: "warn",
-        text: generationLimitMessage ?? "Render queue is full — wait for a slot.",
+        text: generationLimitMessage ?? "Render queue is full. Wait for a free slot, then try again.",
       });
     }
     if (credits <= 0 && !profile.subscriptionActive) {
       items.push({
         id: "credits",
         tone: "warn",
-        text: "No credits left — upgrade to keep creating.",
+        text: "You are out of credits. Upgrade your plan to continue creating.",
       });
     } else if (
       profile.creditsExpireAt &&
@@ -243,21 +247,21 @@ export function ProfileClient({ initialProfile }: Props) {
       items.push({
         id: "expiry",
         tone: "warn",
-        text: `Credits expire ${new Date(profile.creditsExpireAt).toLocaleDateString()}`,
+        text: `Credits expire on ${new Date(profile.creditsExpireAt).toLocaleDateString()}`,
       });
     }
     if (draft) {
       items.push({
         id: "draft",
         tone: "ok",
-        text: "Autosaved Studio draft ready to continue",
+        text: "Autosaved Studio draft is ready to continue",
       });
     }
     if (!(profile.freeTrialUsed || profile.hasUsedFreeTrial)) {
       items.push({
         id: "trial",
         tone: "ok",
-        text: `${FREE_TRIAL_DURATION_SECONDS}s free preview still available`,
+        text: `${FREE_TRIAL_DURATION_SECONDS}-second free preview is still available`,
       });
     }
     return items.slice(0, 4);
@@ -325,8 +329,8 @@ export function ProfileClient({ initialProfile }: Props) {
             <h1 className="dashboard-hero__title">{greeting}</h1>
             <p className="dashboard-hero__sub">
               {isFirstTime
-                ? "Create your first cinematic video in Studio — finished renders appear in Your library below."
-                : "Pick up where you left off, check credits, and watch active renders."}
+                ? "Create your first cinematic video in Studio. Finished renders appear in Your library below."
+                : "Resume projects, monitor credits, and track recent generations from one place."}
             </p>
           </div>
           <div className="dashboard-hero__actions">
@@ -339,7 +343,7 @@ export function ProfileClient({ initialProfile }: Props) {
             </ButtonLink>
             {isFirstTime ? (
               <ButtonLink href="/how-to-use" variant="ghost">
-                60-second guide
+                Quick start guide
               </ButtonLink>
             ) : null}
             {continueProject ? (
@@ -371,7 +375,7 @@ export function ProfileClient({ initialProfile }: Props) {
           />
         ) : null}
 
-        <section className="dashboard-status" aria-label="Account status">
+        <section className="dashboard-status" aria-label="Usage and credits">
           <Card
             as="article"
             variant="glass"
@@ -379,27 +383,29 @@ export function ProfileClient({ initialProfile }: Props) {
             aria-labelledby="dash-credits"
           >
             <h2 id="dash-credits" className="dashboard-card__label">
-              Credits
+              Usage &amp; credits
             </h2>
             <p className="dashboard-card__value" aria-live="polite">
               {credits}
               <span className="dashboard-card__unit">seconds</span>
             </p>
-            <p className="dashboard-card__hint">1 credit = 1 second of video</p>
+            <p className="dashboard-card__hint">1 credit = 1 second of finished video</p>
             {profile.creditsExpireAt ? (
               <p className="dashboard-card__meta">
                 Expires {new Date(profile.creditsExpireAt).toLocaleDateString()}
               </p>
             ) : (
               <p className="dashboard-card__meta">
-                {profile.subscriptionActive ? "Subscription active" : "No active subscription"}
+                {profile.subscriptionActive
+                  ? "Subscription active — credits renew with your plan"
+                  : "No active subscription"}
               </p>
             )}
           </Card>
 
           <Card as="article" variant="glass" className="dashboard-card" aria-labelledby="dash-gen">
             <h2 id="dash-gen" className="dashboard-card__label">
-              Generation status
+              Render queue
             </h2>
             <p className="dashboard-card__value dashboard-card__value--sm">
               {activeJobs.length > 0
@@ -409,8 +415,8 @@ export function ProfileClient({ initialProfile }: Props) {
                   : "Idle"}
             </p>
             <p className="dashboard-card__hint">
-              Queue {queueActive}/{queueMax}
-              {generationLimitReached ? " · full" : ""}
+              Slots {queueActive}/{queueMax}
+              {generationLimitReached ? " · full" : " available"}
             </p>
             <div className="dashboard-queue" aria-hidden>
               {Array.from({ length: queueMax }).map((_, i) => (
@@ -428,13 +434,13 @@ export function ProfileClient({ initialProfile }: Props) {
 
           <Card as="article" variant="glass" className="dashboard-card" aria-labelledby="dash-notes">
             <h2 id="dash-notes" className="dashboard-card__label">
-              Notifications
+              Alerts
             </h2>
             {notifications.length === 0 ? (
               <p className="dashboard-card__empty">
                 {isFirstTime
-                  ? `${FREE_TRIAL_DURATION_SECONDS}s free preview available — open Studio to try.`
-                  : "You're all caught up."}
+                  ? `${FREE_TRIAL_DURATION_SECONDS}-second free preview is available. Open Studio to try it.`
+                  : "You are all caught up. No action needed."}
               </p>
             ) : (
               <ul className="dashboard-notes">
@@ -451,15 +457,16 @@ export function ProfileClient({ initialProfile }: Props) {
         <section className="dashboard-section" aria-labelledby="dash-actions">
           <div className="dashboard-section__head">
             <h2 id="dash-actions">Quick actions</h2>
+            <p className="dashboard-section__sub">Jump into Studio, library, or billing</p>
           </div>
           <div className="dashboard-actions" role="list">
             <Link href="/studio" className="dashboard-action" role="listitem">
               <span className="dashboard-action__title">New video</span>
-              <span className="dashboard-action__desc">Open Studio and start a render</span>
+              <span className="dashboard-action__desc">Open Studio and start a generation</span>
             </Link>
             <a href="#your-renders" className="dashboard-action" role="listitem">
               <span className="dashboard-action__title">Your library</span>
-              <span className="dashboard-action__desc">Browse finished and active renders</span>
+              <span className="dashboard-action__desc">Browse finished and in-progress renders</span>
             </a>
             <button
               type="button"
@@ -468,19 +475,19 @@ export function ProfileClient({ initialProfile }: Props) {
               onClick={() => {
                 setShowPlans(true);
                 requestAnimationFrame(() => {
-                  document.getElementById("dashboard-plans")?.scrollIntoView({
+                  document.getElementById("dashboard-billing")?.scrollIntoView({
                     behavior: "smooth",
                     block: "start",
                   });
                 });
               }}
             >
-              <span className="dashboard-action__title">Upgrade plan</span>
-              <span className="dashboard-action__desc">Add credits · Tester, Standard, Premium</span>
+              <span className="dashboard-action__title">Billing &amp; plans</span>
+              <span className="dashboard-action__desc">Upgrade credits · Tester, Standard, Premium</span>
             </button>
             <Link href="/pricing#plans" className="dashboard-action" role="listitem">
-              <span className="dashboard-action__title">View pricing</span>
-              <span className="dashboard-action__desc">Compare plans and credit packs</span>
+              <span className="dashboard-action__title">Compare pricing</span>
+              <span className="dashboard-action__desc">See plans, credits, and commercial rights</span>
             </Link>
             <Link href="/how-to-use" className="dashboard-action" role="listitem">
               <span className="dashboard-action__title">Product guide</span>
@@ -488,7 +495,7 @@ export function ProfileClient({ initialProfile }: Props) {
             </Link>
             <Link href="/help" className="dashboard-action" role="listitem">
               <span className="dashboard-action__title">Help Center</span>
-              <span className="dashboard-action__desc">FAQ, support, and troubleshooting</span>
+              <span className="dashboard-action__desc">FAQ, billing help, and troubleshooting</span>
             </Link>
           </div>
         </section>
@@ -496,7 +503,7 @@ export function ProfileClient({ initialProfile }: Props) {
         <div className="dashboard-split">
           <section className="dashboard-section" aria-labelledby="dash-recent">
             <div className="dashboard-section__head">
-              <h2 id="dash-recent">Recent projects</h2>
+              <h2 id="dash-recent">Projects</h2>
               <Link href="/studio" className="dashboard-section__link">
                 Open Studio
               </Link>
@@ -510,12 +517,12 @@ export function ProfileClient({ initialProfile }: Props) {
             ) : recentProjects.length === 0 && !draft ? (
               <EmptyState
                 className="dashboard-empty"
-                icon={null}
+                icon={<EmptyProjectsIcon />}
                 title="No projects yet"
-                description="Pick a category in Studio — your draft autosaves, and finished work shows up here."
-                actionLabel="Start creating →"
+                description="Choose a category in Studio to begin. Drafts autosave as you work, and finished videos appear here and in Your library."
+                actionLabel="Start creating"
                 actionHref="/studio"
-                secondaryActionLabel="See pricing"
+                secondaryActionLabel="View pricing"
                 secondaryActionHref="/pricing"
               />
             ) : (
@@ -547,7 +554,10 @@ export function ProfileClient({ initialProfile }: Props) {
 
           <section className="dashboard-section" aria-labelledby="dash-activity">
             <div className="dashboard-section__head">
-              <h2 id="dash-activity">Activity</h2>
+              <h2 id="dash-activity">Recent generations</h2>
+              <a href="#your-renders" className="dashboard-section__link">
+                View library
+              </a>
             </div>
             {!hydrated ? (
               <div className="dashboard-skeleton" aria-busy="true" aria-label="Loading activity">
@@ -558,10 +568,10 @@ export function ProfileClient({ initialProfile }: Props) {
             ) : activityItems.length === 0 ? (
               <EmptyState
                 className="dashboard-empty"
-                icon={null}
-                title="No activity yet"
-                description="Renders, queue updates, and project history appear here after your first Studio session."
-                actionLabel="Open Studio →"
+                icon={<EmptyActivityIcon />}
+                title="No generations yet"
+                description="Queue updates, render history, and project activity appear here after your first Studio session."
+                actionLabel="Open Studio"
                 actionHref="/studio"
                 secondaryActionLabel="Help Center"
                 secondaryActionHref="/help"
@@ -582,18 +592,26 @@ export function ProfileClient({ initialProfile }: Props) {
           </section>
         </div>
 
-        <section className="dashboard-section dashboard-account" aria-labelledby="dash-account">
+        <section
+          className="dashboard-section dashboard-account"
+          id="dashboard-billing"
+          aria-labelledby="dash-account"
+        >
           <div className="dashboard-section__head">
-            <h2 id="dash-account">Account</h2>
+            <h2 id="dash-account">Billing &amp; subscription</h2>
             <button
               type="button"
               className="dashboard-section__link"
               aria-expanded={showPlans}
               onClick={() => setShowPlans((v) => !v)}
             >
-              {showPlans ? "Hide plans" : "Manage plans"}
+              {showPlans ? "Hide plans" : "Manage subscription"}
             </button>
           </div>
+          <p className="dashboard-section__lead">
+            Review your account details, free preview status, and upgrade options. Checkout opens in a
+            secure new tab.
+          </p>
           <div className="dashboard-account__grid">
             <Card variant="glass" className="dashboard-card dashboard-card--static">
               <p>
@@ -606,10 +624,15 @@ export function ProfileClient({ initialProfile }: Props) {
               </p>
               {profile.paymentProvider ? (
                 <p>
-                  <strong>Billing</strong>
+                  <strong>Billing provider</strong>
                   <span>{profile.paymentProvider}</span>
                 </p>
-              ) : null}
+              ) : (
+                <p>
+                  <strong>Billing provider</strong>
+                  <span>Not connected</span>
+                </p>
+              )}
             </Card>
             <Card variant="glass" className="dashboard-card dashboard-card--static">
               <p>
@@ -623,15 +646,35 @@ export function ProfileClient({ initialProfile }: Props) {
                 <span>{profile.subscriptionActive ? "Active" : "None"}</span>
               </p>
               <p>
-                <strong>Plan</strong>
+                <strong>Current plan</strong>
                 <span>{tierLabel}</span>
               </p>
             </Card>
           </div>
 
+          {!showPlans ? (
+            <div className="dashboard-billing-cta">
+              <Button
+                variant="lavender"
+                onClick={() => setShowPlans(true)}
+              >
+                {profile.subscriptionActive ? "Change plan" : "View upgrade options"}
+              </Button>
+              <ButtonLink href="/pricing#plans" variant="ghost">
+                Full pricing page
+              </ButtonLink>
+              <ButtonLink href="/help/billing" variant="ghost">
+                Billing help
+              </ButtonLink>
+            </div>
+          ) : null}
+
           {showPlans ? (
             <div className="profile-checkout-row dashboard-plans" id="dashboard-plans">
-              <p className="dashboard-plans__hint">Choose a plan — checkout opens in a new tab.</p>
+              <p className="dashboard-plans__hint">
+                Select a plan to add credits. Checkout opens in a new tab — you can return here when
+                finished.
+              </p>
               <Button
                 variant="secondary"
                 className="profile-sub-btn"

@@ -116,6 +116,7 @@ import { StudioToast, type StudioToastState } from "@/components/studio/StudioTo
 import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
 import { WizardRoadmap } from "@/components/studio/WizardRoadmap";
 import { StudioCreateExperience } from "@/components/studio/StudioCreateExperience";
+import { DraftManager } from "@/components/studio/DraftManager";
 import { StudioSkeleton } from "@/components/ui/skeletons";
 import {
   PREVIEW_PLACEHOLDER_VIDEO,
@@ -129,12 +130,14 @@ import {
   resumeStudioDraftSave,
   saveStudioDraft,
   suppressStudioDraftSave,
+  type StudioDraftSnapshot,
 } from "@/lib/studio-form-backup";
 import {
   addPromptToHistory,
   upsertRecentProject,
   type SavedWorkflow,
 } from "@/lib/studio-workflow-store";
+import { copyTextToClipboard } from "@/lib/share-links";
 
 const PremiumPaywallModal = dynamic(
   () => import("./PremiumPaywallModal").then((mod) => mod.PremiumPaywallModal),
@@ -246,9 +249,8 @@ export function StudioClient() {
   const [setupPhase, setSetupPhase] = useState<"mode" | "category" | "style" | "title">(
     "mode"
   );
-  const setupCategoryRef = useRef<HTMLDivElement>(null);
-  const setupStyleRef = useRef<HTMLDivElement>(null);
-  const setupTitleRef = useRef<HTMLDivElement>(null);
+  const wizardFocusRef = useRef<HTMLDivElement>(null);
+  const roadmapRef = useRef<HTMLDivElement>(null);
   const [processing, setProcessing] = useState(false);
   const [genPhase, setGenPhase] = useState<GenPhase>("idle");
   const [genUi, setGenUi] = useState<GenUiState>(IDLE_GEN);
@@ -263,6 +265,7 @@ export function StudioClient() {
   const [durationLimitMessage, setDurationLimitMessage] = useState("");
   const [durationLimitMax, setDurationLimitMax] = useState<number | undefined>();
   const [showEarlyResubscribe, setShowEarlyResubscribe] = useState(false);
+  const [draftManagerOpen, setDraftManagerOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [formNotice, setFormNotice] = useState<string | null>(null);
   const [wizardStep, setWizardStep] = useState(0);
@@ -318,13 +321,14 @@ export function StudioClient() {
     mode &&
       category &&
       visualStyle &&
-      (form.text[VIDEO_TITLE_FIELD_ID]?.trim()?.length ?? 0) > 0
+      (form.text[VIDEO_TITLE_FIELD_ID]?.trim()?.length ?? 0) >= 2
   );
 
-  const scrollToSetupRef = useCallback((ref: React.RefObject<HTMLDivElement | null>) => {
+  const scrollWizardIntoView = useCallback(() => {
     window.setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }, 100);
+      const target = wizardFocusRef.current ?? roadmapRef.current;
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
   }, []);
 
   const creditsNeeded = creditsForDuration(durationSeconds);
@@ -460,8 +464,16 @@ export function StudioClient() {
     // restarting the interval on every generation tick.
   }, [refreshCompileStatus]);
 
-  const { rememberTextField, pendingDraft, restoreDraft, dismissDraft, lastSavedAt, saving, showDraftBanner } =
-    useStudioFormBackup({
+  const {
+    rememberTextField,
+    pendingDraft,
+    restoreDraft,
+    applyDraftSnapshot,
+    dismissDraft,
+    lastSavedAt,
+    saving,
+    showDraftBanner,
+  } = useStudioFormBackup({
     mode,
     category,
     visualStyle,
@@ -548,7 +560,6 @@ export function StudioClient() {
           "avatar"
         )
       );
-      scrollToSetupRef(setupStyleRef);
     },
     [processing, genPhase, mode]
   );
@@ -566,7 +577,6 @@ export function StudioClient() {
         if (title) next.text[VIDEO_TITLE_FIELD_ID] = title;
         return next;
       });
-      scrollToSetupRef(setupCategoryRef);
     },
     [processing, genPhase]
   );
@@ -580,7 +590,6 @@ export function StudioClient() {
         const synced = syncIdentityPipeline(prev, style);
         return pruneFormToVisible(synced, category, mode, style);
       });
-      scrollToSetupRef(setupTitleRef);
     },
     [processing, genPhase, mode, category]
   );
@@ -603,9 +612,44 @@ export function StudioClient() {
         const synced = syncIdentityPipeline(next, opts.style);
         return pruneFormToVisible(synced, opts.category, opts.mode, opts.style);
       });
-      scrollToSetupRef(setupTitleRef);
     },
     [processing, genPhase]
+  );
+
+  const handleTemplateApply = useCallback(
+    (opts: {
+      mode: GenerationMode;
+      category: VideoCategory;
+      style: VisualStyle;
+      title?: string;
+      directionPrompt?: string;
+      duration?: string;
+      notes?: string;
+    }) => {
+      if (processing || genPhase === "running") return;
+      setForm((prev) => {
+        const next = { ...prev, text: { ...prev.text } };
+        if (opts.title?.trim()) {
+          next.text[VIDEO_TITLE_FIELD_ID] = opts.title.trim();
+        }
+        if (opts.duration) next.text.duration = opts.duration;
+        if (opts.directionPrompt?.trim()) {
+          const prompt = opts.directionPrompt.trim();
+          next.text.directionPrompt = prompt;
+          if (opts.mode === "image") {
+            next.text.mainPrompt = prompt;
+          }
+        }
+        return next;
+      });
+      if (opts.title?.trim()) {
+        rememberTextField(VIDEO_TITLE_FIELD_ID, opts.title.trim());
+      }
+      if (opts.directionPrompt?.trim()) {
+        rememberTextField("directionPrompt", opts.directionPrompt.trim());
+      }
+    },
+    [processing, genPhase, rememberTextField]
   );
 
   const applyProgress = useCallback((step: {
@@ -679,17 +723,6 @@ export function StudioClient() {
       return step;
     });
   }, [category, mode, visualStyle]);
-
-  useEffect(() => {
-    if (wizardStep !== WIZARD_SETUP_STEP) return;
-    if (!setupComplete) return;
-    const timer = window.setTimeout(() => {
-      setFieldErrors({});
-      setFormNotice(null);
-      setWizardStep(WIZARD_FIRST_GROUP_STEP);
-    }, 500);
-    return () => window.clearTimeout(timer);
-  }, [wizardStep, setupComplete]);
 
   useEffect(() => {
     if (!category || !mode || mode !== "prompt" || !visualStyle) return;
@@ -1067,7 +1100,7 @@ export function StudioClient() {
         setGenUi({
           active: true,
           percent: 100,
-          message: backendRes.message || "Done ✓",
+          message: backendRes.message || "Preview Ready",
           stageIndex: GENERATION_LAST_STAGE_INDEX,
         });
         if (capturedPrompt && !opts?.segmentMode) addPromptToHistory(capturedPrompt);
@@ -1176,7 +1209,7 @@ export function StudioClient() {
           setGenUi({
             active: true,
             percent: 100,
-            message: "Done ✓ — preview ready (simulation)",
+            message: "Preview Ready — simulation",
             stageIndex: GENERATION_LAST_STAGE_INDEX,
           });
           setStatusText("Preview ready (simulation)");
@@ -1485,7 +1518,7 @@ export function StudioClient() {
         setGenUi({
           active: true,
           percent: 100,
-          message: compileData.message ?? "Done ✓",
+          message: compileData.message ?? "Preview Ready",
           stageIndex: GENERATION_LAST_STAGE_INDEX,
         });
         const longPrompt = extractCreativePrompt(form);
@@ -1862,12 +1895,13 @@ export function StudioClient() {
       }
       if (!form.text[VIDEO_TITLE_FIELD_ID]?.trim()) {
         setFormNotice("Please enter a video title.");
-        scrollToSetupRef(setupTitleRef);
+        setSetupPhase("title");
         return;
       }
       setFieldErrors({});
       setFormNotice(null);
       setWizardStep(WIZARD_FIRST_GROUP_STEP);
+      scrollWizardIntoView();
       return;
     }
 
@@ -1902,6 +1936,7 @@ export function StudioClient() {
     setFormNotice(null);
     if (wizardStep < maxStep) {
       setWizardStep(wizardStep + 1);
+      scrollWizardIntoView();
     }
   };
 
@@ -2017,13 +2052,15 @@ export function StudioClient() {
       pushToast({
         tone: "warning",
         title: "Download unavailable",
-        message: "Upgrade or wait for a paid render to unlock download.",
+        message: "Upgrade or wait for a paid render to unlock MP4 download.",
       });
       return;
     }
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(activeVideo.title || "rtas-video").replace(/[^\w\-]+/g, "-").slice(0, 48)}.mp4`;
+    a.download =
+      filenameFromVideoUrl(url) ||
+      `${(activeVideo.title || "rtas-video").replace(/[^\w\-]+/g, "-").slice(0, 48)}.mp4`;
     a.rel = "noopener";
     a.target = "_blank";
     document.body.appendChild(a);
@@ -2032,9 +2069,57 @@ export function StudioClient() {
     pushToast({
       tone: "success",
       title: "Download started",
-      message: "Your video file is on the way.",
+      message: "Your MP4 file is on the way.",
     });
   }, [activeVideo, pushToast]);
+
+  const handleDownloadThumbnail = useCallback(() => {
+    const url = activeVideo?.thumbnailUrl;
+    if (!url) {
+      pushToast({
+        tone: "info",
+        title: "Thumbnail not available",
+        message: "This render does not include a separate image or thumbnail yet.",
+      });
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(activeVideo.title || "rtas-thumb").replace(/[^\w\-]+/g, "-").slice(0, 48)}.jpg`;
+    a.rel = "noopener";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    pushToast({
+      tone: "success",
+      title: "Thumbnail download started",
+      message: "Your image file is on the way.",
+    });
+  }, [activeVideo, pushToast]);
+
+  const handleCopyPrompt = useCallback(async () => {
+    const prompt =
+      activeVideo?.creativePrompt?.trim() ||
+      extractCreativePrompt(form)?.trim() ||
+      "";
+    if (!prompt) {
+      pushToast({
+        tone: "warning",
+        title: "No prompt to copy",
+        message: "This video does not have a saved creative prompt.",
+      });
+      return;
+    }
+    const ok = await copyTextToClipboard(prompt);
+    pushToast({
+      tone: ok ? "success" : "warning",
+      title: ok ? "Prompt copied" : "Copy failed",
+      message: ok
+        ? "Creative prompt is on your clipboard."
+        : "Unable to copy. Try again or copy from the share dialog.",
+    });
+  }, [activeVideo, form, pushToast]);
 
   const handleEditPrompt = useCallback(() => {
     const snapshot = lastGenerateAttemptRef.current;
@@ -2164,6 +2249,27 @@ export function StudioClient() {
       message: "Your autosaved prompts and settings are back.",
     });
   }, [restoreDraft, pushToast]);
+
+  const handleRestoreNamedDraft = useCallback(
+    (snapshot: StudioDraftSnapshot) => {
+      applyDraftSnapshot(snapshot);
+      setSetupPhase(
+        snapshot.category && snapshot.visualStyle
+          ? "title"
+          : snapshot.category
+            ? "style"
+            : snapshot.mode
+              ? "category"
+              : "mode"
+      );
+      pushToast({
+        tone: "success",
+        title: "Draft continued",
+        message: "Loaded from your drafts list.",
+      });
+    },
+    [applyDraftSnapshot, pushToast]
+  );
 
   const handleApplyPrompt = useCallback(
     (prompt: string) => {
@@ -2299,6 +2405,38 @@ export function StudioClient() {
         ? roadmapLabels.length - 1
         : Math.min(wizardStep, roadmapLabels.length - 2);
 
+  const handleRoadmapStepSelect = useCallback(
+    (index: number) => {
+      if (processing || genPhase === "running") return;
+      if (index >= roadmapCurrent) return;
+
+      setFieldErrors({});
+      setFormNotice(null);
+
+      if (index === 0) {
+        setWizardStep(WIZARD_SETUP_STEP);
+        if (mode && category && visualStyle) setSetupPhase("title");
+        else if (mode && category) setSetupPhase("style");
+        else if (mode) setSetupPhase("category");
+        else setSetupPhase("mode");
+        scrollWizardIntoView();
+        return;
+      }
+
+      setWizardStep(index);
+      scrollWizardIntoView();
+    },
+    [
+      processing,
+      genPhase,
+      roadmapCurrent,
+      mode,
+      category,
+      visualStyle,
+      scrollWizardIntoView,
+    ]
+  );
+
   if (!profile) {
     return <StudioSkeleton />;
   }
@@ -2351,6 +2489,13 @@ export function StudioClient() {
         maxMinutes={generationEtaWindow.maxMinutes}
         segmentCount={segmentPlan.segmentCount}
         onClose={() => setShowGenStartedModal(false)}
+      />
+
+      <DraftManager
+        open={draftManagerOpen}
+        onClose={() => setDraftManagerOpen(false)}
+        onRestore={handleRestoreNamedDraft}
+        disabled={isLoading}
       />
 
       <div
@@ -2465,7 +2610,18 @@ export function StudioClient() {
               <header className="create-panel-unified__bar">
                 <div className="create-panel-unified__bar-top">
                   <h2>Create</h2>
-                  <AutosaveIndicator savedAt={lastSavedAt} saving={saving} />
+                  <div className="create-panel-unified__bar-actions">
+                    <AutosaveIndicator savedAt={lastSavedAt} saving={saving} />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="studio-drafts-btn"
+                      disabled={isLoading}
+                      onClick={() => setDraftManagerOpen(true)}
+                    >
+                      Drafts
+                    </Button>
+                  </div>
                 </div>
                 {showDraftBanner && pendingDraft ? (
                   <DraftRestoreBanner
@@ -2498,7 +2654,13 @@ export function StudioClient() {
                     <span className="studio-wizard-progress__step-name">{wizardStepLabel}</span>
                   </div>
                 </div>
-                <WizardRoadmap labels={roadmapLabels} currentStep={roadmapCurrent} />
+                <div ref={roadmapRef}>
+                  <WizardRoadmap
+                    labels={roadmapLabels}
+                    currentStep={roadmapCurrent}
+                    onStepSelect={handleRoadmapStepSelect}
+                  />
+                </div>
                 <details className="studio-advanced">
                   <summary>Keyboard shortcuts</summary>
                   <div className="studio-advanced__body">
@@ -2518,7 +2680,10 @@ export function StudioClient() {
               </header>
 
               {wizardStep === WIZARD_SETUP_STEP ? (
-                <div className="shashka-wizard-step shashka-wizard-step--setup">
+                <div
+                  ref={wizardFocusRef}
+                  className="shashka-wizard-step shashka-wizard-step--setup"
+                >
                   <div className="shashka-wizard-step__body">
                     <fieldset className="create-panel-fieldset" disabled={isLoading}>
                       {isStudioOwner(profile) ? (
@@ -2545,22 +2710,18 @@ export function StudioClient() {
                         category={category}
                         visualStyle={visualStyle}
                         title={form.text[VIDEO_TITLE_FIELD_ID] ?? ""}
+                        setupPhase={setupPhase}
                         disabled={isLoading}
+                        onSetupPhaseChange={setSetupPhase}
                         onModeSelect={handleModeSelect}
                         onCategorySelect={handleCategorySelect}
                         onStyleSelect={handleVisualStyleSelect}
                         onTitleChange={(value) => setTextField(VIDEO_TITLE_FIELD_ID, value)}
                         onQuickStart={handleQuickStart}
+                        onTemplateApply={handleTemplateApply}
                         titleError={fieldErrors[VIDEO_TITLE_FIELD_ID]}
                         titleFieldId={VIDEO_TITLE_FIELD_ID}
                       />
-                      <div
-                        ref={setupCategoryRef}
-                        className="studio-setup-anchor"
-                        aria-hidden
-                      />
-                      <div ref={setupStyleRef} className="studio-setup-anchor" aria-hidden />
-                      <div ref={setupTitleRef} className="studio-setup-anchor" aria-hidden />
                     </fieldset>
                   </div>
                   <div className="shashka-wizard-step__footer">
@@ -2588,6 +2749,7 @@ export function StudioClient() {
 
               {currentWizardGroup && category ? (
                 <div
+                  ref={wizardFocusRef}
                   className={`shashka-wizard-step shashka-wizard-step--${currentWizardGroup.id}`}
                 >
                   <div className="shashka-wizard-step__head">
@@ -2603,7 +2765,15 @@ export function StudioClient() {
                           faceFile={form.files.faceReference ?? null}
                           visible
                         />
-                        <FacialConsistencyShield premium showTagline />
+                        <FacialConsistencyShield
+                          premium
+                          showTagline
+                          hasReference={Boolean(form.files.faceReference?.file)}
+                          identityStrength={0.85}
+                          faceMatchPercent={
+                            form.files.faceReference?.file ? 100 : undefined
+                          }
+                        />
                       </div>
                     ) : null}
                     {currentWizardGroup.fields.length > 0 ? (
@@ -2790,14 +2960,84 @@ export function StudioClient() {
                 />
               </div>
               {activeVideo?.status === "ready" && activeVideo.videoUrl && !isGenerating ? (
-                <div className="shashka-preview-share-row">
+                <div
+                  className="studio-result-actions"
+                  role="toolbar"
+                  aria-label="Result actions"
+                >
+                  <Button
+                    type="button"
+                    variant="lavender"
+                    size="sm"
+                    onClick={handleSuccessDownload}
+                    disabled={!activeVideo.canDownload}
+                    title={
+                      activeVideo.canDownload
+                        ? "Download finished MP4"
+                        : "Commercial download requires an active paid plan"
+                    }
+                  >
+                    Download MP4
+                  </Button>
+                  {activeVideo.thumbnailUrl ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleDownloadThumbnail}
+                    >
+                      Download thumbnail
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void handleCopyPrompt()}
+                    disabled={
+                      !activeVideo.creativePrompt?.trim() &&
+                      !extractCreativePrompt(form)?.trim()
+                    }
+                  >
+                    Copy prompt
+                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
+                    size="sm"
                     className="btn-share-video"
                     onClick={() => handleShareVideo(activeVideo)}
                   >
-                    Share Video
+                    Share
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleShareVideo(activeVideo)}
+                    title={
+                      activeVideo.isPublic
+                        ? "Open share options for your public link"
+                        : "Publish a public link, then share"
+                    }
+                  >
+                    {activeVideo.isPublic ? "Published" : "Publish"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCreateVariation}
+                  >
+                    Create similar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEditPrompt}
+                  >
+                    Edit again
                   </Button>
                   {activeVideo.isPublic ? (
                     <span className="shashka-preview-share-note">Public link active</span>

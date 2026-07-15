@@ -8,8 +8,35 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { SITE_SUPPORT_EMAIL, SITE_SOCIAL_LINKS } from "@/lib/site-links";
 
 type Kind = "bug" | "feature" | "feedback" | "other";
+
+const DISCORD =
+  SITE_SOCIAL_LINKS.find((l) => l.id === "discord")?.href ?? "https://discord.gg/rtas";
+
+const RELATED = [
+  {
+    title: "Help FAQ",
+    body: "Credits, downloads, sign-in, and first-project answers.",
+    href: "/help/faq",
+  },
+  {
+    title: "Troubleshooting",
+    body: "Fix common Studio and account issues without developer tools.",
+    href: "/help/troubleshooting",
+  },
+  {
+    title: "Changelog",
+    body: "See what shipped recently before filing a duplicate report.",
+    href: "/help/changelog",
+  },
+  {
+    title: "Contact support",
+    body: "Email, Discord community, and other support channels.",
+    href: "/help/contact",
+  },
+] as const;
 
 /**
  * Customer Success capture — mailto handoff until a ticketing backend is connected.
@@ -36,9 +63,9 @@ export function FeedbackClient() {
         `— Sent from ${PRODUCT_NAME} /feedback`,
       ].join("\n")
     );
-    window.location.href = `mailto:support@rtasdigital.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${SITE_SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     setSentHint(
-      "Your email client should open with a pre-filled message. If nothing opens, email support@rtasdigital.com directly."
+      `Your email client should open with a pre-filled message. If nothing opens, email ${SITE_SUPPORT_EMAIL} directly.`
     );
   }
 
@@ -50,8 +77,8 @@ export function FeedbackClient() {
           <h1 className="text-zinc-100">Feedback & requests</h1>
           <p className="mt-3 max-w-2xl text-ds-text-muted">
             Tell us what broke, what delighted you, or what you need next. We read every
-            message — this form opens your email client so nothing is stored without your
-            consent.
+            message. This form opens your email client with a pre-filled note so nothing is
+            stored without your consent.
           </p>
 
           {sentHint ? (
@@ -105,38 +132,61 @@ export function FeedbackClient() {
               <Button type="submit" variant="primary">
                 Open email to support
               </Button>
-              <ButtonLink href="/help" variant="ghost">
-                Back to Help Center
+              <ButtonLink href={`mailto:${SITE_SUPPORT_EMAIL}`} variant="ghost">
+                Email {SITE_SUPPORT_EMAIL}
               </ButtonLink>
             </div>
           </form>
         </InnerPageSection>
 
-        <InnerPageSection aria-labelledby="cs-placeholders">
-          <h2 id="cs-placeholders" className="text-xl text-zinc-100">
-            Coming soon
-          </h2>
-          <ul className="mt-4 grid gap-3 text-sm text-ds-text-muted md:grid-cols-2">
-            <li>Knowledge Base articles (expand from Help)</li>
-            <li>Video tutorials</li>
-            <li>Community forum</li>
-            <li>In-app ticket status</li>
-          </ul>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <ButtonLink href="/help/faq" variant="ghost">
-              FAQ
+        <section
+          className="grid gap-4 md:grid-cols-2"
+          aria-labelledby="feedback-related"
+        >
+          <InnerPageSection className="md:col-span-2 text-center pb-2">
+            <h2 id="feedback-related" className="text-xl text-zinc-100">
+              Related help
+            </h2>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-ds-text-muted">
+              Prefer self-serve when you can — or reach the team through Discord and Support
+              email.
+            </p>
+          </InnerPageSection>
+          {RELATED.map((item) => (
+            <InnerPageSection key={item.title}>
+              <h3 className="text-lg text-zinc-100">{item.title}</h3>
+              <p className="mt-2 text-sm text-ds-text-muted">{item.body}</p>
+              <div className="mt-4">
+                <ButtonLink href={item.href} variant="ghost">
+                  Open →
+                </ButtonLink>
+              </div>
+            </InnerPageSection>
+          ))}
+        </section>
+
+        <InnerPageSection className="text-center">
+          <h2 className="text-xl text-zinc-100">Other ways to reach us</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-ds-text-muted">
+            For account-sensitive billing, use email. For product tips and community
+            discussion, join Discord.
+          </p>
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <ButtonLink href={`mailto:${SITE_SUPPORT_EMAIL}`} variant="lavender">
+              {SITE_SUPPORT_EMAIL}
             </ButtonLink>
-            <ButtonLink href="/help/troubleshooting" variant="ghost">
-              Troubleshooting
-            </ButtonLink>
-            <ButtonLink href="/help/changelog" variant="ghost">
-              Changelog
+            <a
+              href={DISCORD}
+              className="rtas-btn-ghost rtas-ui-btn"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Discord community
+            </a>
+            <ButtonLink href="/help" variant="ghost">
+              Help Center
             </ButtonLink>
           </div>
-          <p className="mt-4 text-sm text-ds-text-muted">
-            Placeholders only — no fake backends. These channels activate when Customer
-            Success tooling is connected.
-          </p>
         </InnerPageSection>
       </InnerPageContainer>
     </MarketingLayout>

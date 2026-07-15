@@ -9,6 +9,7 @@ export {
   buildRedditShareUrl,
   buildEmailShareUrl,
   buildTelegramShareUrl,
+  buildPinterestShareUrl,
   buildSocialShareUrl,
   copyTextToClipboard,
 } from "@rtas/utils";

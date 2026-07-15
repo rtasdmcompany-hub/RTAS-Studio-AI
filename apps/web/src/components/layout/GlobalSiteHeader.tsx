@@ -14,13 +14,16 @@ export function GlobalSiteHeader() {
     return null;
   }
 
-  const isStudio = pathname.startsWith("/studio");
-  const showCredits = isStudio || pathname.startsWith("/profile");
+  const isAppSurface =
+    pathname.startsWith("/studio") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/docs") ||
+    pathname.startsWith("/developers");
 
   return (
     <SiteHeader
-      actionsSlot={showCredits ? <CreditsPill /> : undefined}
-      authVariant={isStudio || pathname.startsWith("/profile") ? "studio" : "landing"}
+      actionsSlot={<CreditsPill />}
+      authVariant={isAppSurface ? "studio" : "landing"}
     />
   );
 }

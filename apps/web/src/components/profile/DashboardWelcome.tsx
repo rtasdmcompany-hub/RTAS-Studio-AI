@@ -24,7 +24,6 @@ export function DashboardWelcome({ firstName }: Props) {
         setVisible(true);
         return;
       }
-      // Soft show once per browser if never dismissed
       if (!localStorage.getItem(STORAGE_KEY)) {
         setVisible(true);
       }
@@ -53,29 +52,31 @@ export function DashboardWelcome({ firstName }: Props) {
       aria-label="Welcome to RTAS Studio AI"
     >
       <div className="dashboard-welcome__copy">
-        <p className="dashboard-welcome__eyebrow">Welcome{name !== "there" ? `, ${name}` : ""}</p>
-        <h2 className="dashboard-welcome__title">You&apos;re ready in four steps</h2>
+        <p className="dashboard-welcome__eyebrow">
+          Welcome{name !== "there" ? `, ${name}` : ""}
+        </p>
+        <h2 className="dashboard-welcome__title">Your workspace in four steps</h2>
         <ol className="dashboard-welcome__steps">
           <li>
-            <strong>Open Studio</strong> — pick a category and describe your scene.
+            <strong>Open Studio</strong> — choose a category and describe your scene.
           </li>
           <li>
-            <strong>Watch credits</strong> — 1 credit = 1 second of finished video.
+            <strong>Track credits</strong> — one credit equals one second of finished video.
           </li>
           <li>
-            <strong>Find results here</strong> — library, queue, and plan live on this dashboard.
+            <strong>Review results here</strong> — library, queue status, and billing live on this dashboard.
           </li>
           <li>
-            <strong>Need help?</strong> — Help Center is always in the header.
+            <strong>Get support anytime</strong> — Help Center is always available in the header.
           </li>
         </ol>
       </div>
       <div className="dashboard-welcome__actions">
         <ButtonLink href="/studio" variant="lavender">
-          Start in Studio
+          Open Studio
         </ButtonLink>
         <ButtonLink href="/how-to-use" variant="ghost">
-          60-second guide
+          Quick start guide
         </ButtonLink>
         <Button type="button" variant="ghost" onClick={dismiss}>
           Dismiss

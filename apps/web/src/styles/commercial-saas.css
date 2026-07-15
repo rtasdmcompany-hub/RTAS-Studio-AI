@@ -260,7 +260,7 @@
 
 .share-modal__social {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.55rem;
   margin-bottom: 0.85rem;
 }
@@ -294,6 +294,38 @@
 
 .share-modal__social-btn--email {
   border-color: rgba(165, 148, 253, 0.35);
+}
+
+.share-modal__social-btn--youtube {
+  border-color: rgba(255, 0, 0, 0.4);
+}
+
+.share-modal__social-btn--instagram {
+  border-color: rgba(225, 48, 108, 0.4);
+}
+
+.share-modal__social-btn--tiktok {
+  border-color: rgba(0, 242, 234, 0.35);
+}
+
+.share-modal__social-btn--pinterest {
+  border-color: rgba(189, 8, 28, 0.4);
+}
+
+.share-modal__social-btn--discord {
+  border-color: rgba(88, 101, 242, 0.45);
+}
+
+.share-modal__social-btn--whatsapp {
+  border-color: rgba(37, 211, 102, 0.4);
+}
+
+.share-modal__social-btn--x {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.share-modal__social-btn--telegram {
+  border-color: rgba(0, 136, 204, 0.4);
 }
 
 .share-modal__public-note {

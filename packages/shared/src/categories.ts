@@ -5,34 +5,34 @@ export const CATEGORY_META: Record<
   { label: string; shortLabel: string; description: string }
 > = {
   song: {
-    label: "Song Video",
-    shortLabel: "Song",
-    description: "Music videos with lyrics and style",
+    label: "Music",
+    shortLabel: "Music",
+    description: "Singer performances and music videos with lyrics, style, and sync",
   },
   religious: {
-    label: "Religious Video",
-    shortLabel: "Religious",
-    description: "Faith-based stories, prayers, hymns, and teachings for any tradition",
+    label: "Islamic / Faith",
+    shortLabel: "Faith",
+    description: "Respectful mosque and faith content — prayers, nasheeds, and teachings",
   },
   business: {
-    label: "Business Ad",
+    label: "Business",
     shortLabel: "Business",
-    description: "Promos, product ads, corporate",
+    description: "Commercial ads, product promos, and brand spots",
   },
   cartoon: {
-    label: "Kids Cartoon",
-    shortLabel: "Cartoon",
-    description: "Animated stories for children",
+    label: "Kids",
+    shortLabel: "Kids",
+    description: "Family-safe animation and kids storytelling",
   },
   story: {
     label: "Story",
     shortLabel: "Story",
-    description: "Narrative and short films",
+    description: "Cinematic narratives and short-form films",
   },
   podcast: {
     label: "Podcast",
     shortLabel: "Podcast",
-    description: "Talking-head and show clips",
+    description: "Talking-head clips, episode promos, and show highlights",
   },
 };
 

@@ -5,20 +5,68 @@ type Props = {
   /** Premium golden glow on the final identity-lock step */
   premium?: boolean;
   showTagline?: boolean;
+  /** Face match confidence 0–100. Defaults from hasReference when omitted. */
+  faceMatchPercent?: number;
+  /** Identity pipeline strength 0–1 (e.g. 0.85). */
+  identityStrength?: number;
+  /** Whether a face reference asset is present. */
+  hasReference?: boolean;
+  /** Show short identity best-practice tips (face-lock step). */
+  showTips?: boolean;
 };
+
+const BEST_PRACTICES = [
+  "Front-facing, eyes open, even lighting",
+  "One clear face — avoid group photos",
+  "No sunglasses, masks, or heavy filters",
+];
+
+function clampPercent(n: number): number {
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function resolveMatchPercent(
+  faceMatchPercent: number | undefined,
+  hasReference: boolean | undefined
+): number {
+  if (typeof faceMatchPercent === "number" && Number.isFinite(faceMatchPercent)) {
+    return clampPercent(faceMatchPercent);
+  }
+  return hasReference ? 100 : 92;
+}
+
+function resolveStrengthLabel(identityStrength: number | undefined): string {
+  const raw =
+    typeof identityStrength === "number" && Number.isFinite(identityStrength)
+      ? identityStrength
+      : 0.85;
+  const pct = clampPercent(raw <= 1 ? raw * 100 : raw);
+  if (pct >= 90) return `Identity strength ${pct}% · Locked`;
+  if (pct >= 70) return `Identity strength ${pct}% · Strong`;
+  return `Identity strength ${pct}% · Moderate`;
+}
 
 /** Holographic USP badge — guaranteed facial consistency. */
 export function FacialConsistencyShield({
   className = "",
   premium = false,
   showTagline = false,
+  faceMatchPercent,
+  identityStrength,
+  hasReference,
+  showTips = false,
 }: Props) {
+  const matchPct = resolveMatchPercent(faceMatchPercent, hasReference);
+  const strengthLabel = resolveStrengthLabel(identityStrength);
+  const confidenceLabel = hasReference === false ? "Awaiting reference" : "Identity confidence";
+  const tipsVisible = showTips || premium;
+
   return (
     <div className="shashka-face-shield-wrap">
       <div
         className={`shashka-face-shield${premium ? " shashka-face-shield--premium" : ""} ${className}`.trim()}
         role="status"
-        aria-label="Guaranteed 100% genuine facial consistency enabled"
+        aria-label={`${matchPct}% face match. ${strengthLabel}. ${confidenceLabel}.`}
       >
         <div className="shashka-face-shield__glow" aria-hidden />
         <svg
@@ -43,14 +91,37 @@ export function FacialConsistencyShield({
           />
         </svg>
         <div className="shashka-face-shield__copy">
-          <span className="shashka-face-shield__percent">100%</span>
+          <span className="shashka-face-shield__percent">{matchPct}%</span>
           <span className="shashka-face-shield__label">Genuine Facial Consistency</span>
+          <span className="shashka-face-shield__metrics">
+            <span className="shashka-face-shield__metric">
+              Face match {matchPct}%
+            </span>
+            <span className="shashka-face-shield__metric-sep" aria-hidden>
+              ·
+            </span>
+            <span className="shashka-face-shield__metric">{strengthLabel}</span>
+          </span>
+          {hasReference === false ? (
+            <span className="shashka-face-shield__status">
+              Upload a reference to maximize lock
+            </span>
+          ) : (
+            <span className="shashka-face-shield__status">{confidenceLabel}</span>
+          )}
         </div>
       </div>
       {showTagline ? (
         <p className="shashka-face-shield-tagline">
-          Guaranteed 100% Genuine Facial Consistency
+          Guaranteed genuine facial consistency across every shot
         </p>
+      ) : null}
+      {tipsVisible ? (
+        <ul className="shashka-face-shield__tips" aria-label="Identity lock best practices">
+          {BEST_PRACTICES.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
+        </ul>
       ) : null}
     </div>
   );

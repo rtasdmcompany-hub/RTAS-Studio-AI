@@ -127,6 +127,27 @@ export function useStudioFormBackup({
     setWizardStep,
   ]);
 
+  const applyDraftSnapshot = useCallback(
+    (draft: StudioDraftSnapshot) => {
+      applyDraftToState(draft, {
+        setMode,
+        setCategory,
+        setVisualStyle,
+        setForm,
+        setWizardStep,
+      });
+      saveStudioDraft({
+        mode: draft.mode,
+        category: draft.category,
+        visualStyle: draft.visualStyle,
+        text: draft.text,
+      });
+      setPendingDraft(null);
+      setLastSavedAt(draft.savedAt);
+    },
+    [setCategory, setForm, setMode, setVisualStyle, setWizardStep]
+  );
+
   const dismissDraft = useCallback(() => {
     clearStudioDraft();
     setPendingDraft(null);
@@ -141,6 +162,7 @@ export function useStudioFormBackup({
     rememberTextField,
     pendingDraft,
     restoreDraft,
+    applyDraftSnapshot,
     dismissDraft,
     lastSavedAt,
     saving,

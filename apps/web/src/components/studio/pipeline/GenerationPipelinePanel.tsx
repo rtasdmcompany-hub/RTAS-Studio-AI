@@ -8,6 +8,10 @@ import {
   isProgressStageDone,
   pipelineRailIndexFromPercent,
 } from "@/lib/generation-progress-stages";
+import {
+  getReportIssueMailto,
+  softenGenerationError,
+} from "@/lib/generation-error-ui";
 
 export type PipelinePhase = "running" | "error" | "success" | "cancelled";
 
@@ -18,17 +22,33 @@ export type PipelineStep = {
 };
 
 const PIPELINE_STEPS: PipelineStep[] = [
-  { id: "upload", label: "Upload", description: "Uploading assets" },
-  { id: "prepare", label: "Prepare", description: "Analyzing prompt & optimizing settings" },
-  { id: "generate", label: "Generate", description: "Generating and rendering frames" },
-  { id: "finalize", label: "Finalize", description: "Finalizing delivery" },
+  {
+    id: "assets",
+    label: "Assets",
+    description: "Preparing assets and uploading securely",
+  },
+  {
+    id: "plan",
+    label: "Plan",
+    description: "Prompt analysis, storyboard, and scene planning",
+  },
+  {
+    id: "render",
+    label: "Render",
+    description: "Rendering, upscaling, audio sync, and encoding",
+  },
+  {
+    id: "deliver",
+    label: "Deliver",
+    description: "Finalizing and preparing your preview",
+  },
 ];
 
 const STAGE_EXPLANATIONS: Record<number, string> = {
-  0: "Uploading your assets securely so the render can start.",
-  1: "Analyzing your prompt and preparing the AI model with optimized settings.",
-  2: "Generating and rendering frames. Longer clips take more time here.",
-  3: "Finalizing the file and preparing your preview.",
+  0: "Preparing and uploading your assets so the render can begin.",
+  1: "Analyzing your prompt, building a storyboard, and planning scenes.",
+  2: "Rendering frames, upscaling, syncing audio, and encoding. Longer clips spend more time here.",
+  3: "Finalizing the file and getting your preview ready for playback.",
 };
 
 type Props = {
@@ -57,25 +77,6 @@ type Props = {
   onEditPrompt?: () => void;
   onCreateVariation?: () => void;
 };
-
-function friendlyMessage(raw: string, isError: boolean): string {
-  if (!raw) return "";
-  if (!isError) return raw;
-  const lower = raw.toLowerCase();
-  if (lower.includes("duration") && lower.includes("literal_error")) {
-    return "Cloud render could not read video length. Restart the API, pick your length again, and retry.";
-  }
-  if (lower.includes("insufficient fal.ai balance")) {
-    return "Fal.ai balance is low. Add credit at fal.ai/dashboard/billing, then retry.";
-  }
-  if (lower.includes("aborted") || lower.includes("cancelled")) {
-    return "Generation was cancelled. Your draft is still here — retry when ready.";
-  }
-  if (raw.length > 180) {
-    return raw.split("\n")[0]?.slice(0, 160) ?? "Generation failed. Check inputs and retry.";
-  }
-  return raw;
-}
 
 function stepIndexFromPercent(percent: number): number {
   return pipelineRailIndexFromPercent(percent);
@@ -166,14 +167,14 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
 
     const etaLabel =
       phase === "running" && remaining != null
-        ? `~${formatClock(remaining)} left · ${eta.minMinutes}–${eta.maxMinutes} min window`
+        ? `About ${formatClock(remaining)} remaining · ${eta.minMinutes}–${eta.maxMinutes} min estimate`
         : null;
 
     const elapsedLabel =
       phase === "running" && elapsedSec > 0
         ? `${formatClock(elapsedSec)} elapsed`
         : isSuccess && elapsedSec > 0
-          ? `${formatClock(elapsedSec)} total`
+          ? `Completed in ${formatClock(elapsedSec)}`
           : null;
 
     const queuePosition =
@@ -189,17 +190,20 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
 
     if (!active) return null;
 
+    const softenedError = isError ? softenGenerationError(message) : null;
+    const displayMessage = isError
+      ? softenedError?.summary ?? ""
+      : message;
+
     const headline = isError
-      ? "Generation failed"
+      ? softenedError?.title ?? "Generation failed"
       : isSuccess
         ? "Your video is ready"
         : isCancelled
-          ? "Monitoring in background"
+          ? "Continuing in the background"
           : inQueue
-            ? "You're in the queue"
-            : "Generating with care";
-
-    const displayMessage = friendlyMessage(message, isError);
+            ? "You are in the queue"
+            : "Rendering your video";
     const progressExplanation =
       phase === "running"
         ? STAGE_EXPLANATIONS[currentStep] ?? activeStep.description
@@ -296,7 +300,7 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
                   <span className="gen-pipeline__confidence-label">Queue position</span>
                   <span className="gen-pipeline__confidence-value">
                     {queueActive >= queueMax
-                      ? `#${queuePosition} waiting`
+                      ? `Position #${queuePosition}`
                       : "Active slot"}
                     <span className="gen-pipeline__confidence-sub">
                       {queueActive}/{queueMax} rendering
@@ -307,7 +311,7 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
                 <div className="gen-pipeline__confidence-item">
                   <span className="gen-pipeline__confidence-label">Queue</span>
                   <span className="gen-pipeline__confidence-value">
-                    Your job
+                    Your job is running
                     <span className="gen-pipeline__confidence-sub">
                       {queueActive}/{queueMax} active
                     </span>
@@ -400,39 +404,52 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
             <span className="gen-pipeline__queue-meta">
               {queueActive}/{queueMax} active
               {queuePosition > 0 && queueActive >= queueMax
-                ? ` · #${queuePosition} waiting`
+                ? ` · position #${queuePosition}`
                 : " · your job"}
             </span>
           </div>
         ) : null}
 
-        {displayMessage && !isSuccess ? (
+        {isError && softenedError ? (
+          <div className="gen-pipeline__error" role="alert">
+            {displayMessage ? (
+              <p className="gen-pipeline__message">{displayMessage}</p>
+            ) : null}
+            {softenedError.details ? (
+              <details className="gen-pipeline__error-details">
+                <summary>Technical details</summary>
+                <pre className="gen-pipeline__error-pre">{softenedError.details}</pre>
+              </details>
+            ) : null}
+          </div>
+        ) : displayMessage && !isSuccess ? (
           <p className="gen-pipeline__message">{displayMessage}</p>
         ) : null}
 
         {phase === "running" && clamped < 100 ? (
           <p className="gen-pipeline__patience">
-            You can leave this window — we&apos;ll notify you when your video is ready.
-            Press Esc to stop waiting locally.
+            You can leave this page — we will notify you when your video is ready.
+            Press Esc to stop waiting in this browser session.
           </p>
         ) : null}
 
         {isSuccess ? (
           <div className="gen-pipeline__success-card">
-            <p className="gen-pipeline__success-kicker">Success</p>
+            <p className="gen-pipeline__success-kicker">Ready</p>
             <p className="gen-pipeline__success-summary">{successSummary}</p>
             <p className="gen-pipeline__success-note">
-              Preview is ready. Download when you&apos;re happy, or refine the prompt for another take.
+              Preview is ready. Download the MP4 when you are satisfied, or refine the prompt for
+              another take.
             </p>
             <div className="gen-pipeline__success-actions">
               {onPreview ? (
                 <Button variant="lavender" size="sm" onClick={onPreview}>
-                  Preview
+                  Play preview
                 </Button>
               ) : null}
               {onDownload && canDownload && downloadUrl ? (
                 <Button variant="secondary" size="sm" onClick={onDownload}>
-                  Download
+                  Download MP4
                 </Button>
               ) : null}
               {onRegenerate ? (
@@ -447,12 +464,12 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
               ) : null}
               {onEditPrompt ? (
                 <Button variant="ghost" size="sm" onClick={onEditPrompt}>
-                  Edit Prompt
+                  Edit again
                 </Button>
               ) : null}
               {onCreateVariation ? (
                 <Button variant="ghost" size="sm" onClick={onCreateVariation}>
-                  Create Variation
+                  Create similar
                 </Button>
               ) : null}
             </div>
@@ -462,13 +479,21 @@ export const GenerationPipelinePanel = forwardRef<HTMLDivElement, Props>(
         <div className="gen-pipeline__actions">
           {phase === "running" && onCancel ? (
             <Button variant="ghost" size="sm" onClick={onCancel}>
-              Cancel waiting
+              Cancel
             </Button>
           ) : null}
           {isError && onRetry ? (
             <Button variant="lavender" size="sm" onClick={onRetry} loading={retryLoading}>
-              {retryLoading ? "Retrying…" : "Retry generation"}
+              {retryLoading ? "Resuming…" : "Resume"}
             </Button>
+          ) : null}
+          {isError ? (
+            <a
+              className="gen-pipeline__report-link"
+              href={getReportIssueMailto(message)}
+            >
+              Report Issue
+            </a>
           ) : null}
           {(isSuccess || isCancelled || isError) && onDismiss ? (
             <Button variant="ghost" size="sm" onClick={onDismiss}>

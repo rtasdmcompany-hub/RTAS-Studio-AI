@@ -159,6 +159,16 @@
   border-radius: inherit;
   background: linear-gradient(90deg, transparent, var(--ds-accent-lavender), transparent);
   animation: studio-upload-indeterminate var(--ds-duration-slower) var(--ds-ease-in-out) infinite;
+  transition: width var(--ds-transition-fast);
+}
+
+.file-upload--busy .file-upload-progress__fill {
+  background: linear-gradient(
+    90deg,
+    rgba(165, 148, 253, 0.35),
+    var(--ds-accent-lavender),
+    rgba(201, 162, 39, 0.85)
+  );
 }
 
 @keyframes studio-upload-indeterminate {

@@ -6,19 +6,21 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ButtonLink } from "@rtas/ui";
 import { RtasHeaderBrand } from "@/components/RtasHeaderBrand";
 import { AuthHeaderActions } from "@/components/auth/AuthHeaderActions";
+import { HeaderNotifications } from "@/components/HeaderNotifications";
 
-/** Unified premium nav for the whole product surface */
+/** Single commercial primary nav — same on every route */
 const SITE_NAV = [
   { href: "/studio", label: "Studio" },
+  { href: "/profile", label: "Dashboard" },
   { href: "/showcase", label: "Showcase" },
   { href: "/features", label: "Features" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/how-to-use", label: "How to use" },
+  { href: "/docs", label: "Documentation" },
   { href: "/help", label: "Help" },
 ] as const;
 
 type Props = {
-  /** Studio-only slot (e.g. credits) shown before auth actions */
+  /** Credits / upgrade slot shown before notifications + auth */
   actionsSlot?: ReactNode;
   authVariant?: "landing" | "studio";
   className?: string;
@@ -26,13 +28,20 @@ type Props = {
 
 function isNavActive(pathname: string, href: string): boolean {
   if (href === "/studio") return pathname.startsWith("/studio");
-  if (href === "/how-to-use") return pathname.startsWith("/how-to-use");
+  if (href === "/profile") return pathname.startsWith("/profile");
   if (href === "/showcase") return pathname.startsWith("/showcase");
   if (href === "/features") return pathname.startsWith("/features");
-  if (href === "/help") {
-    return pathname.startsWith("/help") || pathname.startsWith("/feedback");
-  }
   if (href === "/pricing") return pathname === "/pricing";
+  if (href === "/docs") {
+    return pathname.startsWith("/docs") || pathname.startsWith("/how-to-use");
+  }
+  if (href === "/help") {
+    return (
+      pathname.startsWith("/help") ||
+      pathname.startsWith("/feedback") ||
+      pathname.startsWith("/support")
+    );
+  }
   return false;
 }
 
@@ -88,6 +97,7 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
 
         <div className="rtas-header__actions rtas-header__actions--desktop">
           {actionsSlot}
+          <HeaderNotifications />
           <AuthHeaderActions variant={authVariant} />
           {!isStudio ? (
             <ButtonLink href="/studio" variant="lavender" className="rtas-header__cta">
@@ -129,6 +139,7 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
           })}
           <div className="rtas-header__mobile-actions">
             {actionsSlot}
+            <HeaderNotifications />
             <AuthHeaderActions variant={authVariant} />
             {!isStudio ? (
               <ButtonLink

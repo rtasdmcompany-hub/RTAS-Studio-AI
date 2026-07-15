@@ -18,23 +18,13 @@ export type SiteSocialLink = {
   glyph: string;
 };
 
-/** Product column — unique product surfaces only */
+/** Product column */
 export const SITE_PRODUCT_LINKS: SiteNavLink[] = [
   { id: "studio", label: "Studio", href: "/studio" },
-  { id: "pricing", label: "Pricing", href: "/pricing" },
-  { id: "features", label: "Features", href: "/features" },
-  { id: "showcase", label: "Showcase", href: "/showcase" },
   { id: "dashboard", label: "Dashboard", href: "/profile" },
-];
-
-/** Resources — guides & technical docs (no product duplicates) */
-export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
-  { id: "how", label: "How to use", href: "/how-to-use" },
-  { id: "docs", label: "Documentation", href: "/docs" },
-  { id: "developers", label: "Developers", href: "/developers" },
-  { id: "faq", label: "FAQ", href: "/help/faq" },
-  { id: "billing", label: "Billing", href: "/help/billing" },
-  { id: "help", label: "Help Center", href: "/help" },
+  { id: "showcase", label: "Showcase", href: "/showcase" },
+  { id: "features", label: "Features", href: "/features" },
+  { id: "pricing", label: "Pricing", href: "/pricing" },
 ];
 
 /** Company column */
@@ -43,9 +33,39 @@ export const SITE_COMPANY_LINKS: SiteNavLink[] = [
   { id: "careers", label: "Careers", href: "/careers" },
   { id: "blog", label: "Blog", href: "/blog" },
   { id: "contact", label: "Contact", href: "/help/contact" },
+  { id: "community", label: "Community", href: "https://discord.gg/rtas", external: true },
 ];
 
-/** Support column (help hub + legal aliases where needed) */
+/** Developers column */
+export const SITE_DEVELOPER_LINKS: SiteNavLink[] = [
+  { id: "developers", label: "Developers", href: "/developers" },
+  { id: "api-docs", label: "API documentation", href: "/docs" },
+  { id: "status", label: "Status", href: "/status" },
+  {
+    id: "github",
+    label: "GitHub",
+    href: "https://github.com/rtasdmcompany-hub/RTAS-Studio-AI",
+    external: true,
+  },
+];
+
+/** Resources column */
+export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
+  { id: "docs", label: "Documentation", href: "/docs" },
+  { id: "how", label: "How to use", href: "/how-to-use" },
+  { id: "help", label: "Support", href: "/help" },
+  { id: "faq", label: "FAQ", href: "/help/faq" },
+  { id: "billing", label: "Billing", href: "/help/billing" },
+];
+
+/** Legal column */
+export const SITE_LEGAL_LINKS: SiteNavLink[] = [
+  { id: "privacy", label: "Privacy", href: "/privacy" },
+  { id: "terms", label: "Terms", href: "/terms" },
+  { id: "cookies", label: "Cookie Policy", href: "/cookies" },
+];
+
+/** Support aliases (help surfaces) */
 export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "help", label: "Help Center", href: "/help" },
   { id: "contact-support", label: "Contact", href: "/help/contact" },
@@ -57,18 +77,6 @@ export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "billing", label: "Billing", href: "/help/billing" },
 ];
 
-/** Legal column — no Contact duplicate */
-export const SITE_LEGAL_LINKS: SiteNavLink[] = [
-  { id: "privacy", label: "Privacy", href: "/privacy" },
-  { id: "terms", label: "Terms", href: "/terms" },
-  { id: "cookies", label: "Cookie Policy", href: "/cookies" },
-  { id: "status", label: "System status", href: "/status" },
-];
-
-/**
- * Social profiles — replace placeholder URLs when official accounts go live.
- * Keep ids stable; UI maps icons by id.
- */
 export const SITE_SOCIAL_LINKS: SiteSocialLink[] = [
   {
     id: "youtube",
@@ -122,7 +130,6 @@ export const SITE_SOCIAL_LINKS: SiteSocialLink[] = [
 
 export const SITE_SUPPORT_EMAIL = "support@rtasdigital.com";
 
-/** Tasteful trust copy — never exaggerate beyond product reality */
 export const SITE_TRUST_BADGES = [
   {
     id: "enterprise",
