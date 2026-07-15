@@ -253,8 +253,9 @@
   overflow: hidden;
 }
 
-/* Full inline nav from 1280px — below that, drawer prevents clipping */
-@media (min-width: 1280px) {
+/* Full inline nav only when wide enough for brand + 7 links + credits + profile.
+   Below 1440 use hamburger — pure CSS so it works without JS density classes. */
+@media (min-width: 1440px) {
   .rtas-header--premium:not(.rtas-header--drawer-nav) .rtas-header__nav {
     display: flex;
   }
@@ -280,7 +281,7 @@
   display: none !important;
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1439px) {
   .rtas-header--premium .rtas-header__nav {
     display: none !important;
   }
@@ -294,17 +295,24 @@
   }
 }
 
-@media (min-width: 1280px) and (max-width: 1439px) {
+@media (min-width: 1440px) and (max-width: 1599px) {
   .rtas-header--premium .rtas-header__actions {
     gap: 0.35rem;
   }
 
-  .studio-credits__label {
-    display: none;
+  .studio-credits__label,
+  .studio-credits__cta,
+  .studio-profile__meta {
+    display: none !important;
   }
 
-  .studio-profile__email {
-    display: none;
+  .rtas-header--premium .rtas-header__link {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .rtas-header--premium .rtas-header__product {
+    display: none !important;
   }
 }
 

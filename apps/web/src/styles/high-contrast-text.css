@@ -13,18 +13,26 @@ html {
 /* —— Heroes: readable glass panels; video sections get a dark scrim —— */
 .video-content-panel {
   position: relative;
-  background: rgba(4, 4, 8, 0.72) !important;
+  background: rgba(4, 4, 8, 0.78) !important;
   backdrop-filter: blur(var(--ds-blur-md)) !important;
   -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 1.25rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
   padding: clamp(1.25rem, 3vw, 2rem) !important;
+}
+
+.rtas-landing-outcomes.video-content-panel,
+.rtas-trusted.video-content-panel,
+.rtas-landing-audience.video-content-panel,
+.rtas-workflow.video-content-panel,
+.rtas-value.video-content-panel {
+  background: rgba(4, 4, 8, 0.82) !important;
 }
 
 .video-text-highlight,
 .rtas-hero-showcase__content.video-text-highlight {
-  background: rgba(0, 0, 0, 0.88) !important;
+  background: rgba(0, 0, 0, 0.9) !important;
   backdrop-filter: blur(var(--ds-blur-md)) !important;
   -webkit-backdrop-filter: blur(var(--ds-blur-md)) !important;
   border-color: var(--ds-color-white-12) !important;

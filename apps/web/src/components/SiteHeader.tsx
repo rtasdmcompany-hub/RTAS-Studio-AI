@@ -62,8 +62,9 @@ function isNavActive(pathname: string, href: string): boolean {
 export function SiteHeader({ actionsSlot, authVariant = "landing", className }: Props) {
   const pathname = usePathname() ?? "";
   const [menuOpen, setMenuOpen] = useState(false);
-  const [density, setDensity] = useState<Density>("full");
-  const [useDrawerNav, setUseDrawerNav] = useState(false);
+  // Safe defaults until measured — prevents mid-desktop SSR flash/clipping
+  const [density, setDensity] = useState<Density>("compact");
+  const [useDrawerNav, setUseDrawerNav] = useState(true);
   const headerRef = useRef<HTMLElement>(null);
   const isStudio = authVariant === "studio" || pathname.startsWith("/studio");
 
@@ -84,8 +85,8 @@ export function SiteHeader({ actionsSlot, authVariant = "landing", className }: 
     const measure = () => {
       const w = window.innerWidth;
       setDensity(densityFromWidth(w));
-      // Desktop drawer below 1280 — prevents right-side clipping with credits + profile
-      setUseDrawerNav(w < 1280);
+      // Desktop drawer below 1440 — verified clip at 1280–1366 on production
+      setUseDrawerNav(w < 1440);
     };
     measure();
     window.addEventListener("resize", measure, { passive: true });

@@ -255,16 +255,24 @@
 }
 
 /* Premium header owns breakpoints (site-chrome.css). Keep hamburger
-   available until 1280 so credits + profile never clip on mid desktops. */
-@media (min-width: 1280px) {
+   available until 1440 so credits + profile never clip on mid desktops. */
+@media (min-width: 1440px) {
   .rtas-header:not(.rtas-header--drawer-nav) .rtas-header__menu-btn {
     display: none;
   }
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1439px) {
   .rtas-header__actions--desktop {
-    display: none;
+    display: none !important;
+  }
+
+  .rtas-header__nav {
+    display: none !important;
+  }
+
+  .rtas-header__menu-btn {
+    display: flex !important;
   }
 }
 
@@ -458,7 +466,7 @@
 
 /* Darker glass over hero videos — WCAG AA readable text */
 .rtas-hero-showcase__content.video-text-highlight {
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(var(--ds-blur-md));
   -webkit-backdrop-filter: blur(var(--ds-blur-md));
   border: 1px solid rgba(255, 255, 255, 0.12);

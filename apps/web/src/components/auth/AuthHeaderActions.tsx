@@ -50,10 +50,8 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
     };
   }, [open]);
 
-  if (
-    status === "loading" &&
-    AUTH_GUEST_ONLY_PATHS.some((p) => pathname.startsWith(p))
-  ) {
+  // Always skeleton while session resolves — avoids guest/signed-in hydration mismatch
+  if (status === "loading") {
     return (
       <span
         className="studio-profile-skeleton"
