@@ -684,6 +684,105 @@ export async function cancelGenerationJobForUser(
   return { cancelled: true };
 }
 
+/**
+ * Retry a failed job: increments retryCount, re-queues GPU work from saved settings.
+ * Never double-charges — creditsDebited stays false until success finalize.
+ */
+export async function retryGenerationJobForUser(
+  jobId: string,
+  userId: string
+): Promise<{
+  retried: boolean;
+  reason?: string;
+  job?: {
+    id: string;
+    status: string;
+    retryCount: number;
+    settings: unknown;
+    durationSeconds: number;
+    prompt: string | null;
+    projectId: string | null;
+  };
+}> {
+  if (!isPrismaConfigured()) {
+    return { retried: false, reason: "database_unavailable" };
+  }
+
+  const existing = await prisma.generationJob.findFirst({
+    where: { id: jobId, userId },
+    select: {
+      id: true,
+      status: true,
+      retryCount: true,
+      creditsDebited: true,
+      errorMessage: true,
+      settings: true,
+      durationSeconds: true,
+      prompt: true,
+      projectId: true,
+      inputImageUrl: true,
+      audioUrl: true,
+      provider: true,
+      creditsCharged: true,
+    },
+  });
+
+  if (!existing) return { retried: false, reason: "not_found" };
+
+  const status = existing.status.toUpperCase();
+  if (status !== "FAILED") {
+    return { retried: false, reason: "not_failed" };
+  }
+  if (existing.creditsDebited) {
+    return { retried: false, reason: "already_charged" };
+  }
+  if (existing.retryCount >= 2) {
+    return { retried: false, reason: "max_retries" };
+  }
+
+  const nextRetry = existing.retryCount + 1;
+  const job = await prisma.generationJob.update({
+    where: { id: jobId },
+    data: {
+      status: "QUEUED",
+      retryCount: nextRetry,
+      errorMessage: null,
+      progressPercent: 5,
+      stageLabel: "Queued for retry",
+      completedAt: null,
+      cancelledAt: null,
+      startedAt: new Date(),
+    },
+    select: {
+      id: true,
+      status: true,
+      retryCount: true,
+      settings: true,
+      durationSeconds: true,
+      prompt: true,
+      projectId: true,
+    },
+  });
+
+  if (job.projectId) {
+    await prisma.project.update({
+      where: { id: job.projectId },
+      data: { status: "queued", latestJobId: job.id },
+    });
+  }
+
+  logGeneration({
+    event: "job_retry_queued",
+    generationId: jobId,
+    userId,
+    projectId: job.projectId,
+    retryCount: nextRetry,
+    status: "queued",
+  });
+
+  return { retried: true, job };
+}
+
 export async function duplicateProjectForUser(
   jobId: string,
   userId: string

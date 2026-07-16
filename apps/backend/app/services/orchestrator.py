@@ -104,6 +104,40 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             error_code="provider_not_configured",
         )
 
+    # Real AI intelligence stack (backend only — no UI changes).
+    try:
+        from app.services.intelligence.pipeline import run_intelligence_pipeline
+
+        raw_prompt = (
+            (body.fields or {}).get("directionPrompt")
+            or (body.fields or {}).get("mainPrompt")
+            or (body.fields or {}).get("prompt")
+            or ""
+        )
+        plan = run_intelligence_pipeline(
+            raw_prompt,
+            category_hint=getattr(body, "category", None),
+            style_hint=getattr(body, "visual_style", None),
+            duration_hint=body.duration_seconds,
+        )
+        enhanced = plan.enhancement.enhanced_prompt
+        if enhanced and body.fields is not None:
+            # Preserve original; feed enhanced text into generation compile path.
+            if "mainPrompt" in body.fields or not body.fields.get("mainPrompt"):
+                body.fields["mainPrompt"] = enhanced
+            body.fields["rtasOriginalPrompt"] = raw_prompt
+            body.fields["rtasIntelligencePlan"] = str(plan.to_dict())[:4000]
+        _structured(
+            "intelligence_ready",
+            generation_id=generation_id,
+            user_id=user_id,
+            scenes=len(plan.scenes),
+            shots=len(plan.shots),
+            quality_passed=plan.quality.passed,
+        )
+    except Exception as intel_exc:
+        logger.warning("Intelligence pipeline skipped: %s", intel_exc)
+
     try:
         result = await run_generation(body)
     except LiveGenerationError as exc:
