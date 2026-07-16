@@ -47,6 +47,78 @@ class ReplicateProvider(BaseAIProvider):
         fresh = reload_settings()
         return replicate.Client(api_token=fresh.replicate_api_token)
 
+    async def status(self, external_job_id: str):
+        from app.services.providers.base import ProviderStatus
+
+        if not self.is_configured() or not external_job_id:
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status="failed",
+                error="Replicate not configured or missing job id",
+            )
+
+        def _fetch():
+            return self._client().predictions.get(external_job_id)
+
+        try:
+            prediction = await asyncio.to_thread(_fetch)
+        except Exception as exc:
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status="failed",
+                error=str(exc),
+            )
+
+        raw = str(getattr(prediction, "status", "") or "").lower()
+        mapped = "generating"
+        if raw in ("starting", "queued"):
+            mapped = "queued"
+        elif raw == "processing":
+            mapped = "generating"
+        elif raw == "succeeded":
+            mapped = "completed"
+        elif raw == "canceled":
+            mapped = "cancelled"
+        elif raw == "failed":
+            mapped = "failed"
+
+        remote_url = None
+        output = getattr(prediction, "output", None)
+        if isinstance(output, str) and output.startswith("http"):
+            remote_url = output
+        elif isinstance(output, list) and output:
+            first = output[0]
+            if isinstance(first, str) and first.startswith("http"):
+                remote_url = first
+
+        return ProviderStatus(
+            provider=self.name,
+            external_job_id=external_job_id,
+            status=mapped,  # type: ignore[arg-type]
+            progress_percent=100 if mapped == "completed" else 50,
+            remote_url=remote_url,
+            error=str(getattr(prediction, "error", "") or "") or None,
+        )
+
+    async def cancel(self, external_job_id: str) -> bool:
+        if not self.is_configured() or not external_job_id:
+            return False
+
+        def _cancel():
+            prediction = self._client().predictions.get(external_job_id)
+            cancel = getattr(prediction, "cancel", None)
+            if callable(cancel):
+                cancel()
+                return True
+            return False
+
+        try:
+            return bool(await asyncio.to_thread(_cancel))
+        except Exception:
+            return False
+
     async def generate(self, job: GenerationJobInput) -> ProviderResult:
         if not self.is_configured():
             return ProviderResult(

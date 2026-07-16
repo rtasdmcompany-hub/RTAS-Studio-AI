@@ -6,7 +6,8 @@ from app.schemas.generation import (
     GenerateRequest,
     GenerateResponse,
 )
-from app.services.ai_service import LiveGenerationError, run_generation
+from app.services.ai_service import LiveGenerationError
+from app.services.orchestrator import orchestrate_generation
 from app.services.tier_fal_routing import (
     BillingAccessError,
     assert_billing_for_live_generation,
@@ -112,7 +113,7 @@ async def create_generation(body: GenerateRequest, request: Request) -> Generate
         raise HTTPException(status_code=409, detail=exc.message) from exc
 
     try:
-        result = await run_generation(body)
+        result = await orchestrate_generation(body)
     except ContentPolicyViolation as exc:
         log_content_policy_violation(
             user_id=body.user_id,
@@ -177,7 +178,7 @@ async def _run_generation_background(body: GenerateRequest) -> None:
 
     try:
         await acquire_generation_slot()
-        await run_generation(body)
+        await orchestrate_generation(body)
     except LiveGenerationError as exc:
         if progress:
             await progress.failed(exc.message)

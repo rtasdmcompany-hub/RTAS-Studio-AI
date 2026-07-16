@@ -92,6 +92,71 @@ class FalProvider(BaseAIProvider):
             os.environ["FAL_KEY"] = key
         return key
 
+    async def status(self, external_job_id: str):
+        from app.services.providers.base import ProviderStatus
+
+        if not self.is_configured() or not external_job_id:
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status="failed",
+                error="Fal not configured or missing job id",
+            )
+        self._apply_api_key()
+        # fal-client subscribe is blocking; request_status is best-effort when available.
+        status_fn = getattr(fal_client, "status", None) or getattr(
+            fal_client, "result_status", None
+        )
+        if not callable(status_fn):
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status="generating",
+                progress_percent=50,
+                metadata={"note": "fal status API unavailable — using generate() path"},
+            )
+        try:
+            raw = await asyncio.to_thread(status_fn, external_job_id)
+            state = str(
+                getattr(raw, "status", None)
+                or (raw.get("status") if isinstance(raw, dict) else "")
+                or "generating"
+            ).lower()
+            mapped = "generating"
+            if "complet" in state or state == "ok":
+                mapped = "completed"
+            elif "fail" in state or "error" in state:
+                mapped = "failed"
+            elif "queue" in state or "pending" in state:
+                mapped = "queued"
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status=mapped,  # type: ignore[arg-type]
+                progress_percent=100 if mapped == "completed" else 50,
+                metadata={"raw_status": state},
+            )
+        except Exception as exc:
+            return ProviderStatus(
+                provider=self.name,
+                external_job_id=external_job_id,
+                status="failed",
+                error=str(exc),
+            )
+
+    async def cancel(self, external_job_id: str) -> bool:
+        if not self.is_configured() or not external_job_id:
+            return False
+        self._apply_api_key()
+        cancel_fn = getattr(fal_client, "cancel", None)
+        if not callable(cancel_fn):
+            return False
+        try:
+            await asyncio.to_thread(cancel_fn, external_job_id)
+            return True
+        except Exception:
+            return False
+
     async def generate(self, job: GenerationJobInput) -> ProviderResult:
         if not self.is_configured():
             return ProviderResult(

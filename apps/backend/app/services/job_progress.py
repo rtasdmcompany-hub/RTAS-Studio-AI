@@ -44,7 +44,48 @@ async def notify_pipeline_status(
         headers["Authorization"] = f"Bearer {secret}"
         headers["X-Rtas-Generation-Secret"] = secret
 
-    payload: dict[str, Any] = {"status": status}
+    progress_map = {
+        "queued": 5,
+        "preparing": 12,
+        "generating": 40,
+        "generating_chunks": 40,
+        "rendering": 90,
+        "compiling_media": 90,
+        "uploading": 96,
+        "completed": 100,
+        "failed": 0,
+        "cancelled": 0,
+    }
+    stage_labels = {
+        "queued": "Queued for GPU worker",
+        "preparing": "Preparing assets",
+        "generating": "Generating video",
+        "generating_chunks": "Generating video",
+        "rendering": "Rendering / stitching",
+        "compiling_media": "Rendering / stitching",
+        "uploading": "Uploading output",
+        "completed": "Render complete",
+        "failed": "Render failed",
+        "cancelled": "Cancelled",
+    }
+    normalized = status.lower()
+    if (
+        normalized == "generating"
+        and chunk_total
+        and chunks_completed is not None
+        and chunk_total > 0
+    ):
+        progress_percent = min(
+            88, int(15 + (chunks_completed / chunk_total) * 70)
+        )
+    else:
+        progress_percent = progress_map.get(normalized, 20)
+
+    payload: dict[str, Any] = {
+        "status": status,
+        "progressPercent": progress_percent,
+        "stageLabel": stage_labels.get(normalized, "Processing"),
+    }
     if chunks_completed is not None:
         payload["chunksCompleted"] = chunks_completed
     if chunk_total is not None:
@@ -82,10 +123,20 @@ class PipelineProgressReporter:
     async def queued(self, chunk_total: int) -> None:
         await notify_pipeline_status(
             self.callback_url or "",
-            status="generating_chunks",
+            status="preparing",
             chunk_total=chunk_total,
             chunks_completed=0,
             chunk_manifest=[],
+            backend_job_id=self.backend_job_id,
+        )
+
+    async def preparing(self, chunk_total: int) -> None:
+        await notify_pipeline_status(
+            self.callback_url or "",
+            status="preparing",
+            chunk_total=chunk_total,
+            chunks_completed=0,
+            chunk_manifest=list(self._manifest),
             backend_job_id=self.backend_job_id,
         )
 
@@ -105,7 +156,7 @@ class PipelineProgressReporter:
         }
         await notify_pipeline_status(
             self.callback_url or "",
-            status="generating_chunks",
+            status="generating",
             chunk_total=total,
             chunks_completed=sum(
                 1 for row in self._manifest if row.get("status") == "completed"
@@ -134,7 +185,7 @@ class PipelineProgressReporter:
         )
         await notify_pipeline_status(
             self.callback_url or "",
-            status="generating_chunks",
+            status="generating",
             chunk_total=total,
             chunks_completed=completed,
             chunk_manifest=list(self._manifest),
@@ -163,7 +214,17 @@ class PipelineProgressReporter:
     async def compiling(self, total: int) -> None:
         await notify_pipeline_status(
             self.callback_url or "",
-            status="compiling_media",
+            status="rendering",
+            chunk_total=total,
+            chunks_completed=total,
+            chunk_manifest=list(self._manifest),
+            backend_job_id=self.backend_job_id,
+        )
+
+    async def uploading(self, total: int) -> None:
+        await notify_pipeline_status(
+            self.callback_url or "",
+            status="uploading",
             chunk_total=total,
             chunks_completed=total,
             chunk_manifest=list(self._manifest),
@@ -171,6 +232,7 @@ class PipelineProgressReporter:
         )
 
     async def completed(self, video_url: str, total: int) -> None:
+        await self.uploading(total)
         await notify_pipeline_status(
             self.callback_url or "",
             status="completed",

@@ -10,5 +10,6 @@ export * from "./studio-fields";
 export * from "./payments";
 export * from "./fal-funding";
 export * from "./pipeline-status";
+export * from "./job-orchestrator";
 export * from "./video-pipeline";
 export * from "./user-video-asset";
