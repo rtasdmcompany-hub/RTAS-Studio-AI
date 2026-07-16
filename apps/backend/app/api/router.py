@@ -1,6 +1,16 @@
 from fastapi import APIRouter
 
-from app.api.routes import admin, ai, generate, health, intelligence, jobs, multi_ai, upload
+from app.api.routes import (
+    admin,
+    ai,
+    generate,
+    health,
+    intelligence,
+    jobs,
+    multi_ai,
+    text_to_video,
+    upload,
+)
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health.router)
@@ -11,3 +21,4 @@ api_router.include_router(generate.router)
 api_router.include_router(jobs.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(multi_ai.router)
+api_router.include_router(text_to_video.router)

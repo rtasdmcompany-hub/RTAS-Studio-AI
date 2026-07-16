@@ -125,6 +125,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             reference_image_urls=ref_urls or None,
         )
         enhanced = plan.enhancement.enhanced_prompt
+        t2v_summary: dict[str, Any] | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
             identity = " ".join(
@@ -174,6 +175,33 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                         )[:6],
                     }
                 )[:4000]
+            # Phase 3 Sprint 1 — Real Text-to-Video Engine
+            # Convert production package → scene/shot provider requests + queue.
+            try:
+                from app.services.text_to_video import (
+                    build_and_register_from_intelligence,
+                )
+
+                t2v_job = build_and_register_from_intelligence(
+                    production_package=plan.production_package,
+                    scene_breakdown=plan.scene_breakdown,
+                    character_memory=plan.character_memory,
+                    director_plan=plan.director_plan,
+                    production_render=plan.production_render,
+                    visual_style=plan.visual_style,
+                    parent_generation_id=generation_id,
+                    enqueue=True,
+                )
+                t2v_summary = t2v_job.summary()
+                body.fields["rtasTextToVideo"] = json.dumps(t2v_summary)[:4000]
+                body.fields["rtasTextToVideoJobId"] = t2v_job.job_id
+                # Prefer first shot prompt as generation seed when available
+                if t2v_job.requests:
+                    body.fields["rtasPrimaryShotPrompt"] = t2v_job.requests[0].prompt[
+                        :2000
+                    ]
+            except Exception as t2v_exc:
+                logger.warning("Text-to-video plan skipped: %s", t2v_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -198,6 +226,8 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             export_validated=(
                 ((plan.production_render or {}).get("validation") or {}).get("passed")
             ),
+            t2v_requests=(t2v_summary or {}).get("requests") if t2v_summary else None,
+            t2v_job_id=(t2v_summary or {}).get("job_id") if t2v_summary else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )
