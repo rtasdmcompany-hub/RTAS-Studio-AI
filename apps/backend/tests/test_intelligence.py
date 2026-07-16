@@ -19,31 +19,33 @@ def _load(name: str, path: Path):
     return mod
 
 
-# Load package modules without importing app.services.__init__ (pydantic).
-models = _load("rtas_intel_models", INTEL / "models.py")
+models = _load("app.services.intelligence.models", INTEL / "models.py")
+director_models = _load(
+    "app.services.intelligence.director_models", INTEL / "director_models.py"
+)
 sys.modules["app.services.intelligence.models"] = models
-prompt_intelligence = _load(
-    "app.services.intelligence.prompt_intelligence", INTEL / "prompt_intelligence.py"
-)
-prompt_enhancer = _load(
-    "app.services.intelligence.prompt_enhancer", INTEL / "prompt_enhancer.py"
-)
-scene_planner = _load(
-    "app.services.intelligence.scene_planner", INTEL / "scene_planner.py"
-)
-camera_planner = _load(
-    "app.services.intelligence.camera_planner", INTEL / "camera_planner.py"
-)
-shot_planner = _load(
-    "app.services.intelligence.shot_planner", INTEL / "shot_planner.py"
-)
-quality_checker = _load(
-    "app.services.intelligence.quality_checker", INTEL / "quality_checker.py"
-)
-export_pipeline = _load(
-    "app.services.intelligence.export_pipeline", INTEL / "export_pipeline.py"
-)
-pipeline = _load("app.services.intelligence.pipeline", INTEL / "pipeline.py")
+sys.modules["app.services.intelligence.director_models"] = director_models
+
+for mod_name, file_name in [
+    ("prompt_intelligence", "prompt_intelligence.py"),
+    ("prompt_enhancer", "prompt_enhancer.py"),
+    ("scene_planner", "scene_planner.py"),
+    ("camera_planner", "camera_planner.py"),
+    ("shot_planner", "shot_planner.py"),
+    ("quality_checker", "quality_checker.py"),
+    ("export_pipeline", "export_pipeline.py"),
+    ("character_memory", "character_memory.py"),
+    ("consistency_engine", "consistency_engine.py"),
+    ("ai_director", "ai_director.py"),
+    ("story_continuity", "story_continuity.py"),
+    ("cinematic_timeline", "cinematic_timeline.py"),
+    ("production_export", "production_export.py"),
+    ("pipeline", "pipeline.py"),
+]:
+    _load(f"app.services.intelligence.{mod_name}", INTEL / file_name)
+
+prompt_intelligence = sys.modules["app.services.intelligence.prompt_intelligence"]
+pipeline = sys.modules["app.services.intelligence.pipeline"]
 
 
 def test_prompt_intelligence_structured():
@@ -77,8 +79,11 @@ def test_full_intelligence_pipeline():
     assert len(plan.shots) >= len(plan.scenes)
     assert plan.export.format == "mp4"
     assert isinstance(plan.quality.passed, bool)
+    assert plan.character_memory
+    assert plan.production_package
     payload = plan.to_dict()
     assert "intelligence" in payload and "shots" in payload
+    assert "character_memory" in payload
 
 
 if __name__ == "__main__":

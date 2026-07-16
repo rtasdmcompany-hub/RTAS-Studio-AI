@@ -111,6 +111,13 @@ class IntelligencePipelineResult:
     shots: list[ShotPlan]
     quality: QualityCheckResult
     export: ExportPlan
+    # Sprint 4 — Character Memory + AI Director package
+    character_memory: list[dict[str, Any]] = field(default_factory=list)
+    consistency: dict[str, Any] = field(default_factory=dict)
+    continuity: dict[str, Any] = field(default_factory=dict)
+    director_plan: dict[str, Any] = field(default_factory=dict)
+    timeline: dict[str, Any] = field(default_factory=dict)
+    production_package: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -121,4 +128,10 @@ class IntelligencePipelineResult:
             "shots": [s.to_dict() for s in self.shots],
             "quality": self.quality.to_dict(),
             "export": self.export.to_dict(),
+            "character_memory": self.character_memory,
+            "consistency": self.consistency,
+            "continuity": self.continuity,
+            "director_plan": self.director_plan,
+            "timeline": self.timeline,
+            "production_package": self.production_package,
         }

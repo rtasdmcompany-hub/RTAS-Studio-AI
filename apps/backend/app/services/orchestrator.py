@@ -115,25 +115,45 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             or (body.fields or {}).get("prompt")
             or ""
         )
+        ref_urls: list[str] = []
+        files = getattr(body, "files", None) or {}
+        for key in ("faceReference", "sourceImage", "imageReference"):
+            meta = files.get(key) if isinstance(files, dict) else None
+            if isinstance(meta, dict):
+                url = meta.get("url") or meta.get("localPath")
+                if isinstance(url, str) and url.strip():
+                    ref_urls.append(url.strip())
+
         plan = run_intelligence_pipeline(
             raw_prompt,
             category_hint=getattr(body, "category", None),
             style_hint=getattr(body, "visual_style", None),
             duration_hint=body.duration_seconds,
+            reference_image_urls=ref_urls or None,
         )
         enhanced = plan.enhancement.enhanced_prompt
         if enhanced and body.fields is not None:
-            # Preserve original; feed enhanced text into generation compile path.
+            # Preserve original; feed enhanced + identity lock into generation.
+            identity = " ".join(
+                f"[{c.get('character_id')}] face/hair/outfit locked"
+                for c in (plan.character_memory or [])
+            )
+            locked_prompt = f"{enhanced} {identity}".strip()
             if "mainPrompt" in body.fields or not body.fields.get("mainPrompt"):
-                body.fields["mainPrompt"] = enhanced
+                body.fields["mainPrompt"] = locked_prompt
             body.fields["rtasOriginalPrompt"] = raw_prompt
             body.fields["rtasIntelligencePlan"] = json.dumps(plan.to_dict())[:4000]
+            if plan.production_package:
+                body.fields["rtasProductionPackage"] = json.dumps(
+                    plan.production_package
+                )[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
             user_id=user_id,
             scenes=len(plan.scenes),
             shots=len(plan.shots),
+            characters=len(plan.character_memory or []),
             quality_passed=plan.quality.passed,
         )
     except Exception as intel_exc:
