@@ -2418,10 +2418,10 @@ export function StudioClient() {
       : isLastWizardStep
         ? roadmapLabels.length - 1
         : Math.min(wizardStep + 1, roadmapLabels.length - 2);
-  const wizardProgressTotal = Math.max(roadmapLabels.length, 1);
-  const wizardProgressCurrent = Math.min(roadmapCurrent + 1, wizardProgressTotal);
+  const wizardProgressCurrent = roadmapCurrent + 1;
+  const wizardTotalDisplay = roadmapLabels.length;
   const wizardProgressPct = Math.round(
-    (wizardProgressCurrent / wizardProgressTotal) * 100
+    (wizardProgressCurrent / Math.max(wizardTotalDisplay, 1)) * 100
   );
 
   const handleRoadmapStepSelect = useCallback(
@@ -2658,8 +2658,8 @@ export function StudioClient() {
                     role="progressbar"
                     aria-valuenow={wizardProgressCurrent}
                     aria-valuemin={1}
-                    aria-valuemax={wizardProgressTotal}
-                    aria-label={`Step ${wizardProgressCurrent} of ${wizardProgressTotal}`}
+                    aria-valuemax={wizardTotalDisplay}
+                    aria-label={`Step ${wizardProgressCurrent} of ${wizardTotalDisplay}`}
                   >
                     <div
                       className="studio-wizard-progress__fill"
@@ -2668,7 +2668,7 @@ export function StudioClient() {
                   </div>
                   <div className="studio-wizard-progress__meta">
                     <span>
-                      Step <strong>{wizardProgressCurrent}</strong> of {wizardProgressTotal}
+                      Step <strong>{wizardProgressCurrent}</strong> of {wizardTotalDisplay}
                     </span>
                     <span className="studio-wizard-progress__step-name">{wizardStepLabel}</span>
                   </div>

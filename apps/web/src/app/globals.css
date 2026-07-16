@@ -84,6 +84,7 @@ select {
   flex-direction: column;
   min-height: 100vh;
   pointer-events: auto;
+  padding-top: var(--rtas-header-height, 4.25rem);
 }
 
 .profile-status-alert {
