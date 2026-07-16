@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     admin,
     ai,
+    camera_motion,
     generate,
     health,
     image_to_video,
@@ -30,3 +31,4 @@ api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
 api_router.include_router(lip_sync.router)
 api_router.include_router(motion_intelligence.router)
+api_router.include_router(camera_motion.router)

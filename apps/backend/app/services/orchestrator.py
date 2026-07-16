@@ -129,6 +129,8 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         i2v_summary: dict[str, Any] | None = None
         avatar_summary: dict[str, Any] | None = None
         motion_summary: dict[str, Any] | None = None
+        camera_motion_summary: dict[str, Any] | None = None
+        motion_plan_obj: Any | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
             identity = " ".join(
@@ -374,6 +376,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     duration_seconds=float(body.duration_seconds or 0) or None,
                     parent_generation_id=generation_id,
                 )
+                motion_plan_obj = motion_plan
                 motion_summary = motion_plan.summary()
                 body.fields["rtasMotionIntelligence"] = json.dumps(motion_summary)[
                     :4000
@@ -385,6 +388,60 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     )
             except Exception as motion_exc:
                 logger.warning("Motion intelligence plan skipped: %s", motion_exc)
+
+            # Phase 3 Sprint 6 — Camera Motion Engine
+            try:
+                from app.services.camera_motion import build_camera_motion_plan
+
+                mi_payload: dict[str, Any] | None = motion_summary
+                if motion_plan_obj is not None:
+                    mi_payload = {
+                        "job_id": motion_plan_obj.job_id,
+                        "primary_locomotion": [
+                            s.primary_locomotion for s in motion_plan_obj.scenes
+                        ],
+                        "scenes": [
+                            {
+                                "scene_index": s.scene_index,
+                                "primary_locomotion": s.primary_locomotion,
+                            }
+                            for s in motion_plan_obj.scenes
+                        ],
+                    }
+
+                cam_plan = build_camera_motion_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    scenes=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.scenes or [])
+                    ],
+                    cameras=[
+                        c.to_dict() if hasattr(c, "to_dict") else c
+                        for c in (plan.cameras or [])
+                    ],
+                    shots=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.shots or [])
+                    ],
+                    director_plan=plan.director_plan,
+                    scene_breakdown=plan.scene_breakdown,
+                    production_package=plan.production_package,
+                    prompt_understanding=plan.prompt_understanding,
+                    motion_intelligence=mi_payload,
+                    duration_seconds=float(body.duration_seconds or 0) or None,
+                    parent_generation_id=generation_id,
+                )
+                camera_motion_summary = cam_plan.summary()
+                body.fields["rtasCameraMotion"] = json.dumps(camera_motion_summary)[
+                    :4000
+                ]
+                body.fields["rtasCameraMotionJobId"] = cam_plan.job_id
+                if cam_plan.scenes:
+                    body.fields["rtasPrimaryCameraMotion"] = cam_plan.scenes[
+                        0
+                    ].primary_motion
+            except Exception as cam_exc:
+                logger.warning("Camera motion plan skipped: %s", cam_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -422,6 +479,17 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             motion_primary=(
                 ((motion_summary or {}).get("primary_locomotion") or [None])[0]
                 if motion_summary
+                else None
+            ),
+            camera_motion_scenes=(camera_motion_summary or {}).get("scenes")
+            if camera_motion_summary
+            else None,
+            camera_motion_job_id=(camera_motion_summary or {}).get("job_id")
+            if camera_motion_summary
+            else None,
+            camera_primary=(
+                ((camera_motion_summary or {}).get("primary_motions") or [None])[0]
+                if camera_motion_summary
                 else None
             ),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
