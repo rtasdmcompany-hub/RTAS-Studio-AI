@@ -35,6 +35,10 @@ from app.services.intelligence.models import (
 )
 from app.services.intelligence.music_planner import plan_music
 from app.services.intelligence.production_export import build_production_package
+from app.services.intelligence.production_render import (
+    build_production_render,
+    to_export_plan,
+)
 from app.services.intelligence.prompt_enhancer import enhance_prompt
 from app.services.intelligence.prompt_intelligence import analyze_prompt
 from app.services.intelligence.prompt_understanding import understand_prompt
@@ -238,6 +242,37 @@ def run_intelligence_pipeline(
         draft.production_package["character_consistency"] = cc_result.to_dict()
         draft.production_package["audio_director"] = audio_plan.to_dict()
 
+    # Sprint 10 — Production Render & Export Engine (final package).
+    render_pkg = build_production_render(
+        prompt=prompt,
+        enhanced_prompt=enhancement.enhanced_prompt,
+        intelligence=intelligence,
+        scenes=scenes,
+        shots=shots,
+        cameras=cameras,
+        character_memory=draft.character_memory,
+        director_plan=director.to_dict(),
+        timeline=timeline.to_dict(),
+        understanding=understanding.production_instructions(),
+        audio_director=audio_plan.to_dict(),
+        music_plan=music.to_dict(),
+        voice_plan=voice.to_dict(),
+        sound_plan=sound.to_dict(),
+        visual_style=visual.to_dict(),
+        scene_breakdown=breakdown.to_dict(),
+        character_consistency=cc_result.to_dict(),
+        continuity=continuity.to_dict(),
+        quality_report=draft.quality.to_dict(),
+        export_seed=export,
+    )
+    draft.production_render = render_pkg.to_dict()
+    draft.export = to_export_plan(render_pkg)
+    if isinstance(draft.production_package, dict):
+        draft.production_package["production_render"] = render_pkg.to_dict()
+        draft.production_package["video_manifest"] = render_pkg.video_manifest.to_dict()
+        draft.production_package["subtitle_file"] = render_pkg.subtitle_file
+        draft.production_package["export_validation"] = render_pkg.validation.to_dict()
+
     master = build_master_ai_plan(
         reasoning=reasoning,
         visual=visual,
@@ -252,7 +287,7 @@ def run_intelligence_pipeline(
         shot_plan=[s.to_dict() for s in shots],
         camera_plan=[c.to_dict() for c in cameras],
         timeline=timeline.to_dict(),
-        export_plan=export.to_dict(),
+        export_plan=draft.export.to_dict(),
         director_plan=director.to_dict(),
         continuity=continuity.to_dict(),
     )
@@ -264,9 +299,10 @@ def run_intelligence_pipeline(
         draft.master_ai_plan["scene_breakdown"] = breakdown.to_dict()
         draft.master_ai_plan["character_consistency"] = cc_result.to_dict()
         draft.master_ai_plan["audio_director"] = audio_plan.to_dict()
+        draft.master_ai_plan["production_render"] = render_pkg.to_dict()
 
     logger.info(
-        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s consistency=%.3f lip_cues=%s auto_improve=%s",
+        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s consistency=%.3f lip_cues=%s export_ok=%s auto_improve=%s",
         cinematic_quality.overall,
         visual.reference_look,
         understanding.category,
@@ -275,6 +311,7 @@ def run_intelligence_pipeline(
         len(shots),
         cc_result.verification.score.overall,
         len(audio_plan.lip_sync_timeline),
+        render_pkg.validation.passed,
         auto_fix.applied,
     )
     return draft

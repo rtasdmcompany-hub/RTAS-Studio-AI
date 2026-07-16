@@ -93,6 +93,21 @@ for ad_name, ad_file in [
     _load(f"app.services.intelligence.audio_director.{ad_name}", AD / ad_file)
 _load("app.services.intelligence.audio_director", AD / "__init__.py")
 
+PR = INTEL / "production_render"
+pr_pkg = type(sys)("app.services.intelligence.production_render")
+pr_pkg.__path__ = [str(PR)]
+sys.modules["app.services.intelligence.production_render"] = pr_pkg
+for pr_name, pr_file in [
+    ("models", "models.py"),
+    ("export_specs", "export_specs.py"),
+    ("captions", "captions.py"),
+    ("assets", "assets.py"),
+    ("validator", "validator.py"),
+    ("engine", "engine.py"),
+]:
+    _load(f"app.services.intelligence.production_render.{pr_name}", PR / pr_file)
+_load("app.services.intelligence.production_render", PR / "__init__.py")
+
 for mod_name, file_name in [
     ("prompt_intelligence", "prompt_intelligence.py"),
     ("prompt_enhancer", "prompt_enhancer.py"),

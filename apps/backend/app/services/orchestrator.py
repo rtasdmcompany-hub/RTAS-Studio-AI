@@ -162,6 +162,18 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasAudioDirector"] = json.dumps(
                     plan.audio_director
                 )[:4000]
+            if plan.production_render:
+                body.fields["rtasProductionRender"] = json.dumps(
+                    {
+                        "video_manifest": (plan.production_render or {}).get(
+                            "video_manifest"
+                        ),
+                        "validation": (plan.production_render or {}).get("validation"),
+                        "export_specs": (
+                            (plan.production_render or {}).get("export_specs") or []
+                        )[:6],
+                    }
+                )[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -182,6 +194,9 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             ),
             lip_sync_cues=len(
                 (plan.audio_director or {}).get("lip_sync_timeline") or []
+            ),
+            export_validated=(
+                ((plan.production_render or {}).get("validation") or {}).get("passed")
             ),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,

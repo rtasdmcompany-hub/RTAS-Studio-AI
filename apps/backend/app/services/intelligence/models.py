@@ -136,6 +136,8 @@ class IntelligencePipelineResult:
     character_consistency: dict[str, Any] = field(default_factory=dict)
     # Sprint 9 — AI Audio Director & Lip Sync
     audio_director: dict[str, Any] = field(default_factory=dict)
+    # Sprint 10 — Production Render & Export
+    production_render: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -165,4 +167,5 @@ class IntelligencePipelineResult:
             "scene_breakdown": self.scene_breakdown,
             "character_consistency": self.character_consistency,
             "audio_director": self.audio_director,
+            "production_render": self.production_render,
         }

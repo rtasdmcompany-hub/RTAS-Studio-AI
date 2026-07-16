@@ -172,6 +172,25 @@ async def create_audio_director_plan(body: IntelligencePlanRequest):
     }
 
 
+@router.post("/production-render")
+async def create_production_render(body: IntelligencePlanRequest):
+    """Assemble final production package + export validation (planning)."""
+    try:
+        plan = _run(body)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    render = plan.get("production_render") or {}
+    return {
+        "ok": True,
+        "productionRender": render,
+        "videoManifest": render.get("video_manifest"),
+        "exportSpecs": render.get("export_specs"),
+        "subtitleFile": render.get("subtitle_file"),
+        "validation": render.get("validation"),
+        "thumbnailInstructions": render.get("thumbnail_instructions"),
+    }
+
+
 @router.post("/plan")
 async def create_intelligence_plan(body: IntelligencePlanRequest):
     try:
@@ -201,6 +220,7 @@ async def create_production_package(body: IntelligencePlanRequest):
         "sceneBreakdown": plan.get("scene_breakdown"),
         "characterConsistency": plan.get("character_consistency"),
         "audioDirector": plan.get("audio_director"),
+        "productionRender": plan.get("production_render"),
     }
 
 
@@ -226,4 +246,5 @@ async def create_master_ai_plan(body: IntelligencePlanRequest):
         "sceneBreakdown": plan.get("scene_breakdown"),
         "characterConsistency": plan.get("character_consistency"),
         "audioDirector": plan.get("audio_director"),
+        "productionRender": plan.get("production_render"),
     }
