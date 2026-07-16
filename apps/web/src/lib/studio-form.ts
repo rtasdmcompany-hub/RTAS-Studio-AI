@@ -226,6 +226,10 @@ export function buildGeneratePayload(
     if (v) fileMeta[id] = { name: v.name, mimeType: v.mimeType, size: v.size };
   }
 
+  const durationRaw = Number.parseInt(String(state.text.duration ?? "").trim(), 10);
+  const durationSeconds =
+    Number.isFinite(durationRaw) && durationRaw > 0 ? durationRaw : undefined;
+
   return {
     fields: { ...state.text },
     files: fileMeta,
@@ -233,6 +237,7 @@ export function buildGeneratePayload(
     category,
     mode,
     visualStyle,
+    ...(durationSeconds !== undefined ? { durationSeconds } : {}),
   };
 }
 

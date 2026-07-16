@@ -1049,6 +1049,14 @@ export function StudioClient() {
         setBackendOnline(true);
 
         const isSimulation = backendRes.simulationMode ?? false;
+        const isPaidAttempt = !isPreview && !isFreeTrial;
+
+        // Defense in depth: paid Generate must never treat showcase/sim as success.
+        if (isPaidAttempt && isSimulation) {
+          throw new Error(
+            "Live AI generation required for paid renders. GPU worker returned a simulation preview."
+          );
+        }
 
         let nextProfile = { ...activeProfile };
         if (isFreeTrial) {
@@ -1175,6 +1183,7 @@ export function StudioClient() {
         const msg =
           e instanceof Error ? e.message : "Video generation failed. Please try again.";
 
+        const isPaidGeneration = !isPreview && !isFreeTrial;
         const cloudUnavailable =
           isBackendConnectionError(e) ||
           isPipelineFailureError(e) ||
@@ -1184,8 +1193,8 @@ export function StudioClient() {
           isReplicateCreditError(e) ||
           isCloudCapacityMessage(msg);
 
-        // Keep the Studio experience complete when production AI is offline.
-        if (cloudUnavailable) {
+        // Dev/preview only: never silently succeed paid Generate with showcase MP4.
+        if (cloudUnavailable && !isPaidGeneration) {
           setBackendOnline(false);
           setPipelineDiagnostic(null);
           await runGenerationSimulation((percent, message, stageIndex) => {

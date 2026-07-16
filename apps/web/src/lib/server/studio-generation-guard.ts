@@ -8,6 +8,14 @@ import {
 import { getServerProfile, saveServerProfile } from "@/lib/server/profile-store";
 
 export const MAX_CONCURRENT_TRACKS = 3;
+
+/** Product rule: 1 credit = 1 second of video. */
+export function creditsRequiredForDuration(durationSeconds: number): number {
+  const seconds = Number.isFinite(durationSeconds) ? durationSeconds : 0;
+  return Math.max(1, Math.ceil(seconds));
+}
+
+/** @deprecated Prefer creditsRequiredForDuration — kept for older call sites. */
 export const CREDITS_PER_RENDER = 5;
 
 export const INSUFFICIENT_CREDITS_MESSAGE =
@@ -58,9 +66,15 @@ export async function getUserRenderingState(userId: string): Promise<{
 
 export async function assertAndAcquireRenderingSlot(
   userId: string,
-  options?: { previewOnly?: boolean; useFreeTrial?: boolean }
+  options?: {
+    previewOnly?: boolean;
+    useFreeTrial?: boolean;
+    creditsRequired?: number;
+  }
 ): Promise<void> {
   if (options?.previewOnly || options?.useFreeTrial) return;
+
+  const required = Math.max(1, options?.creditsRequired ?? 1);
 
   if (isPrismaConfigured()) {
     const user = await prisma.user.findUnique({
@@ -72,7 +86,7 @@ export async function assertAndAcquireRenderingSlot(
       throw new Error(INSUFFICIENT_CREDITS_MESSAGE);
     }
 
-    if (user.credits <= 0) {
+    if (user.credits < required) {
       throw new Error(INSUFFICIENT_CREDITS_MESSAGE);
     }
 
@@ -88,7 +102,7 @@ export async function assertAndAcquireRenderingSlot(
   }
 
   const profile = await getServerProfile(userId);
-  if (profile.credits <= 0) {
+  if (profile.credits < required) {
     throw new Error(INSUFFICIENT_CREDITS_MESSAGE);
   }
 
@@ -102,16 +116,22 @@ export async function assertAndAcquireRenderingSlot(
 
 export async function completeRenderingSlot(
   userId: string,
-  options?: { previewOnly?: boolean; useFreeTrial?: boolean }
+  options?: {
+    previewOnly?: boolean;
+    useFreeTrial?: boolean;
+    creditsToDebit?: number;
+  }
 ): Promise<void> {
   if (options?.previewOnly || options?.useFreeTrial) return;
+
+  const debit = Math.max(1, options?.creditsToDebit ?? CREDITS_PER_RENDER);
 
   if (isPrismaConfigured()) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         concurrentTracks: { decrement: 1 },
-        credits: { decrement: CREDITS_PER_RENDER },
+        credits: { decrement: debit },
       },
       select: { credits: true, concurrentTracks: true },
     });
@@ -130,7 +150,7 @@ export async function completeRenderingSlot(
   setLocalConcurrentTracks(userId, tracks - 1);
   await saveServerProfile({
     ...profile,
-    credits: Math.max(0, profile.credits - CREDITS_PER_RENDER),
+    credits: Math.max(0, profile.credits - debit),
     updatedAt: new Date().toISOString(),
   });
 }
@@ -205,7 +225,8 @@ export async function createGenerationJob(input: {
       prompt: input.prompt ?? null,
       inputImageUrl: input.inputImageUrl ?? null,
       durationSeconds: input.durationSeconds,
-      creditsCharged: input.creditsCharged ?? CREDITS_PER_RENDER,
+      creditsCharged:
+        input.creditsCharged ?? creditsRequiredForDuration(input.durationSeconds),
       backendJobId: input.backendJobId ?? null,
       chunkTotal: input.chunkTotal ?? null,
       chunksCompleted: 0,
@@ -291,7 +312,31 @@ export async function finalizeGenerationJobSuccess(
 ): Promise<void> {
   if (!isPrismaConfigured()) return;
 
-  const job = await prisma.generationJob.update({
+  const existing = await prisma.generationJob.findUnique({
+    where: { id: jobId },
+    select: {
+      userId: true,
+      status: true,
+      creditsCharged: true,
+      durationSeconds: true,
+    },
+  });
+  if (!existing) return;
+
+  // Idempotent: already completed jobs must not debit credits again.
+  if (existing.status === "COMPLETED") {
+    await prisma.generationJob.update({
+      where: { id: jobId },
+      data: {
+        generatedVideoUrl,
+        completedAt: new Date(),
+        errorMessage: null,
+      },
+    });
+    return;
+  }
+
+  await prisma.generationJob.update({
     where: { id: jobId },
     data: {
       status: "COMPLETED",
@@ -299,10 +344,14 @@ export async function finalizeGenerationJobSuccess(
       completedAt: new Date(),
       errorMessage: null,
     },
-    select: { userId: true },
   });
 
-  await completeRenderingSlot(job.userId);
+  const creditsToDebit =
+    existing.creditsCharged > 0
+      ? existing.creditsCharged
+      : creditsRequiredForDuration(existing.durationSeconds);
+
+  await completeRenderingSlot(existing.userId, { creditsToDebit });
 }
 
 export async function finalizeGenerationJobFailure(
@@ -311,17 +360,33 @@ export async function finalizeGenerationJobFailure(
 ): Promise<void> {
   if (!isPrismaConfigured()) return;
 
-  const job = await prisma.generationJob.update({
+  const existing = await prisma.generationJob.findUnique({
+    where: { id: jobId },
+    select: { userId: true, status: true },
+  });
+  if (!existing) return;
+
+  // Idempotent: already terminal jobs must not release the slot twice.
+  if (existing.status === "FAILED" || existing.status === "COMPLETED") {
+    if (existing.status === "FAILED" && errorMessage) {
+      await prisma.generationJob.update({
+        where: { id: jobId },
+        data: { errorMessage },
+      });
+    }
+    return;
+  }
+
+  await prisma.generationJob.update({
     where: { id: jobId },
     data: {
       status: "FAILED",
       completedAt: new Date(),
       errorMessage: errorMessage ?? "Video generation failed",
     },
-    select: { userId: true },
   });
 
-  await releaseRenderingSlotOnFailure(job.userId);
+  await releaseRenderingSlotOnFailure(existing.userId);
 }
 
 export async function completeGenerationJob(

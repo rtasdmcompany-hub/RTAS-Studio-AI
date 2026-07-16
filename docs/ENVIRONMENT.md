@@ -105,9 +105,11 @@ Sandbox `onboarding@resend.dev` only delivers to the Resend account owner.
 |----------|-------|
 | `FASTAPI_URL` | **Server** proxy target — never `localhost` in production |
 | `NEXT_PUBLIC_FASTAPI_URL` | Client health banner / config probe |
-| `FAL_KEY` | Primary cloud AI |
+| `FAL_KEY` | Primary cloud AI (required on worker for paid Generate) |
 | `REPLICATE_API_TOKEN`, `RUNWAY_API_KEY`, `KLING_API_KEY` | Alternatives |
 | `RTAS_GENERATION_WEBHOOK_SECRET` / `AI_BACKEND_SECRET` | Worker → web job callbacks |
+| `ALLOW_MOCK_GENERATION` | `true` enables showcase/mock success when GPU is down. **Must stay unset/`false` in production** — paid Generate hard-fails with 503 instead |
+| `DATABASE_URL` | Prisma — required for durable async job status + credit finalize |
 
 Backend worker env: see `apps/backend/.env.example` (`CORS_ORIGINS` must include production app origin).
 

@@ -12,18 +12,17 @@ import {
   httpStatusForPipelineFailure,
 } from "@/lib/server/gpu-pipeline-errors";
 import {
-  assertAndAcquireRenderingSlot,
-  completeGenerationJob,
-  completeRenderingSlot,
-  createGenerationJob,
-  CREDITS_PER_RENDER,
-  failGenerationJob,
-  finalizeGenerationJobFailure,
-  INSUFFICIENT_CREDITS_MESSAGE,
-  MAX_CONCURRENT_TRACKS_MESSAGE,
-  releaseRenderingSlotOnFailure,
-  updateGenerationJobPipeline,
-} from "@/lib/server/studio-generation-guard";
+  buildMockGenerationSuccess,
+  GPU_UNAVAILABLE_MESSAGE,
+  isMockGenerationAllowed,
+  shouldFallbackToMockGeneration,
+} from "@/lib/server/mock-generation";
+import {
+  requireApiSession,
+  checkRateLimitAsync,
+  rateLimitResponse,
+  clientIpFromRequest,
+} from "@/lib/server/api-auth";
 import { getServerProfile } from "@/lib/server/profile-store";
 import {
   assertBillingForFalLive,
@@ -34,15 +33,18 @@ import {
   isFreeTrialBlocked,
 } from "@/lib/server/trial-abuse-store";
 import {
-  checkRateLimitAsync,
-  clientIpFromRequest,
-  rateLimitResponse,
-  requireApiSession,
-} from "@/lib/server/api-auth";
-import {
-  buildMockGenerationSuccess,
-  shouldFallbackToMockGeneration,
-} from "@/lib/server/mock-generation";
+  assertAndAcquireRenderingSlot,
+  completeGenerationJob,
+  completeRenderingSlot,
+  createGenerationJob,
+  creditsRequiredForDuration,
+  failGenerationJob,
+  finalizeGenerationJobFailure,
+  INSUFFICIENT_CREDITS_MESSAGE,
+  MAX_CONCURRENT_TRACKS_MESSAGE,
+  releaseRenderingSlotOnFailure,
+  updateGenerationJobPipeline,
+} from "@/lib/server/studio-generation-guard";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -151,24 +153,6 @@ export async function POST(request: Request) {
       }
     }
 
-    if (!skipBilling) {
-      try {
-        await assertAndAcquireRenderingSlot(effectiveUserId, {
-          previewOnly,
-          useFreeTrial,
-        });
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : INSUFFICIENT_CREDITS_MESSAGE;
-        const status =
-          message === INSUFFICIENT_CREDITS_MESSAGE ||
-          message === MAX_CONCURRENT_TRACKS_MESSAGE
-            ? 403
-            : 500;
-        return NextResponse.json({ error: message }, { status });
-      }
-    }
-
     if (!mode || !category || !visualStyle || !durationSeconds) {
       await releaseSlotOnFailure(
         effectiveUserId,
@@ -199,6 +183,28 @@ export async function POST(request: Request) {
     const processedDurationSeconds = useFreeTrial
       ? Math.min(durationSeconds, FREE_TRIAL_DURATION_SECONDS)
       : durationSeconds;
+    const creditsUsed = skipBilling
+      ? 0
+      : creditsRequiredForDuration(processedDurationSeconds);
+
+    if (!skipBilling) {
+      try {
+        await assertAndAcquireRenderingSlot(effectiveUserId, {
+          previewOnly,
+          useFreeTrial,
+          creditsRequired: creditsUsed,
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : INSUFFICIENT_CREDITS_MESSAGE;
+        const status =
+          message === INSUFFICIENT_CREDITS_MESSAGE ||
+          message === MAX_CONCURRENT_TRACKS_MESSAGE
+            ? 403
+            : 500;
+        return NextResponse.json({ error: message }, { status });
+      }
+    }
 
     const promptPreview =
       fields?.directionPrompt?.trim() ||
@@ -206,12 +212,14 @@ export async function POST(request: Request) {
       fields?.mainPrompt?.trim() ||
       null;
     const inputImageName =
-      files?.sourceImage?.name || files?.imageReference?.name || null;
+      files?.sourceImage?.name ||
+      files?.imageReference?.name ||
+      files?.faceReference?.name ||
+      null;
     const backendJobId =
       typeof body.jobId === "string" && body.jobId.trim()
         ? body.jobId.trim()
         : null;
-    const creditsUsed = skipBilling ? 0 : CREDITS_PER_RENDER;
     const useAsyncPipeline =
       isPrismaConfigured() &&
       shouldUseAsyncPipeline({
@@ -293,26 +301,33 @@ export async function POST(request: Request) {
         proxyError instanceof Error
           ? proxyError.message
           : "Unexpected GPU proxy failure";
-      console.warn("[generate] GPU proxy exception — using mock preview:", details);
-
-      const mock = buildMockGenerationSuccess({
-        durationSeconds: processedDurationSeconds,
-        promptPreview,
-        category: String(category),
-        jobId,
-      });
-
-      if (jobId && mock.videoUrl) {
-        await completeGenerationJob(jobId, mock.videoUrl);
-      }
-      // Free the render slot without charging — simulation preview only.
       await releaseSlotOnFailure(
         effectiveUserId,
         skipBilling,
         previewOnly,
         useFreeTrial
       );
+      if (jobId) {
+        await failGenerationJob(jobId, details);
+      }
 
+      if (!isMockGenerationAllowed() || !skipBilling) {
+        console.error("[generate] GPU proxy exception — hard fail:", details);
+        return NextResponse.json(
+          buildGpuPipelineFailure(503, GPU_UNAVAILABLE_MESSAGE, {
+            timedOut: false,
+          }),
+          { status: 503 }
+        );
+      }
+
+      console.warn("[generate] GPU proxy exception — using mock preview:", details);
+      const mock = buildMockGenerationSuccess({
+        durationSeconds: processedDurationSeconds,
+        promptPreview,
+        category: String(category),
+        jobId,
+      });
       return NextResponse.json({
         ...mock,
         creditsUsed: 0,
@@ -320,7 +335,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!proxyResult.ok && shouldFallbackToMockGeneration(proxyResult)) {
+    if (!proxyResult.ok && shouldFallbackToMockGeneration(proxyResult) && skipBilling) {
       const errorMessage =
         typeof proxyResult.data.error === "string"
           ? proxyResult.data.error
@@ -330,16 +345,6 @@ export async function POST(request: Request) {
         errorMessage
       );
 
-      const mock = buildMockGenerationSuccess({
-        durationSeconds: processedDurationSeconds,
-        promptPreview,
-        category: String(category),
-        jobId,
-      });
-
-      if (jobId && mock.videoUrl) {
-        await completeGenerationJob(jobId, mock.videoUrl);
-      }
       await releaseSlotOnFailure(
         effectiveUserId,
         skipBilling,
@@ -347,11 +352,40 @@ export async function POST(request: Request) {
         useFreeTrial
       );
 
+      const mock = buildMockGenerationSuccess({
+        durationSeconds: processedDurationSeconds,
+        promptPreview,
+        category: String(category),
+        jobId,
+      });
       return NextResponse.json({
         ...mock,
         creditsUsed: 0,
         jobId: jobId ?? mock.jobId,
       });
+    }
+
+    if (!proxyResult.ok && !isMockGenerationAllowed()) {
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
+      if (jobId) {
+        await failGenerationJob(
+          jobId,
+          typeof proxyResult.data.error === "string"
+            ? proxyResult.data.error
+            : GPU_UNAVAILABLE_MESSAGE
+        );
+      }
+      return NextResponse.json(
+        buildGpuPipelineFailure(503, GPU_UNAVAILABLE_MESSAGE, {
+          timedOut: proxyResult.timedOut,
+        }),
+        { status: 503 }
+      );
     }
 
     if (!proxyResult.ok) {
@@ -389,13 +423,43 @@ export async function POST(request: Request) {
     const videoUrl = String(
       proxyResult.data.videoUrl ?? proxyResult.data.video_url ?? ""
     );
+    const simulationMode = Boolean(
+      proxyResult.data.simulationMode ?? proxyResult.data.simulation_mode
+    );
+
+    // Paid renders must never accept a simulation/showcase success from the worker.
+    if (!skipBilling && simulationMode) {
+      await releaseSlotOnFailure(
+        effectiveUserId,
+        skipBilling,
+        previewOnly,
+        useFreeTrial
+      );
+      if (jobId) {
+        await failGenerationJob(
+          jobId,
+          "Live AI provider returned a simulation result for a paid render"
+        );
+      }
+      return NextResponse.json(
+        buildGpuPipelineFailure(
+          503,
+          "Live AI generation required for paid renders. Configure FAL_KEY or Replicate on the GPU worker."
+        ),
+        { status: 503 }
+      );
+    }
 
     if (jobId && videoUrl) {
       await completeGenerationJob(jobId, videoUrl);
     }
 
     if (!skipBilling) {
-      await completeRenderingSlot(effectiveUserId, { previewOnly, useFreeTrial });
+      await completeRenderingSlot(effectiveUserId, {
+        previewOnly,
+        useFreeTrial,
+        creditsToDebit: creditsUsed,
+      });
     }
 
     return NextResponse.json({

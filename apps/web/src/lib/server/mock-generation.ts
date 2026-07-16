@@ -1,6 +1,6 @@
 /**
  * Local mock generation when the GPU worker / FastAPI is unavailable.
- * Keeps the Studio UX complete: progress → preview → download path (preview license).
+ * Dev/local only unless ALLOW_MOCK_GENERATION=true.
  */
 
 import { randomUUID } from "crypto";
@@ -13,6 +13,13 @@ export type MockGenerationInput = {
   category?: string;
   jobId?: string | null;
 };
+
+/** Production never mocks unless explicitly opted in via env. */
+export function isMockGenerationAllowed(): boolean {
+  if (process.env.ALLOW_MOCK_GENERATION === "true") return true;
+  if (process.env.ALLOW_MOCK_GENERATION === "false") return false;
+  return process.env.NODE_ENV !== "production";
+}
 
 export function buildMockGenerationSteps() {
   return GENERATION_PROGRESS_STAGES.map((stage) => ({
@@ -68,6 +75,7 @@ export function shouldFallbackToMockGeneration(proxy: {
   status: number;
   data: Record<string, unknown>;
 }): boolean {
+  if (!isMockGenerationAllowed()) return false;
   if (proxy.ok) return false;
   const code = proxy.data.code;
   if (code === "FASTAPI_URL_NOT_CONFIGURED") return true;
@@ -83,3 +91,6 @@ export function shouldFallbackToMockGeneration(proxy: {
     err.includes("bad response")
   );
 }
+
+export const GPU_UNAVAILABLE_MESSAGE =
+  "GPU worker unavailable. Configure FASTAPI_URL and FAL_KEY (or Replicate), then retry. Paid renders cannot use demo previews.";

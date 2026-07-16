@@ -293,10 +293,10 @@ def _pick_provider(job: GenerationJobInput) -> ProviderName:
         return "replicate"
 
     if mode == "fal" and not FalProvider().is_configured():
-        logger.info("FAL_KEY unset — falling back to simulation")
+        logger.info("FAL_KEY unset — no live provider for billed job")
         return "simulation"
     if mode == "replicate" and not ReplicateProvider().is_configured():
-        logger.info("REPLICATE_API_TOKEN unset — falling back to simulation")
+        logger.info("REPLICATE_API_TOKEN unset — no live provider for billed job")
         return "simulation"
     if mode not in ("auto", "fal", "replicate"):
         return mode  # type: ignore[return-value]
@@ -345,6 +345,14 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
     preview_only, can_download, credits_used, _ = resolve_output_flags(body)
     duration = job.duration_seconds
     provider_name = _pick_provider(job)
+
+    # Billed jobs must never silently succeed via local simulation.
+    billed_job = not preview_only and not body.use_free_trial
+    if billed_job and provider_name == "simulation":
+        raise LiveGenerationError(
+            "No live AI provider configured. Set FAL_KEY or REPLICATE_API_TOKEN on the GPU worker.",
+            error_code="provider_not_configured",
+        )
 
     if not preview_only and not body.use_free_trial and provider_name == "fal":
         try:
@@ -480,6 +488,19 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
                 error_code = "replicate_credit"
                 error_msg = REPLICATE_CREDIT_USER_MESSAGE
             raise LiveGenerationError(error_msg, provider_meta, error_code=error_code)
+
+        # Paid / billed jobs: hard fail instead of silent demo MP4.
+        if billed_job:
+            error_msg = (
+                provider_result.error
+                if provider_result and provider_result.error
+                else f"{provider_name} generation failed — live provider required for paid renders"
+            )
+            raise LiveGenerationError(
+                error_msg,
+                provider_meta,
+                error_code="live_generation_required",
+            )
 
         sim_url, _ = await _simulation_delivery(job)
         delivery_url = sim_url
