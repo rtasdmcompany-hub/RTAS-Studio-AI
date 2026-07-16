@@ -48,6 +48,10 @@ export function buildTelegramShareUrl(publicUrl: string, title: string): string 
   return `https://t.me/share/url?url=${encodeURIComponent(publicUrl)}&text=${encodeURIComponent(text)}`;
 }
 
+export function buildPinterestShareUrl(publicUrl: string, title: string): string {
+  return `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(publicUrl)}&description=${encodeURIComponent(buildShareMessage(title))}`;
+}
+
 export type SocialShareChannel =
   | "x"
   | "facebook"
@@ -55,7 +59,8 @@ export type SocialShareChannel =
   | "whatsapp"
   | "telegram"
   | "reddit"
-  | "email";
+  | "email"
+  | "pinterest";
 
 export function buildSocialShareUrl(
   channel: SocialShareChannel,
@@ -77,6 +82,8 @@ export function buildSocialShareUrl(
       return buildRedditShareUrl(publicUrl, title);
     case "email":
       return buildEmailShareUrl(publicUrl, title);
+    case "pinterest":
+      return buildPinterestShareUrl(publicUrl, title);
     default:
       return publicUrl;
   }
