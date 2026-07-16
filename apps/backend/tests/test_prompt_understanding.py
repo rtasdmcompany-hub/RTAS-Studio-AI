@@ -135,6 +135,22 @@ def test_pipeline_compatibility():
     sys.modules["app.services.intelligence.director_models"] = director_models
     sys.modules["app.services.intelligence.cinematic_models"] = cinematic_models
 
+    SB = INTEL / "scene_breakdown"
+    sb_pkg = type(sys)("app.services.intelligence.scene_breakdown")
+    sb_pkg.__path__ = [str(SB)]
+    sys.modules["app.services.intelligence.scene_breakdown"] = sb_pkg
+    for sb_name, sb_file in [
+        ("models", "models.py"),
+        ("shot_catalog", "shot_catalog.py"),
+        ("beats", "beats.py"),
+        ("pacing", "pacing.py"),
+        ("shot_engine", "shot_engine.py"),
+        ("engine", "engine.py"),
+        ("bridge", "bridge.py"),
+    ]:
+        _load(f"app.services.intelligence.scene_breakdown.{sb_name}", SB / sb_file)
+    _load("app.services.intelligence.scene_breakdown", SB / "__init__.py")
+
     for mod_name, file_name in [
         ("prompt_intelligence", "prompt_intelligence.py"),
         ("prompt_enhancer", "prompt_enhancer.py"),

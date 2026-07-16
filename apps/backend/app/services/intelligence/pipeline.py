@@ -11,7 +11,6 @@ from typing import Any
 
 from app.services.intelligence.ai_director import direct_production
 from app.services.intelligence.auto_improvement import auto_improve_production
-from app.services.intelligence.camera_planner import plan_cameras
 from app.services.intelligence.character_memory import build_character_memories
 from app.services.intelligence.cinematic_quality import score_cinematic_quality
 from app.services.intelligence.cinematic_reasoning import reason_about_project
@@ -34,8 +33,10 @@ from app.services.intelligence.prompt_enhancer import enhance_prompt
 from app.services.intelligence.prompt_intelligence import analyze_prompt
 from app.services.intelligence.prompt_understanding import understand_prompt
 from app.services.intelligence.quality_checker import check_plan_quality
-from app.services.intelligence.scene_planner import plan_scenes
-from app.services.intelligence.shot_planner import plan_shots
+from app.services.intelligence.scene_breakdown import (
+    build_production_breakdown,
+    to_legacy_plans,
+)
 from app.services.intelligence.sound_design_planner import plan_sound_design
 from app.services.intelligence.story_continuity import build_continuity_state
 from app.services.intelligence.visual_style_engine import plan_visual_style
@@ -86,16 +87,24 @@ def run_intelligence_pipeline(
     reasoning = reason_about_project(prompt, intelligence)
     visual = plan_visual_style(prompt, intelligence)
 
-    scenes = plan_scenes(enhancement.enhanced_prompt or prompt, intelligence)
-    cameras = plan_cameras(scenes, intelligence)
-    shots = plan_shots(scenes, cameras)
-
+    # Character Memory first so scene breakdown can name the lead.
     characters = build_character_memories(
         prompt,
         style_hint=style_hint or intelligence.style,
         reference_image_urls=reference_image_urls,
         character_count_hint=character_count_hint or understanding.subject_count,
     )
+    lead_name = characters[0].character_id if characters else "lead subject"
+
+    # Sprint 6 — Scene Breakdown & Shot Generation Engine.
+    breakdown = build_production_breakdown(
+        prompt,
+        understanding=understanding,
+        intelligence=intelligence,
+        character_name=lead_name,
+    )
+    scenes, cameras, shots = to_legacy_plans(breakdown)
+
     consistency = build_consistency_report(
         characters,
         user_allows_wardrobe_change=allow_wardrobe_change,
@@ -169,6 +178,7 @@ def run_intelligence_pipeline(
         cinematic_quality=cinematic_quality.to_dict(),
         auto_improvement=auto_fix.to_dict(),
         prompt_understanding=understanding.production_instructions(),
+        scene_breakdown=breakdown.to_dict(),
     )
     draft.quality = check_plan_quality(draft)
 
@@ -186,6 +196,8 @@ def run_intelligence_pipeline(
         quality=draft.quality,
     )
     draft.production_package = package.to_dict()
+    if isinstance(draft.production_package, dict):
+        draft.production_package["scene_breakdown"] = breakdown.to_dict()
 
     master = build_master_ai_plan(
         reasoning=reasoning,
@@ -210,14 +222,16 @@ def run_intelligence_pipeline(
         draft.master_ai_plan["prompt_understanding"] = (
             understanding.production_instructions()
         )
+        draft.master_ai_plan["scene_breakdown"] = breakdown.to_dict()
 
     logger.info(
-        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s auto_improve=%s",
+        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s auto_improve=%s",
         cinematic_quality.overall,
         visual.reference_look,
         understanding.category,
         len(characters),
         len(scenes),
+        len(shots),
         auto_fix.applied,
     )
     return draft

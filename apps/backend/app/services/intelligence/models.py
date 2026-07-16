@@ -130,6 +130,8 @@ class IntelligencePipelineResult:
     master_ai_plan: dict[str, Any] = field(default_factory=dict)
     # Cinematic Prompt Understanding Engine
     prompt_understanding: dict[str, Any] = field(default_factory=dict)
+    # Sprint 6 — Scene Breakdown & Shot Generation
+    scene_breakdown: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -156,4 +158,5 @@ class IntelligencePipelineResult:
             "auto_improvement": self.auto_improvement,
             "master_ai_plan": self.master_ai_plan,
             "prompt_understanding": self.prompt_understanding,
+            "scene_breakdown": self.scene_breakdown,
         }

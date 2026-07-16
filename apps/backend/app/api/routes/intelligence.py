@@ -4,7 +4,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.services.intelligence.pipeline import run_intelligence_pipeline_dict
-from app.services.intelligence.prompt_understanding import understand_prompt_dict
+from app.services.intelligence.prompt_intelligence import analyze_prompt
+from app.services.intelligence.prompt_understanding import (
+    understand_prompt,
+    understand_prompt_dict,
+)
+from app.services.intelligence.scene_breakdown import build_production_breakdown_dict
 
 router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 
@@ -45,6 +50,30 @@ async def understand_cinematic_prompt(body: IntelligencePlanRequest):
     return {"ok": True, "understanding": understanding}
 
 
+@router.post("/scene-breakdown")
+async def create_scene_breakdown(body: IntelligencePlanRequest):
+    """Convert one prompt into Scenes[], Shots[], Timeline, Estimated Runtime."""
+    try:
+        understanding = understand_prompt(
+            body.prompt, category_hint=body.category
+        )
+        intelligence = analyze_prompt(
+            body.prompt,
+            category_hint=body.category,
+            style_hint=body.visual_style,
+            duration_hint=body.duration_seconds,
+            understanding=understanding,
+        )
+        production = build_production_breakdown_dict(
+            body.prompt,
+            understanding=understanding,
+            intelligence=intelligence,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"ok": True, "production": production.get("Production") or production}
+
+
 @router.post("/plan")
 async def create_intelligence_plan(body: IntelligencePlanRequest):
     try:
@@ -71,6 +100,7 @@ async def create_production_package(body: IntelligencePlanRequest):
         "masterAiPlan": plan.get("master_ai_plan"),
         "cinematicQuality": plan.get("cinematic_quality"),
         "promptUnderstanding": plan.get("prompt_understanding"),
+        "sceneBreakdown": plan.get("scene_breakdown"),
     }
 
 
@@ -93,4 +123,5 @@ async def create_master_ai_plan(body: IntelligencePlanRequest):
         "cinematicQuality": plan.get("cinematic_quality"),
         "autoImprovement": plan.get("auto_improvement"),
         "promptUnderstanding": plan.get("prompt_understanding"),
+        "sceneBreakdown": plan.get("scene_breakdown"),
     }
