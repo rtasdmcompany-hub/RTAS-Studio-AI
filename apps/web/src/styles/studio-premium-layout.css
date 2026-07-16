@@ -575,13 +575,11 @@
 
 .studio-wizard-roadmap {
   position: sticky;
-  top: 3.65rem;
+  top: calc(var(--rtas-header-height, 4.5rem) + 0.25rem);
   z-index: 12;
   margin: 0.75rem 0 0.15rem;
   padding: 0.45rem 0 0.35rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  overflow-x: hidden;
   background: linear-gradient(
     180deg,
     rgba(9, 9, 14, 0.96) 0%,
@@ -597,9 +595,9 @@
   margin: 0;
   padding: 0.15rem 0 0.35rem;
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.55rem;
-  min-width: min-content;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
 }
 
 .studio-wizard-roadmap__item {
