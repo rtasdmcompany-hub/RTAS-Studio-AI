@@ -8,8 +8,6 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Literal
-
 from app.core.config import reload_settings, settings
 from app.core.errors import (
     FAL_AUTH_USER_MESSAGE,
@@ -29,10 +27,6 @@ from app.services.pipeline_simulation import (
     resolve_output_flags,
     select_provider as select_ui_provider,
 )
-from app.services.providers.comfyui import ComfyUIProvider
-from app.services.providers.diffusers_local import DiffusersInstantIDProvider
-from app.services.providers.fal import FalProvider
-from app.services.providers.replicate import ReplicateProvider
 from app.services.content_moderation import (
     ContentPolicyViolation,
     assert_generate_request_allowed,
@@ -59,7 +53,7 @@ from app.services.storage import (
 
 logger = logging.getLogger(__name__)
 
-ProviderName = Literal["simulation", "fal", "replicate", "comfyui", "diffusers"]
+ProviderName = str  # simulation | fal | replicate | specialty multi-ai names | auto
 
 
 class LiveGenerationError(Exception):
@@ -272,56 +266,84 @@ def _pick_provider(job: GenerationJobInput) -> ProviderName:
         logger.info("Preview-only job=%s — simulation pipeline (no cloud spend)", job.job_id)
         return "simulation"
 
-    mode = settings.ai_provider_mode
+    from app.services.multi_ai import get_multi_ai_engine
 
-    if mode in ("comfyui", "diffusers", "fal", "replicate") and mode != "auto":
-        if mode == "fal" and FalProvider().is_configured():
-            return "fal"
-        if mode == "replicate" and ReplicateProvider().is_configured():
-            return "replicate"
-        if mode == "comfyui" and ComfyUIProvider().is_configured():
-            return "comfyui"
-        if mode == "diffusers" and DiffusersInstantIDProvider().is_configured():
-            return "diffusers"
+    engine = get_multi_ai_engine()
+    mode = str(settings.ai_provider_mode or "auto").strip().lower()
+    available = engine.detect_available()
 
-    if settings.fal_configured:
+    # Explicit provider pin (including specialty adapters).
+    if mode not in ("auto", "multi", "simulation") and mode in engine.registry:
+        if mode in available:
+            logger.info("AI_PROVIDER_MODE=%s — pinned live provider", mode)
+            return mode
+        logger.info("AI_PROVIDER_MODE=%s not configured — falling back to auto", mode)
+
+    if mode in ("auto", "multi") and settings.multi_ai_failover_enabled:
+        # Marker consumed by _run_provider to engage failover chain.
+        selected = engine.select_provider(
+            category=job.category,
+            mood=None,
+        )
+        if selected:
+            logger.info(
+                "Multi-AI auto select job=%s provider=%s available=%s",
+                job.job_id,
+                selected,
+                available,
+            )
+            return "multi"
+
+    if "fal" in available:
         logger.info("FAL_KEY detected — live Fal.ai pipeline (simulation bypassed)")
         return "fal"
-
-    if settings.replicate_configured:
-        logger.info("REPLICATE_API_TOKEN detected — live Replicate pipeline (simulation bypassed)")
+    if "replicate" in available:
+        logger.info("REPLICATE_API_TOKEN detected — live Replicate pipeline")
         return "replicate"
-
-    if mode == "fal" and not FalProvider().is_configured():
-        logger.info("FAL_KEY unset — no live provider for billed job")
-        return "simulation"
-    if mode == "replicate" and not ReplicateProvider().is_configured():
-        logger.info("REPLICATE_API_TOKEN unset — no live provider for billed job")
-        return "simulation"
-    if mode not in ("auto", "fal", "replicate"):
-        return mode  # type: ignore[return-value]
-
-    if FalProvider().is_configured():
-        return "fal"
-    if ReplicateProvider().is_configured():
-        return "replicate"
-    if job.visual_style == "real" and DiffusersInstantIDProvider().is_configured():
-        return "diffusers"
-    if ComfyUIProvider().is_configured():
-        return "comfyui"
+    if available:
+        return available[0]
     return "simulation"
 
 
 async def _run_provider(job: GenerationJobInput, provider_name: ProviderName):
-    if provider_name == "fal":
-        return await FalProvider().generate(job)
-    if provider_name == "replicate":
-        return await ReplicateProvider().generate(job)
-    if provider_name == "comfyui":
-        return await ComfyUIProvider().generate(job)
-    if provider_name == "diffusers":
-        return await DiffusersInstantIDProvider().generate(job)
-    return None
+    from app.services.multi_ai import get_multi_ai_engine
+    from app.services.providers.base import ProviderResult
+
+    engine = get_multi_ai_engine()
+
+    if provider_name == "multi":
+        flow = await engine.generate_with_failover(job, fields=getattr(job, "fields", None))
+        if not flow.success:
+            return ProviderResult(
+                provider=flow.provider,
+                success=False,
+                error=flow.error,
+                metadata={
+                    "failover_log": flow.failover_log,
+                    "attempted_providers": flow.attempted_providers,
+                    "error_code": "multi_ai_failover_exhausted",
+                },
+            )
+        local = Path(flow.local_mp4_path) if flow.local_mp4_path else None
+        return ProviderResult(
+            provider=flow.provider,
+            success=True,
+            local_mp4_path=local,
+            remote_url=flow.remote_url,
+            external_job_id=flow.external_job_id,
+            metadata={
+                "failover_log": flow.failover_log,
+                "attempted_providers": flow.attempted_providers,
+                "cost_estimate": flow.cost_estimate,
+                "eta": flow.eta,
+                **(flow.metadata or {}),
+            },
+        )
+
+    adapter = engine.registry.get(provider_name)
+    if adapter is None:
+        return None
+    return await adapter.generate(job)
 
 
 async def _simulation_delivery(job: GenerationJobInput) -> tuple[str, Path | None]:
@@ -354,7 +376,10 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
             error_code="provider_not_configured",
         )
 
-    if not preview_only and not body.use_free_trial and provider_name == "fal":
+    if not preview_only and not body.use_free_trial and provider_name in (
+        "fal",
+        "multi",
+    ):
         try:
             assert_billing_for_live_generation(body)
             tier_selection = apply_tier_fal_routing(job, body)
@@ -459,10 +484,15 @@ async def run_generation(body: GenerateRequest) -> GenerationJobResult:
                 **(provider_result.metadata or {}),
             }
 
-        live_provider = provider_name in ("fal", "replicate")
+        from app.services.multi_ai import get_multi_ai_engine
+
+        _engine = get_multi_ai_engine()
+        live_provider = provider_name != "simulation"
         live_configured = (
-            (provider_name == "fal" and settings.fal_configured)
-            or (provider_name == "replicate" and settings.replicate_configured)
+            provider_name == "multi" and bool(_engine.detect_available())
+        ) or (
+            provider_name in _engine.registry
+            and _engine.registry[provider_name].is_configured()
         )
         if live_provider and live_configured:
             error_msg = (

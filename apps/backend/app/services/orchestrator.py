@@ -18,12 +18,7 @@ from app.services.ai_service import (
     LiveGenerationError,
     run_generation,
 )
-from app.services.providers import (
-    ComfyUIProvider,
-    DiffusersInstantIDProvider,
-    FalProvider,
-    ReplicateProvider,
-)
+from app.services.multi_ai import build_provider_registry, get_multi_ai_engine
 from app.services.providers.base import BaseAIProvider
 
 logger = logging.getLogger(__name__)
@@ -60,21 +55,15 @@ def _structured(
 
 
 def get_provider_adapters() -> dict[str, BaseAIProvider]:
-    return {
-        "fal": FalProvider(),
-        "replicate": ReplicateProvider(),
-        "comfyui": ComfyUIProvider(),
-        "diffusers": DiffusersInstantIDProvider(),
-    }
+    return build_provider_registry()
 
 
 def select_live_provider() -> BaseAIProvider | None:
-    adapters = get_provider_adapters()
-    for name in ("fal", "replicate", "comfyui", "diffusers"):
-        provider = adapters[name]
-        if provider.is_configured():
-            return provider
-    return None
+    engine = get_multi_ai_engine()
+    name = engine.select_provider()
+    if not name:
+        return None
+    return engine.registry.get(name)
 
 
 async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:

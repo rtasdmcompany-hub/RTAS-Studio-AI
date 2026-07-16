@@ -41,6 +41,20 @@ class Settings(BaseSettings):
     )
     runway_api_key: str | None = None
     kling_api_key: str | None = None
+    # Multi-AI specialty providers (native keys; Fal gateway used when FAL_KEY set)
+    google_veo_api_key: str | None = Field(
+        default=None, validation_alias=AliasChoices("GOOGLE_VEO_API_KEY", "VEO_API_KEY")
+    )
+    hailuo_api_key: str | None = None
+    pika_api_key: str | None = None
+    luma_api_key: str | None = None
+    svd_api_key: str | None = Field(
+        default=None, validation_alias=AliasChoices("SVD_API_KEY", "STABLE_VIDEO_API_KEY")
+    )
+    cogvideo_api_key: str | None = None
+    multi_ai_failover_enabled: bool = Field(
+        default=True, validation_alias="MULTI_AI_FAILOVER_ENABLED"
+    )
 
     # Fal.ai model endpoints (Wan 2.7 — override per deploy)
     fal_model_i2v: str = "fal-ai/wan/v2.7/image-to-video"
@@ -88,10 +102,9 @@ class Settings(BaseSettings):
     diffusers_device: str = "cuda"
     instantid_model_path: str | None = None
 
-    # Routing: simulation | fal | replicate | comfyui | diffusers | auto
-    ai_provider_mode: Literal[
-        "simulation", "fal", "replicate", "comfyui", "diffusers", "auto"
-    ] = "auto"
+    # Routing: simulation | fal | replicate | comfyui | diffusers | multi | auto
+    # Also accepts specialty names: veo | runway | kling | hailuo | pika | luma | svd | cogvideo
+    ai_provider_mode: str = "auto"
 
     # Storage
     storage_mode: Literal["local", "s3", "r2"] = "local"
@@ -117,6 +130,12 @@ class Settings(BaseSettings):
         "fal_key",
         "runway_api_key",
         "kling_api_key",
+        "google_veo_api_key",
+        "hailuo_api_key",
+        "pika_api_key",
+        "luma_api_key",
+        "svd_api_key",
+        "cogvideo_api_key",
         "ai_backend_secret",
         "generation_webhook_secret",
         mode="before",

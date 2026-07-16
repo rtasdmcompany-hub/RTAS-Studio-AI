@@ -3,6 +3,16 @@ from .comfyui import ComfyUIProvider
 from .diffusers_local import DiffusersInstantIDProvider
 from .fal import FalProvider
 from .replicate import ReplicateProvider
+from .specialty import (
+    CogVideoProvider,
+    GoogleVeoProvider,
+    HailuoProvider,
+    KlingProvider,
+    LumaProvider,
+    PikaProvider,
+    RunwayProvider,
+    StableVideoDiffusionProvider,
+)
 
 __all__ = [
     "BaseAIProvider",
@@ -12,4 +22,12 @@ __all__ = [
     "ReplicateProvider",
     "ComfyUIProvider",
     "DiffusersInstantIDProvider",
+    "GoogleVeoProvider",
+    "RunwayProvider",
+    "KlingProvider",
+    "HailuoProvider",
+    "PikaProvider",
+    "LumaProvider",
+    "StableVideoDiffusionProvider",
+    "CogVideoProvider",
 ]
