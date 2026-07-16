@@ -127,6 +127,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         enhanced = plan.enhancement.enhanced_prompt
         t2v_summary: dict[str, Any] | None = None
         i2v_summary: dict[str, Any] | None = None
+        avatar_summary: dict[str, Any] | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
             identity = " ".join(
@@ -268,6 +269,59 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                         ].primary_image_url[:500]
             except Exception as i2v_exc:
                 logger.warning("Image-to-video plan skipped: %s", i2v_exc)
+
+            # Phase 3 Sprint 3 — Talking Avatar Engine
+            try:
+                style = str(getattr(body, "visual_style", "") or "").lower()
+                understanding = plan.prompt_understanding or {}
+                scene_type = str(understanding.get("scene_type") or "").lower()
+                wants_avatar = (
+                    style == "avatar"
+                    or "avatar" in scene_type
+                    or "talking" in scene_type
+                    or "presenter" in (raw_prompt or "").lower()
+                    or bool(ref_urls)
+                )
+                if wants_avatar:
+                    from app.services.talking_avatar import build_and_register
+
+                    face_url = None
+                    for key, meta in (files.items() if isinstance(files, dict) else []):
+                        kl = str(key).lower()
+                        if "face" not in kl:
+                            continue
+                        if isinstance(meta, dict):
+                            face_url = meta.get("url") or meta.get("local_path")
+                        else:
+                            face_url = getattr(meta, "url", None) or getattr(
+                                meta, "local_path", None
+                            )
+                        if isinstance(face_url, str) and face_url.strip():
+                            face_url = face_url.strip()
+                            break
+                    if not face_url and ref_urls:
+                        face_url = ref_urls[0]
+
+                    avatar_job = build_and_register(
+                        prompt=locked_prompt if enhanced else raw_prompt,
+                        character_memory=plan.character_memory,
+                        director_plan=plan.director_plan,
+                        audio_director=plan.audio_director,
+                        timeline=plan.timeline,
+                        reference_face_url=face_url,
+                        duration_hint=float(body.duration_seconds or 0) or None,
+                        natural_motion=True,
+                        parent_generation_id=generation_id,
+                    )
+                    avatar_summary = avatar_job.summary()
+                    body.fields["rtasTalkingAvatar"] = json.dumps(avatar_summary)[:4000]
+                    body.fields["rtasTalkingAvatarJobId"] = avatar_job.job_id
+                    if avatar_job.provider_request:
+                        body.fields["rtasAvatarPrompt"] = (
+                            avatar_job.provider_request.prompt[:2000]
+                        )
+            except Exception as avatar_exc:
+                logger.warning("Talking avatar plan skipped: %s", avatar_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -296,6 +350,10 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             t2v_job_id=(t2v_summary or {}).get("job_id") if t2v_summary else None,
             i2v_requests=(i2v_summary or {}).get("requests") if i2v_summary else None,
             i2v_job_id=(i2v_summary or {}).get("job_id") if i2v_summary else None,
+            avatar_lip_sync=(avatar_summary or {}).get("lip_sync_cues")
+            if avatar_summary
+            else None,
+            avatar_job_id=(avatar_summary or {}).get("job_id") if avatar_summary else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )

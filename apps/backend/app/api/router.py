@@ -9,6 +9,7 @@ from app.api.routes import (
     intelligence,
     jobs,
     multi_ai,
+    talking_avatar,
     text_to_video,
     upload,
 )
@@ -24,3 +25,4 @@ api_router.include_router(intelligence.router)
 api_router.include_router(multi_ai.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
+api_router.include_router(talking_avatar.router)
