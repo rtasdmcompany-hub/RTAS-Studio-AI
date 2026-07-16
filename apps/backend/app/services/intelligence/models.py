@@ -118,6 +118,16 @@ class IntelligencePipelineResult:
     director_plan: dict[str, Any] = field(default_factory=dict)
     timeline: dict[str, Any] = field(default_factory=dict)
     production_package: dict[str, Any] = field(default_factory=dict)
+    # Sprint 5 — Cinematic AI Brain
+    cinematic_reasoning: dict[str, Any] = field(default_factory=dict)
+    visual_style: dict[str, Any] = field(default_factory=dict)
+    emotion_map: dict[str, Any] = field(default_factory=dict)
+    music_plan: dict[str, Any] = field(default_factory=dict)
+    voice_plan: dict[str, Any] = field(default_factory=dict)
+    sound_plan: dict[str, Any] = field(default_factory=dict)
+    cinematic_quality: dict[str, Any] = field(default_factory=dict)
+    auto_improvement: dict[str, Any] = field(default_factory=dict)
+    master_ai_plan: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -134,4 +144,13 @@ class IntelligencePipelineResult:
             "director_plan": self.director_plan,
             "timeline": self.timeline,
             "production_package": self.production_package,
+            "cinematic_reasoning": self.cinematic_reasoning,
+            "visual_style": self.visual_style,
+            "emotion_map": self.emotion_map,
+            "music_plan": self.music_plan,
+            "voice_plan": self.voice_plan,
+            "sound_plan": self.sound_plan,
+            "cinematic_quality": self.cinematic_quality,
+            "auto_improvement": self.auto_improvement,
+            "master_ai_plan": self.master_ai_plan,
         }

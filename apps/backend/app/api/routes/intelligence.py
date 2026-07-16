@@ -1,4 +1,4 @@
-"""Backend API for Real AI intelligence + director production packages (no UI)."""
+"""Backend API for Real AI cinematic brain (no UI)."""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -20,18 +20,22 @@ class IntelligencePlanRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+def _run(body: IntelligencePlanRequest) -> dict:
+    return run_intelligence_pipeline_dict(
+        body.prompt,
+        category_hint=body.category,
+        style_hint=body.visual_style,
+        duration_hint=body.duration_seconds,
+        reference_image_urls=body.reference_image_urls,
+        character_count_hint=body.character_count,
+        allow_wardrobe_change=body.allow_wardrobe_change,
+    )
+
+
 @router.post("/plan")
 async def create_intelligence_plan(body: IntelligencePlanRequest):
     try:
-        plan = run_intelligence_pipeline_dict(
-            body.prompt,
-            category_hint=body.category,
-            style_hint=body.visual_style,
-            duration_hint=body.duration_seconds,
-            reference_image_urls=body.reference_image_urls,
-            character_count_hint=body.character_count,
-            allow_wardrobe_change=body.allow_wardrobe_change,
-        )
+        plan = _run(body)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {"ok": True, "plan": plan}
@@ -39,17 +43,8 @@ async def create_intelligence_plan(body: IntelligencePlanRequest):
 
 @router.post("/production-package")
 async def create_production_package(body: IntelligencePlanRequest):
-    """Full AI production package JSON (Character Memory + Director + Timeline)."""
     try:
-        plan = run_intelligence_pipeline_dict(
-            body.prompt,
-            category_hint=body.category,
-            style_hint=body.visual_style,
-            duration_hint=body.duration_seconds,
-            reference_image_urls=body.reference_image_urls,
-            character_count_hint=body.character_count,
-            allow_wardrobe_change=body.allow_wardrobe_change,
-        )
+        plan = _run(body)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {
@@ -60,4 +55,27 @@ async def create_production_package(body: IntelligencePlanRequest):
         "timeline": plan.get("timeline"),
         "continuity": plan.get("continuity"),
         "consistency": plan.get("consistency"),
+        "masterAiPlan": plan.get("master_ai_plan"),
+        "cinematicQuality": plan.get("cinematic_quality"),
+    }
+
+
+@router.post("/master-plan")
+async def create_master_ai_plan(body: IntelligencePlanRequest):
+    """Hollywood-style master production JSON before generation."""
+    try:
+        plan = _run(body)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {
+        "ok": True,
+        "masterAiPlan": plan.get("master_ai_plan"),
+        "cinematicReasoning": plan.get("cinematic_reasoning"),
+        "visualStyle": plan.get("visual_style"),
+        "emotionMap": plan.get("emotion_map"),
+        "musicPlan": plan.get("music_plan"),
+        "voicePlan": plan.get("voice_plan"),
+        "soundPlan": plan.get("sound_plan"),
+        "cinematicQuality": plan.get("cinematic_quality"),
+        "autoImprovement": plan.get("auto_improvement"),
     }

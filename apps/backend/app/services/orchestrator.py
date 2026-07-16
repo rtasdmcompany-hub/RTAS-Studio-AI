@@ -151,6 +151,12 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasProductionPackage"] = json.dumps(
                     plan.production_package
                 )[:4000]
+            if plan.master_ai_plan:
+                body.fields["rtasMasterAiPlan"] = json.dumps(plan.master_ai_plan)[:4000]
+            if plan.cinematic_quality:
+                body.fields["rtasCinematicScore"] = str(
+                    (plan.cinematic_quality or {}).get("overall", "")
+                )
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -158,6 +164,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             scenes=len(plan.scenes),
             shots=len(plan.shots),
             characters=len(plan.character_memory or []),
+            cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )
     except Exception as intel_exc:
