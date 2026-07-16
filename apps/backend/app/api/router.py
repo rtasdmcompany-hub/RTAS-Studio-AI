@@ -5,6 +5,7 @@ from app.api.routes import (
     ai,
     generate,
     health,
+    image_to_video,
     intelligence,
     jobs,
     multi_ai,
@@ -22,3 +23,4 @@ api_router.include_router(jobs.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(multi_ai.router)
 api_router.include_router(text_to_video.router)
+api_router.include_router(image_to_video.router)

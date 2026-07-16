@@ -126,6 +126,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         )
         enhanced = plan.enhancement.enhanced_prompt
         t2v_summary: dict[str, Any] | None = None
+        i2v_summary: dict[str, Any] | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
             identity = " ".join(
@@ -202,6 +203,71 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     ]
             except Exception as t2v_exc:
                 logger.warning("Text-to-video plan skipped: %s", t2v_exc)
+
+            # Phase 3 Sprint 2 — Image-to-Video Engine (when images present).
+            try:
+                char_ref = None
+                product_ref = None
+                logo_ref = None
+                multi_refs: list[str] = []
+                for i, url in enumerate(ref_urls):
+                    if i == 0:
+                        char_ref = url
+                    else:
+                        multi_refs.append(url)
+                # Prefer explicit face / product field names from files
+                for key, meta in (files.items() if isinstance(files, dict) else []):
+                    if isinstance(meta, dict):
+                        url = meta.get("url") or meta.get("localPath") or meta.get("local_path")
+                    else:
+                        url = getattr(meta, "url", None) or getattr(meta, "local_path", None)
+                    if not isinstance(url, str) or not url.strip():
+                        continue
+                    url = url.strip()
+                    kl = str(key).lower()
+                    if "face" in kl:
+                        char_ref = url
+                    elif "product" in kl:
+                        product_ref = url
+                    elif "logo" in kl:
+                        logo_ref = url
+                    elif "source" in kl or "reference" in kl or "cover" in kl:
+                        if url not in multi_refs and url != char_ref:
+                            multi_refs.append(url)
+
+                if char_ref or product_ref or logo_ref or multi_refs or ref_urls:
+                    from app.services.image_to_video import build_and_register
+
+                    i2v_job = build_and_register(
+                        prompt=locked_prompt if enhanced else raw_prompt,
+                        single_image=ref_urls[0] if ref_urls and not char_ref else None,
+                        multiple_images=multi_refs or None,
+                        character_reference=char_ref,
+                        product_reference=product_ref,
+                        logo_reference=logo_ref,
+                        production_package=plan.production_package,
+                        scene_breakdown=plan.scene_breakdown,
+                        character_memory=plan.character_memory,
+                        director_plan=plan.director_plan,
+                        parent_generation_id=generation_id,
+                        enqueue=True,
+                        preserve_identity=True,
+                        preserve_lighting=True,
+                        preserve_composition=True,
+                        preserve_environment=True,
+                    )
+                    i2v_summary = i2v_job.summary()
+                    body.fields["rtasImageToVideo"] = json.dumps(i2v_summary)[:4000]
+                    body.fields["rtasImageToVideoJobId"] = i2v_job.job_id
+                    if i2v_job.requests:
+                        body.fields["rtasPrimaryI2VPrompt"] = i2v_job.requests[0].prompt[
+                            :2000
+                        ]
+                        body.fields["rtasPrimaryI2VImage"] = i2v_job.requests[
+                            0
+                        ].primary_image_url[:500]
+            except Exception as i2v_exc:
+                logger.warning("Image-to-video plan skipped: %s", i2v_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -228,6 +294,8 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             ),
             t2v_requests=(t2v_summary or {}).get("requests") if t2v_summary else None,
             t2v_job_id=(t2v_summary or {}).get("job_id") if t2v_summary else None,
+            i2v_requests=(i2v_summary or {}).get("requests") if i2v_summary else None,
+            i2v_job_id=(i2v_summary or {}).get("job_id") if i2v_summary else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )
