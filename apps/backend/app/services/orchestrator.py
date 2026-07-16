@@ -7,6 +7,7 @@ Studio never imports Fal/Replicate SDKs — only this layer does.
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 from typing import Any
@@ -126,7 +127,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             if "mainPrompt" in body.fields or not body.fields.get("mainPrompt"):
                 body.fields["mainPrompt"] = enhanced
             body.fields["rtasOriginalPrompt"] = raw_prompt
-            body.fields["rtasIntelligencePlan"] = str(plan.to_dict())[:4000]
+            body.fields["rtasIntelligencePlan"] = json.dumps(plan.to_dict())[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
