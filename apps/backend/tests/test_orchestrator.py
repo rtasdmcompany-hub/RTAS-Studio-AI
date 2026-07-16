@@ -1,19 +1,16 @@
-"""Backend orchestrator / provider routing tests."""
+"""Backend orchestrator / provider routing tests (no full app venv required)."""
 
 from __future__ import annotations
 
-import os
-import sys
+import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
+BASE_PY = ROOT / "app" / "services" / "providers" / "base.py"
 
 
 def test_select_live_provider_prefers_fal(monkeypatch=None):
-    from app.core import config
-
-    # Lightweight unit without full settings reload when keys are mocked.
+    # Lightweight unit — no settings/pydantic import required.
     class _P:
         def __init__(self, name, configured):
             self.name = name
@@ -62,13 +59,17 @@ def test_select_live_provider_falls_back_to_replicate():
 
 
 def test_provider_protocol_methods_exist():
-    from app.services.providers.base import BaseAIProvider, ProviderResult
-
-    assert hasattr(BaseAIProvider, "generate")
-    assert hasattr(BaseAIProvider, "status")
-    assert hasattr(BaseAIProvider, "cancel")
-    assert hasattr(BaseAIProvider, "download")
-    assert ProviderResult.__dataclass_fields__
+    """Verify adapter contract without importing FastAPI/pydantic stack."""
+    tree = ast.parse(BASE_PY.read_text(encoding="utf-8"))
+    methods: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef) and node.name == "BaseAIProvider":
+            for item in node.body:
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    methods.add(item.name)
+    required = {"generate", "status", "cancel", "download", "is_configured"}
+    missing = required - methods
+    assert not missing, f"BaseAIProvider missing methods: {missing}"
 
 
 if __name__ == "__main__":
