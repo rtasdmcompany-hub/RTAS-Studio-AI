@@ -9,6 +9,7 @@ from app.api.routes import (
     intelligence,
     jobs,
     lip_sync,
+    motion_intelligence,
     multi_ai,
     talking_avatar,
     text_to_video,
@@ -28,3 +29,4 @@ api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
 api_router.include_router(lip_sync.router)
+api_router.include_router(motion_intelligence.router)

@@ -128,6 +128,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         t2v_summary: dict[str, Any] | None = None
         i2v_summary: dict[str, Any] | None = None
         avatar_summary: dict[str, Any] | None = None
+        motion_summary: dict[str, Any] | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
             identity = " ".join(
@@ -351,6 +352,39 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasLipSyncLanguage"] = ls_plan.language
             except Exception as ls_exc:
                 logger.warning("Lip sync plan skipped: %s", ls_exc)
+
+            # Phase 3 Sprint 5 — Motion Intelligence Engine
+            try:
+                from app.services.motion_intelligence import (
+                    build_motion_intelligence_plan,
+                )
+
+                motion_plan = build_motion_intelligence_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    scenes=[s.to_dict() if hasattr(s, "to_dict") else s for s in (plan.scenes or [])],
+                    cameras=[
+                        c.to_dict() if hasattr(c, "to_dict") else c
+                        for c in (plan.cameras or [])
+                    ],
+                    character_memory=plan.character_memory,
+                    director_plan=plan.director_plan,
+                    scene_breakdown=plan.scene_breakdown,
+                    production_package=plan.production_package,
+                    prompt_understanding=plan.prompt_understanding,
+                    duration_seconds=float(body.duration_seconds or 0) or None,
+                    parent_generation_id=generation_id,
+                )
+                motion_summary = motion_plan.summary()
+                body.fields["rtasMotionIntelligence"] = json.dumps(motion_summary)[
+                    :4000
+                ]
+                body.fields["rtasMotionJobId"] = motion_plan.job_id
+                if motion_plan.scenes:
+                    body.fields["rtasPrimaryLocomotion"] = (
+                        motion_plan.scenes[0].primary_locomotion
+                    )
+            except Exception as motion_exc:
+                logger.warning("Motion intelligence plan skipped: %s", motion_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -383,6 +417,13 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             if avatar_summary
             else None,
             avatar_job_id=(avatar_summary or {}).get("job_id") if avatar_summary else None,
+            motion_scenes=(motion_summary or {}).get("scenes") if motion_summary else None,
+            motion_job_id=(motion_summary or {}).get("job_id") if motion_summary else None,
+            motion_primary=(
+                ((motion_summary or {}).get("primary_locomotion") or [None])[0]
+                if motion_summary
+                else None
+            ),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )
