@@ -130,6 +130,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         avatar_summary: dict[str, Any] | None = None
         motion_summary: dict[str, Any] | None = None
         camera_motion_summary: dict[str, Any] | None = None
+        physics_summary: dict[str, Any] | None = None
         motion_plan_obj: Any | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
@@ -442,6 +443,51 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     ].primary_motion
             except Exception as cam_exc:
                 logger.warning("Camera motion plan skipped: %s", cam_exc)
+
+            # Phase 3 Sprint 7 — Physics Engine
+            try:
+                from app.services.physics import build_physics_plan
+
+                phys_mi: dict[str, Any] | None = motion_summary
+                if motion_plan_obj is not None:
+                    phys_mi = {
+                        "job_id": motion_plan_obj.job_id,
+                        "primary_locomotion": [
+                            s.primary_locomotion for s in motion_plan_obj.scenes
+                        ],
+                        "scenes": [
+                            {
+                                "scene_index": s.scene_index,
+                                "primary_locomotion": s.primary_locomotion,
+                            }
+                            for s in motion_plan_obj.scenes
+                        ],
+                    }
+
+                phys_plan = build_physics_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    scenes=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.scenes or [])
+                    ],
+                    director_plan=plan.director_plan,
+                    scene_breakdown=plan.scene_breakdown,
+                    production_package=plan.production_package,
+                    prompt_understanding=plan.prompt_understanding,
+                    motion_intelligence=phys_mi,
+                    character_memory=plan.character_memory,
+                    duration_seconds=float(body.duration_seconds or 0) or None,
+                    parent_generation_id=generation_id,
+                )
+                physics_summary = phys_plan.summary()
+                body.fields["rtasPhysics"] = json.dumps(physics_summary)[:4000]
+                body.fields["rtasPhysicsJobId"] = phys_plan.job_id
+                if physics_summary.get("effects"):
+                    body.fields["rtasPhysicsEffects"] = ",".join(
+                        physics_summary["effects"][:12]
+                    )
+            except Exception as phys_exc:
+                logger.warning("Physics plan skipped: %s", phys_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -492,6 +538,15 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 if camera_motion_summary
                 else None
             ),
+            physics_effects=(physics_summary or {}).get("effects")
+            if physics_summary
+            else None,
+            physics_job_id=(physics_summary or {}).get("job_id")
+            if physics_summary
+            else None,
+            physics_particles=(physics_summary or {}).get("particle_systems")
+            if physics_summary
+            else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )
