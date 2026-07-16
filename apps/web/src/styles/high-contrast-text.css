@@ -66,9 +66,10 @@ html {
 
 .rtas-header,
 .rtas-header--studio {
-  background: var(--ds-color-black-90) !important;
-  backdrop-filter: blur(var(--ds-blur-xl)) !important;
-  -webkit-backdrop-filter: blur(var(--ds-blur-xl)) !important;
+  background:
+    linear-gradient(180deg, rgba(12, 12, 18, 0.96) 0%, rgba(8, 8, 14, 0.92) 100%) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
 }
 
 .rtas-header__link,

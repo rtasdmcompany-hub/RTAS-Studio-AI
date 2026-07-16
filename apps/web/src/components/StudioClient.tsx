@@ -2392,17 +2392,6 @@ export function StudioClient() {
           ? "Choose style"
           : "Name project"
       : currentWizardGroup?.label ?? "Create";
-  const wizardProgressCurrent =
-    wizardStep === WIZARD_SETUP_STEP
-      ? setupSubstep <= 1
-        ? 1
-        : setupSubstep === 2
-          ? 2
-          : 3
-      : wizardStep + 2;
-  const wizardProgressPct = Math.round(
-    (wizardProgressCurrent / Math.max(wizardTotalSteps + 2, 1)) * 100
-  );
   const roadmapLabels = useMemo(() => {
     if (mode && category && visualStyle) {
       const groups = getWizardStepGroups(category, mode, visualStyle);
@@ -2421,10 +2410,19 @@ export function StudioClient() {
   }, [mode, category, visualStyle]);
   const roadmapCurrent =
     wizardStep === WIZARD_SETUP_STEP
-      ? 0
+      ? setupSubstep <= 1
+        ? 0
+        : setupSubstep === 2
+          ? 1
+          : 2
       : isLastWizardStep
         ? roadmapLabels.length - 1
-        : Math.min(wizardStep, roadmapLabels.length - 2);
+        : Math.min(wizardStep + 1, roadmapLabels.length - 2);
+  const wizardProgressTotal = Math.max(roadmapLabels.length, 1);
+  const wizardProgressCurrent = Math.min(roadmapCurrent + 1, wizardProgressTotal);
+  const wizardProgressPct = Math.round(
+    (wizardProgressCurrent / wizardProgressTotal) * 100
+  );
 
   const handleRoadmapStepSelect = useCallback(
     (index: number) => {
@@ -2660,8 +2658,8 @@ export function StudioClient() {
                     role="progressbar"
                     aria-valuenow={wizardProgressCurrent}
                     aria-valuemin={1}
-                    aria-valuemax={wizardTotalSteps}
-                    aria-label={`Step ${wizardProgressCurrent} of ${wizardTotalSteps}`}
+                    aria-valuemax={wizardProgressTotal}
+                    aria-label={`Step ${wizardProgressCurrent} of ${wizardProgressTotal}`}
                   >
                     <div
                       className="studio-wizard-progress__fill"
@@ -2670,7 +2668,7 @@ export function StudioClient() {
                   </div>
                   <div className="studio-wizard-progress__meta">
                     <span>
-                      Step <strong>{wizardProgressCurrent}</strong> of {wizardTotalSteps}
+                      Step <strong>{wizardProgressCurrent}</strong> of {wizardProgressTotal}
                     </span>
                     <span className="studio-wizard-progress__step-name">{wizardStepLabel}</span>
                   </div>

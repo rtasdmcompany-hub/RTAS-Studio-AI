@@ -101,11 +101,11 @@
 
 /* Header — sticky chrome (gap tokens live in site-chrome.css) */
 .rtas-header {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 200;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(var(--ds-blur-lg));
   pointer-events: auto;
@@ -254,26 +254,9 @@
   flex-shrink: 0;
 }
 
-/* Premium header owns breakpoints (site-chrome.css). Keep hamburger
-   available until 1440 so credits + profile never clip on mid desktops. */
-@media (min-width: 1440px) {
-  .rtas-header:not(.rtas-header--drawer-nav) .rtas-header__menu-btn {
-    display: none;
-  }
-}
-
-@media (max-width: 1439px) {
-  .rtas-header__actions--desktop {
-    display: none !important;
-  }
-
-  .rtas-header__nav {
-    display: none !important;
-  }
-
-  .rtas-header__menu-btn {
-    display: flex !important;
-  }
+/* Premium header owns breakpoints (site-chrome.css). */
+.rtas-header--density-full .rtas-header__menu-btn {
+  display: none;
 }
 
 .rtas-header__mobile-menu {
@@ -2750,10 +2733,11 @@
 }
 
 .rtas-marketing-shell .rtas-header {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
+}
   z-index: 50;
 }
 
