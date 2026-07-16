@@ -143,6 +143,23 @@ def test_integration_pipeline_compatibility():
     sys.modules["app.services.intelligence.director_models"] = director_models
     sys.modules["app.services.intelligence.cinematic_models"] = cinematic_models
 
+    CC = INTEL / "character_consistency"
+    cc_pkg = type(sys)("app.services.intelligence.character_consistency")
+    cc_pkg.__path__ = [str(CC)]
+    sys.modules["app.services.intelligence.character_consistency"] = cc_pkg
+    for cc_name, cc_file in [
+        ("models", "models.py"),
+        ("subject_detector", "subject_detector.py"),
+        ("embeddings", "embeddings.py"),
+        ("identity_builder", "identity_builder.py"),
+        ("verifier", "verifier.py"),
+        ("corrector", "corrector.py"),
+        ("bridge", "bridge.py"),
+        ("engine", "engine.py"),
+    ]:
+        _load(f"app.services.intelligence.character_consistency.{cc_name}", CC / cc_file)
+    _load("app.services.intelligence.character_consistency", CC / "__init__.py")
+
     for mod_name, file_name in [
         ("prompt_intelligence", "prompt_intelligence.py"),
         ("prompt_enhancer", "prompt_enhancer.py"),

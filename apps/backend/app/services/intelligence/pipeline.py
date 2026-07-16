@@ -11,15 +11,15 @@ from typing import Any
 
 from app.services.intelligence.ai_director import direct_production
 from app.services.intelligence.auto_improvement import auto_improve_production
+from app.services.intelligence.character_consistency import run_character_consistency
+from app.services.intelligence.character_consistency.bridge import (
+    consistency_report_from_profiles,
+    enrich_character_memories,
+)
 from app.services.intelligence.character_memory import build_character_memories
 from app.services.intelligence.cinematic_quality import score_cinematic_quality
 from app.services.intelligence.cinematic_reasoning import reason_about_project
 from app.services.intelligence.cinematic_timeline import build_cinematic_timeline
-from app.services.intelligence.consistency_engine import (
-    apply_consistency_to_scenes,
-    apply_consistency_to_shots,
-    build_consistency_report,
-)
 from app.services.intelligence.emotion_engine import build_emotion_map
 from app.services.intelligence.export_pipeline import plan_export
 from app.services.intelligence.master_ai_plan import build_master_ai_plan
@@ -105,12 +105,26 @@ def run_intelligence_pipeline(
     )
     scenes, cameras, shots = to_legacy_plans(breakdown)
 
-    consistency = build_consistency_report(
-        characters,
+    # Sprint 8 — Character Consistency Engine (verify + auto-correct).
+    cc_result, scenes, shots, locked_prompt = run_character_consistency(
+        prompt=prompt,
+        characters=characters,
+        scenes=scenes,
+        shots=shots,
+        enhanced_prompt=enhancement.enhanced_prompt,
+        understanding=understanding.production_instructions(),
+        emotion_hint=intelligence.emotion,
+    )
+    enhancement.enhanced_prompt = locked_prompt
+    if "character_consistency_lock" not in enhancement.improvements:
+        enhancement.improvements = list(enhancement.improvements) + [
+            "character_consistency_lock"
+        ]
+    characters = enrich_character_memories(characters, cc_result.profiles)
+    consistency = consistency_report_from_profiles(
+        cc_result.profiles,
         user_allows_wardrobe_change=allow_wardrobe_change,
     )
-    scenes = apply_consistency_to_scenes(scenes, characters)
-    shots = apply_consistency_to_shots(shots, characters)
     director = direct_production(scenes, shots, intelligence)
     continuity = build_continuity_state(prompt, intelligence, scenes, characters)
     timeline = build_cinematic_timeline(scenes, shots, characters, director)
@@ -179,6 +193,7 @@ def run_intelligence_pipeline(
         auto_improvement=auto_fix.to_dict(),
         prompt_understanding=understanding.production_instructions(),
         scene_breakdown=breakdown.to_dict(),
+        character_consistency=cc_result.to_dict(),
     )
     draft.quality = check_plan_quality(draft)
 
@@ -198,6 +213,7 @@ def run_intelligence_pipeline(
     draft.production_package = package.to_dict()
     if isinstance(draft.production_package, dict):
         draft.production_package["scene_breakdown"] = breakdown.to_dict()
+        draft.production_package["character_consistency"] = cc_result.to_dict()
 
     master = build_master_ai_plan(
         reasoning=reasoning,
@@ -223,15 +239,17 @@ def run_intelligence_pipeline(
             understanding.production_instructions()
         )
         draft.master_ai_plan["scene_breakdown"] = breakdown.to_dict()
+        draft.master_ai_plan["character_consistency"] = cc_result.to_dict()
 
     logger.info(
-        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s auto_improve=%s",
+        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s consistency=%.3f auto_improve=%s",
         cinematic_quality.overall,
         visual.reference_look,
         understanding.category,
         len(characters),
         len(scenes),
         len(shots),
+        cc_result.verification.score.overall,
         auto_fix.applied,
     )
     return draft

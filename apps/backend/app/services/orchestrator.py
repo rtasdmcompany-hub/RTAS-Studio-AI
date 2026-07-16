@@ -154,6 +154,10 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasSceneBreakdown"] = json.dumps(
                     plan.scene_breakdown
                 )[:4000]
+            if plan.character_consistency:
+                body.fields["rtasCharacterConsistency"] = json.dumps(
+                    plan.character_consistency
+                )[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -165,6 +169,11 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             estimated_runtime=(
                 ((plan.scene_breakdown or {}).get("Production") or {}).get(
                     "EstimatedRuntime"
+                )
+            ),
+            consistency_score=(
+                ((plan.character_consistency or {}).get("consistency_score") or {}).get(
+                    "overall"
                 )
             ),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),

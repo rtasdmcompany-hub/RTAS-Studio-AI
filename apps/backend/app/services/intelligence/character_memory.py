@@ -77,9 +77,11 @@ def build_character_memories(
 
     # Detect multiple characters from prompt cues.
     count = character_count_hint or 1
-    if re.search(r"\b(two|both|pair|duo)\b", lower):
+    if re.search(r"\b(two|both|pair|duo|couple)\b", lower):
         count = max(count, 2)
-    if re.search(r"\b(three|trio)\b", lower):
+    if re.search(r"\b(three|trio|family)\b", lower):
+        count = max(count, 3)
+    if re.search(r"\b(crowd|audience|many people)\b", lower):
         count = max(count, 3)
     if "characters" in lower and count < 2:
         count = 2
@@ -91,6 +93,11 @@ def build_character_memories(
         lower.count("person") >= 2 or lower.count("character") >= 2
     ):
         count = max(count, 2)
+    # Animals / vehicles still get a single primary subject track by default.
+    if re.search(r"\b(dog|cat|horse|animal|lion|pet)\b", lower) and count < 1:
+        count = 1
+    if re.search(r"\b(car|truck|vehicle|motorcycle)\b", lower) and count < 1:
+        count = 1
     count = max(1, min(count, 4))
 
     memories: list[CharacterMemory] = []
@@ -100,6 +107,8 @@ def build_character_memories(
         hair = _pick(lower, _HAIR_HINTS, "natural")
         beard = _pick(lower, _BEARD_HINTS, "none" if gender == "female" else "none")
         skin = _pick(lower, _SKIN_HINTS, "natural")
+        if "pakistani" in lower or "south asian" in lower or "indian" in lower:
+            skin = "medium-brown"
         outfit = _pick(lower, _OUTFIT_HINTS, "wardrobe consistent with scene")
         age = "adult"
         if "child" in lower or "kid" in lower:

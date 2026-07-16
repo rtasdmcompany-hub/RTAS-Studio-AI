@@ -132,6 +132,8 @@ class IntelligencePipelineResult:
     prompt_understanding: dict[str, Any] = field(default_factory=dict)
     # Sprint 6 — Scene Breakdown & Shot Generation
     scene_breakdown: dict[str, Any] = field(default_factory=dict)
+    # Sprint 8 — Character Consistency Engine
+    character_consistency: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -159,4 +161,5 @@ class IntelligencePipelineResult:
             "master_ai_plan": self.master_ai_plan,
             "prompt_understanding": self.prompt_understanding,
             "scene_breakdown": self.scene_breakdown,
+            "character_consistency": self.character_consistency,
         }
