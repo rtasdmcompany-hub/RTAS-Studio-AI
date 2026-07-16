@@ -322,6 +322,35 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                         )
             except Exception as avatar_exc:
                 logger.warning("Talking avatar plan skipped: %s", avatar_exc)
+
+            # Phase 3 Sprint 4 — Professional Lip Sync Engine
+            try:
+                from app.services.lip_sync import build_lip_sync_plan
+
+                dialogue_src = raw_prompt
+                ad = plan.audio_director or {}
+                for cue in ad.get("lip_sync_timeline") or []:
+                    if isinstance(cue, dict) and cue.get("dialogue_snippet"):
+                        dialogue_src = str(cue["dialogue_snippet"])
+                        break
+                ls_plan = build_lip_sync_plan(
+                    dialogue_src,
+                    language_hint=(ad.get("detection") or {}).get("language"),
+                    emotion_hint=(ad.get("detection") or {}).get("emotion"),
+                    duration_seconds=float(body.duration_seconds or 0) or None,
+                    character_id=(
+                        (plan.character_memory or [{}])[0].get("character_id")
+                        if plan.character_memory
+                        else None
+                    ),
+                    audio_director=ad,
+                    voice_timeline=ad.get("voice_timeline"),
+                )
+                body.fields["rtasLipSync"] = json.dumps(ls_plan.summary())[:4000]
+                body.fields["rtasLipSyncJobId"] = ls_plan.job_id
+                body.fields["rtasLipSyncLanguage"] = ls_plan.language
+            except Exception as ls_exc:
+                logger.warning("Lip sync plan skipped: %s", ls_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

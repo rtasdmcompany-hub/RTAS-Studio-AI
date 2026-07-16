@@ -87,6 +87,21 @@ _load_pkg(
         ("engine", "engine.py"),
     ],
 )
+# Professional Lip Sync Engine (Sprint 4) — required by audio_director.lip_sync
+LS = ROOT / "app" / "services" / "lip_sync"
+_load_pkg(
+    "app.services.lip_sync",
+    LS,
+    [
+        ("models", "models.py"),
+        ("languages", "languages.py"),
+        ("phonemes", "phonemes.py"),
+        ("visemes", "visemes.py"),
+        ("alignment", "alignment.py"),
+        ("emotion_sync", "emotion_sync.py"),
+        ("engine", "engine.py"),
+    ],
+)
 _load_pkg(
     "app.services.intelligence.audio_director",
     AD,

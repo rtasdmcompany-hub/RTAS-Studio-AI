@@ -1,38 +1,10 @@
-"""Avatar lip-sync frames from Audio Director cues or dialogue text."""
+"""Avatar lip-sync frames — prefers Professional Lip Sync Engine."""
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from app.services.talking_avatar.models import LipSyncFrame
-
-_VISEME_RULES: tuple[tuple[re.Pattern[str], str, float], ...] = (
-    (re.compile(r"[aeiou]", re.I), "AA", 0.75),
-    (re.compile(r"[bpm]", re.I), "PP", 0.35),
-    (re.compile(r"[fv]", re.I), "FF", 0.45),
-    (re.compile(r"[l]", re.I), "L", 0.4),
-    (re.compile(r"[w]", re.I), "OU", 0.55),
-    (re.compile(r"[r]", re.I), "RR", 0.4),
-    (re.compile(r"[sz]", re.I), "SS", 0.3),
-    (re.compile(r"[tdn]", re.I), "DD", 0.35),
-)
-
-
-def _visemes_from_text(text: str) -> list[tuple[str, str, float]]:
-    out: list[tuple[str, str, float]] = []
-    tokens = re.findall(r"[A-Za-z\u0600-\u06FF']+", text or "")
-    for token in tokens[:12]:
-        viseme, openness = "REST", 0.15
-        phoneme = token[:2].upper()
-        for pattern, v, op in _VISEME_RULES:
-            if pattern.search(token):
-                viseme, openness = v, op
-                break
-        out.append((phoneme, viseme, openness))
-    if not out:
-        out.append(("SIL", "REST", 0.1))
-    return out
 
 
 def frames_from_audio_director(
@@ -65,26 +37,45 @@ def frames_from_dialogue(
     *,
     start_sec: float = 0.0,
     duration_seconds: float = 8.0,
+    language_hint: str | None = None,
+    emotion_hint: str | None = None,
 ) -> list[LipSyncFrame]:
-    visemes = _visemes_from_text(dialogue)
-    slot = max(0.08, duration_seconds / max(1, len(visemes)))
-    t = start_sec
-    frames: list[LipSyncFrame] = []
-    for phoneme, viseme, openness in visemes:
-        frames.append(
-            LipSyncFrame(
-                start_sec=round(t, 3),
-                end_sec=round(t + slot, 3),
-                viseme=viseme,
-                phoneme_hint=phoneme,
-                mouth_openness=openness,
-                jaw_drop=round(min(1.0, openness * 0.85), 3),
-                dialogue_snippet=dialogue[:80],
-                sync_confidence=0.82,
-            )
+    try:
+        from app.services.lip_sync import build_lip_sync_plan
+
+        plan = build_lip_sync_plan(
+            dialogue,
+            language_hint=language_hint,
+            emotion_hint=emotion_hint,
+            start_sec=start_sec,
+            duration_seconds=duration_seconds,
         )
-        t += slot
-    return frames
+        return [
+            LipSyncFrame(
+                start_sec=v.start_sec,
+                end_sec=v.end_sec,
+                viseme=v.viseme,
+                phoneme_hint=v.phoneme,
+                mouth_openness=v.mouth_openness,
+                jaw_drop=v.jaw_drop,
+                dialogue_snippet=v.dialogue_snippet,
+                sync_confidence=v.sync_confidence,
+            )
+            for v in plan.visemes
+        ]
+    except Exception:
+        return [
+            LipSyncFrame(
+                start_sec=start_sec,
+                end_sec=start_sec + duration_seconds,
+                viseme="AA",
+                phoneme_hint="AA",
+                mouth_openness=0.5,
+                jaw_drop=0.4,
+                dialogue_snippet=(dialogue or "")[:80],
+                sync_confidence=0.7,
+            )
+        ]
 
 
 def build_lip_sync_frames(
@@ -98,4 +89,16 @@ def build_lip_sync_frames(
     if frames:
         return frames
     text = (dialogue or "").strip() or "Hello, welcome."
-    return frames_from_dialogue(text, start_sec=0.2, duration_seconds=max(2.0, runtime_seconds * 0.7))
+    lang = None
+    emotion = None
+    det = (audio_director or {}).get("detection") or {}
+    if isinstance(det, dict):
+        lang = det.get("language")
+        emotion = det.get("emotion")
+    return frames_from_dialogue(
+        text,
+        start_sec=0.2,
+        duration_seconds=max(2.0, runtime_seconds * 0.7),
+        language_hint=str(lang) if lang else None,
+        emotion_hint=str(emotion) if emotion else None,
+    )
