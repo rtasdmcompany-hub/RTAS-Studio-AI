@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INTEL = ROOT / "app" / "services" / "intelligence"
+PU = INTEL / "prompt_understanding"
 
 
 def _load(name: str, path: Path):
@@ -29,6 +30,20 @@ cinematic_models = _load(
 sys.modules["app.services.intelligence.models"] = models
 sys.modules["app.services.intelligence.director_models"] = director_models
 sys.modules["app.services.intelligence.cinematic_models"] = cinematic_models
+
+# Prompt Understanding package (required by prompt_intelligence)
+pu_pkg = type(sys)("app.services.intelligence.prompt_understanding")
+pu_pkg.__path__ = [str(PU)]
+sys.modules["app.services.intelligence.prompt_understanding"] = pu_pkg
+for pu_name, pu_file in [
+    ("models", "models.py"),
+    ("lexicon", "lexicon.py"),
+    ("detectors", "detectors.py"),
+    ("engine", "engine.py"),
+    ("bridge", "bridge.py"),
+]:
+    _load(f"app.services.intelligence.prompt_understanding.{pu_name}", PU / pu_file)
+_load("app.services.intelligence.prompt_understanding", PU / "__init__.py")
 
 for mod_name, file_name in [
     ("prompt_intelligence", "prompt_intelligence.py"),

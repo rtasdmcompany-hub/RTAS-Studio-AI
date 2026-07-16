@@ -128,6 +128,8 @@ class IntelligencePipelineResult:
     cinematic_quality: dict[str, Any] = field(default_factory=dict)
     auto_improvement: dict[str, Any] = field(default_factory=dict)
     master_ai_plan: dict[str, Any] = field(default_factory=dict)
+    # Cinematic Prompt Understanding Engine
+    prompt_understanding: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -153,4 +155,5 @@ class IntelligencePipelineResult:
             "cinematic_quality": self.cinematic_quality,
             "auto_improvement": self.auto_improvement,
             "master_ai_plan": self.master_ai_plan,
+            "prompt_understanding": self.prompt_understanding,
         }

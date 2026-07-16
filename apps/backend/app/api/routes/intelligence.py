@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.services.intelligence.pipeline import run_intelligence_pipeline_dict
+from app.services.intelligence.prompt_understanding import understand_prompt_dict
 
 router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 
@@ -32,6 +33,18 @@ def _run(body: IntelligencePlanRequest) -> dict:
     )
 
 
+@router.post("/understand")
+async def understand_cinematic_prompt(body: IntelligencePlanRequest):
+    """Parse a prompt into structured Hollywood production instructions."""
+    try:
+        understanding = understand_prompt_dict(
+            body.prompt, category_hint=body.category
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"ok": True, "understanding": understanding}
+
+
 @router.post("/plan")
 async def create_intelligence_plan(body: IntelligencePlanRequest):
     try:
@@ -57,6 +70,7 @@ async def create_production_package(body: IntelligencePlanRequest):
         "consistency": plan.get("consistency"),
         "masterAiPlan": plan.get("master_ai_plan"),
         "cinematicQuality": plan.get("cinematic_quality"),
+        "promptUnderstanding": plan.get("prompt_understanding"),
     }
 
 
@@ -78,4 +92,5 @@ async def create_master_ai_plan(body: IntelligencePlanRequest):
         "soundPlan": plan.get("sound_plan"),
         "cinematicQuality": plan.get("cinematic_quality"),
         "autoImprovement": plan.get("auto_improvement"),
+        "promptUnderstanding": plan.get("prompt_understanding"),
     }

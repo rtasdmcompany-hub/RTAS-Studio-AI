@@ -157,6 +157,10 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasCinematicScore"] = str(
                     (plan.cinematic_quality or {}).get("overall", "")
                 )
+            if plan.prompt_understanding:
+                body.fields["rtasPromptUnderstanding"] = json.dumps(
+                    plan.prompt_understanding
+                )[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -164,6 +168,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             scenes=len(plan.scenes),
             shots=len(plan.shots),
             characters=len(plan.character_memory or []),
+            scene_type=(plan.prompt_understanding or {}).get("scene_type"),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
         )

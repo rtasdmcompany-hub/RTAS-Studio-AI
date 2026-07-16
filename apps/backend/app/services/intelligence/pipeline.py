@@ -32,6 +32,7 @@ from app.services.intelligence.music_planner import plan_music
 from app.services.intelligence.production_export import build_production_package
 from app.services.intelligence.prompt_enhancer import enhance_prompt
 from app.services.intelligence.prompt_intelligence import analyze_prompt
+from app.services.intelligence.prompt_understanding import understand_prompt
 from app.services.intelligence.quality_checker import check_plan_quality
 from app.services.intelligence.scene_planner import plan_scenes
 from app.services.intelligence.shot_planner import plan_shots
@@ -53,13 +54,33 @@ def run_intelligence_pipeline(
     character_count_hint: int | None = None,
     allow_wardrobe_change: bool = False,
 ) -> IntelligencePipelineResult:
+    # Director-grade prompt parse first — feeds all downstream planners.
+    understanding = understand_prompt(prompt, category_hint=category_hint)
     intelligence = analyze_prompt(
         prompt,
         category_hint=category_hint,
         style_hint=style_hint,
         duration_hint=duration_hint,
+        understanding=understanding,
     )
     enhancement = enhance_prompt(prompt, intelligence)
+    # Fold cinematic cues into the enhanced prompt without changing intent.
+    cue_bits = [
+        f"Time: {understanding.time}.",
+        f"Weather: {understanding.weather}.",
+        f"Environment: {understanding.environment}.",
+        f"Lighting: {', '.join(understanding.lighting)}.",
+        f"Palette: {', '.join(understanding.color_palette)}.",
+        f"Camera: {', '.join(understanding.camera)}.",
+        f"Lens: {understanding.lens}.",
+        f"Mood: {understanding.mood}.",
+    ]
+    enhancement.enhanced_prompt = (
+        f"{enhancement.enhanced_prompt} {' '.join(cue_bits)}"
+    ).strip()
+    enhancement.improvements = list(enhancement.improvements) + [
+        "cinematic_prompt_understanding"
+    ]
 
     # Sprint 5 — plan the production like a film team before provider calls.
     reasoning = reason_about_project(prompt, intelligence)
@@ -73,7 +94,7 @@ def run_intelligence_pipeline(
         prompt,
         style_hint=style_hint or intelligence.style,
         reference_image_urls=reference_image_urls,
-        character_count_hint=character_count_hint,
+        character_count_hint=character_count_hint or understanding.subject_count,
     )
     consistency = build_consistency_report(
         characters,
@@ -147,6 +168,7 @@ def run_intelligence_pipeline(
         sound_plan=sound.to_dict(),
         cinematic_quality=cinematic_quality.to_dict(),
         auto_improvement=auto_fix.to_dict(),
+        prompt_understanding=understanding.production_instructions(),
     )
     draft.quality = check_plan_quality(draft)
 
@@ -184,11 +206,16 @@ def run_intelligence_pipeline(
         continuity=continuity.to_dict(),
     )
     draft.master_ai_plan = master.to_dict()
+    if isinstance(draft.master_ai_plan, dict):
+        draft.master_ai_plan["prompt_understanding"] = (
+            understanding.production_instructions()
+        )
 
     logger.info(
-        "cinematic_brain score=%.3f look=%s characters=%s scenes=%s auto_improve=%s",
+        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s auto_improve=%s",
         cinematic_quality.overall,
         visual.reference_look,
+        understanding.category,
         len(characters),
         len(scenes),
         auto_fix.applied,
