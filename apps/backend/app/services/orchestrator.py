@@ -119,10 +119,14 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         files = getattr(body, "files", None) or {}
         for key in ("faceReference", "sourceImage", "imageReference"):
             meta = files.get(key) if isinstance(files, dict) else None
+            if meta is None:
+                continue
             if isinstance(meta, dict):
-                url = meta.get("url") or meta.get("localPath")
-                if isinstance(url, str) and url.strip():
-                    ref_urls.append(url.strip())
+                url = meta.get("url") or meta.get("localPath") or meta.get("local_path")
+            else:
+                url = getattr(meta, "url", None) or getattr(meta, "local_path", None)
+            if isinstance(url, str) and url.strip():
+                ref_urls.append(url.strip())
 
         plan = run_intelligence_pipeline(
             raw_prompt,
