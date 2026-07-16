@@ -9,6 +9,7 @@ from app.services.intelligence.prompt_understanding import (
     understand_prompt,
     understand_prompt_dict,
 )
+from app.services.intelligence.audio_director import build_audio_director_plan_dict
 from app.services.intelligence.character_consistency import run_character_consistency_dict
 from app.services.intelligence.character_memory import build_character_memories
 from app.services.intelligence.scene_breakdown import (
@@ -125,6 +126,52 @@ async def create_character_consistency(body: IntelligencePlanRequest):
     }
 
 
+@router.post("/audio-director")
+async def create_audio_director_plan(body: IntelligencePlanRequest):
+    """Plan voice/music/SFX/lip-sync timelines (no audio synthesis)."""
+    try:
+        understanding = understand_prompt(
+            body.prompt, category_hint=body.category
+        )
+        intelligence = analyze_prompt(
+            body.prompt,
+            category_hint=body.category,
+            style_hint=body.visual_style,
+            duration_hint=body.duration_seconds,
+            understanding=understanding,
+        )
+        characters = build_character_memories(
+            body.prompt,
+            style_hint=body.visual_style,
+            reference_image_urls=body.reference_image_urls,
+            character_count_hint=body.character_count,
+        )
+        breakdown = build_production_breakdown(
+            body.prompt,
+            understanding=understanding,
+            intelligence=intelligence,
+            character_name=characters[0].character_id if characters else "lead subject",
+        )
+        scenes, _cameras, _shots = to_legacy_plans(breakdown)
+        audio = build_audio_director_plan_dict(
+            body.prompt,
+            intelligence=intelligence,
+            scenes=scenes,
+            understanding=understanding.production_instructions(),
+            character_memory=[c.to_dict() for c in characters],
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {
+        "ok": True,
+        "audioDirector": audio,
+        "voiceTimeline": audio.get("voice_timeline"),
+        "musicTimeline": audio.get("music_timeline"),
+        "sfxTimeline": audio.get("sfx_timeline"),
+        "lipSyncTimeline": audio.get("lip_sync_timeline"),
+    }
+
+
 @router.post("/plan")
 async def create_intelligence_plan(body: IntelligencePlanRequest):
     try:
@@ -153,6 +200,7 @@ async def create_production_package(body: IntelligencePlanRequest):
         "promptUnderstanding": plan.get("prompt_understanding"),
         "sceneBreakdown": plan.get("scene_breakdown"),
         "characterConsistency": plan.get("character_consistency"),
+        "audioDirector": plan.get("audio_director"),
     }
 
 
@@ -177,4 +225,5 @@ async def create_master_ai_plan(body: IntelligencePlanRequest):
         "promptUnderstanding": plan.get("prompt_understanding"),
         "sceneBreakdown": plan.get("scene_breakdown"),
         "characterConsistency": plan.get("character_consistency"),
+        "audioDirector": plan.get("audio_director"),
     }

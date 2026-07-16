@@ -168,6 +168,21 @@ def test_pipeline_compatibility():
         _load(f"app.services.intelligence.character_consistency.{cc_name}", CC / cc_file)
     _load("app.services.intelligence.character_consistency", CC / "__init__.py")
 
+    AD = INTEL / "audio_director"
+    ad_pkg = type(sys)("app.services.intelligence.audio_director")
+    ad_pkg.__path__ = [str(AD)]
+    sys.modules["app.services.intelligence.audio_director"] = ad_pkg
+    for ad_name, ad_file in [
+        ("models", "models.py"),
+        ("detectors", "detectors.py"),
+        ("timelines", "timelines.py"),
+        ("lip_sync", "lip_sync.py"),
+        ("bridge", "bridge.py"),
+        ("engine", "engine.py"),
+    ]:
+        _load(f"app.services.intelligence.audio_director.{ad_name}", AD / ad_file)
+    _load("app.services.intelligence.audio_director", AD / "__init__.py")
+
     for mod_name, file_name in [
         ("prompt_intelligence", "prompt_intelligence.py"),
         ("prompt_enhancer", "prompt_enhancer.py"),

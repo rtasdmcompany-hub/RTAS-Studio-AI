@@ -158,6 +158,10 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasCharacterConsistency"] = json.dumps(
                     plan.character_consistency
                 )[:4000]
+            if plan.audio_director:
+                body.fields["rtasAudioDirector"] = json.dumps(
+                    plan.audio_director
+                )[:4000]
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -175,6 +179,9 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 ((plan.character_consistency or {}).get("consistency_score") or {}).get(
                     "overall"
                 )
+            ),
+            lip_sync_cues=len(
+                (plan.audio_director or {}).get("lip_sync_timeline") or []
             ),
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,

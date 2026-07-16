@@ -186,6 +186,21 @@ def test_pipeline_integration():
         "app.services.intelligence.cinematic_models", INTEL / "cinematic_models.py"
     )
     sys.modules["app.services.intelligence.cinematic_models"] = cinematic_models
+    AD = INTEL / "audio_director"
+    ad_pkg = type(sys)("app.services.intelligence.audio_director")
+    ad_pkg.__path__ = [str(AD)]
+    sys.modules["app.services.intelligence.audio_director"] = ad_pkg
+    for ad_name, ad_file in [
+        ("models", "models.py"),
+        ("detectors", "detectors.py"),
+        ("timelines", "timelines.py"),
+        ("lip_sync", "lip_sync.py"),
+        ("bridge", "bridge.py"),
+        ("engine", "engine.py"),
+    ]:
+        _load(f"app.services.intelligence.audio_director.{ad_name}", AD / ad_file)
+    _load("app.services.intelligence.audio_director", AD / "__init__.py")
+
     for mod_name, file_name in [
         ("prompt_intelligence", "prompt_intelligence.py"),
         ("prompt_enhancer", "prompt_enhancer.py"),

@@ -10,6 +10,12 @@ import logging
 from typing import Any
 
 from app.services.intelligence.ai_director import direct_production
+from app.services.intelligence.audio_director import build_audio_director_plan
+from app.services.intelligence.audio_director.bridge import (
+    to_music_plan,
+    to_sound_plan,
+    to_voice_plan,
+)
 from app.services.intelligence.auto_improvement import auto_improve_production
 from app.services.intelligence.character_consistency import run_character_consistency
 from app.services.intelligence.character_consistency.bridge import (
@@ -129,9 +135,24 @@ def run_intelligence_pipeline(
     continuity = build_continuity_state(prompt, intelligence, scenes, characters)
     timeline = build_cinematic_timeline(scenes, shots, characters, director)
     emotion_map = build_emotion_map(scenes, intelligence)
+    # Legacy planners still run as seeds; Audio Director owns final audio plans.
     music = plan_music(intelligence, scenes, emotion_map)
     voice = plan_voice(prompt, intelligence)
     sound = plan_sound_design(prompt, intelligence, visual)
+
+    # Sprint 9 — AI Audio Director & Lip Sync Engine.
+    audio_plan = build_audio_director_plan(
+        prompt,
+        intelligence=intelligence,
+        scenes=scenes,
+        understanding=understanding.production_instructions(),
+        character_memory=[c.to_dict() for c in characters],
+        sound_plan=sound.to_dict(),
+        director_plan=director.to_dict(),
+    )
+    voice = to_voice_plan(audio_plan)
+    music = to_music_plan(audio_plan)
+    sound = to_sound_plan(audio_plan, base=sound)
     export = plan_export(intelligence)
 
     cinematic_quality = score_cinematic_quality(
@@ -194,6 +215,7 @@ def run_intelligence_pipeline(
         prompt_understanding=understanding.production_instructions(),
         scene_breakdown=breakdown.to_dict(),
         character_consistency=cc_result.to_dict(),
+        audio_director=audio_plan.to_dict(),
     )
     draft.quality = check_plan_quality(draft)
 
@@ -214,6 +236,7 @@ def run_intelligence_pipeline(
     if isinstance(draft.production_package, dict):
         draft.production_package["scene_breakdown"] = breakdown.to_dict()
         draft.production_package["character_consistency"] = cc_result.to_dict()
+        draft.production_package["audio_director"] = audio_plan.to_dict()
 
     master = build_master_ai_plan(
         reasoning=reasoning,
@@ -240,9 +263,10 @@ def run_intelligence_pipeline(
         )
         draft.master_ai_plan["scene_breakdown"] = breakdown.to_dict()
         draft.master_ai_plan["character_consistency"] = cc_result.to_dict()
+        draft.master_ai_plan["audio_director"] = audio_plan.to_dict()
 
     logger.info(
-        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s consistency=%.3f auto_improve=%s",
+        "cinematic_brain score=%.3f look=%s category=%s characters=%s scenes=%s shots=%s consistency=%.3f lip_cues=%s auto_improve=%s",
         cinematic_quality.overall,
         visual.reference_look,
         understanding.category,
@@ -250,6 +274,7 @@ def run_intelligence_pipeline(
         len(scenes),
         len(shots),
         cc_result.verification.score.overall,
+        len(audio_plan.lip_sync_timeline),
         auto_fix.applied,
     )
     return draft
