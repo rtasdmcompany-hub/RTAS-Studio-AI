@@ -445,54 +445,85 @@ async function pollPipelineJob(
     }
 
     const status = String(
-      data.pipelineStatus ?? data.status ?? "queued"
+      data.pipelineStatus ?? data.status ?? data.stage ?? "queued"
     ).toLowerCase();
     const total = Number(data.chunkTotal ?? 0);
     const done = Number(data.chunksCompleted ?? 0);
+    const explicitPercent = Number(data.progressPercent ?? 0);
+    const stageMessage =
+      typeof data.stageLabel === "string" && data.stageLabel.trim()
+        ? data.stageLabel
+        : typeof data.statusLabel === "string" && data.statusLabel.trim()
+          ? data.statusLabel
+          : null;
 
-    if (status === "generating_chunks" && total > 0) {
-      const percent = Math.min(88, Math.round((done / total) * 78) + 10);
-      onProgress({
-        percent,
-        message: messageForPercent(percent),
-        stageIndex: stageIndexFromPercent(percent),
-      });
-    } else if (status === "compiling_media") {
-      onProgress({
-        percent: 93,
-        message: "Finalizing...",
-        stageIndex: 6,
-      });
-    } else if (status === "completed") {
+    if (status === "completed") {
       const videoUrl = String(data.generatedVideoUrl ?? "");
       onProgress({
         percent: 100,
-        message: "Done ✓",
+        message: stageMessage || messageForPercent(100),
         stageIndex: GENERATION_LAST_STAGE_INDEX,
       });
       return {
         ok: true,
         jobId,
         steps: [],
-        provider: "fal",
+        provider: String(data.provider ?? "fal"),
         promptPreview: String(data.prompt ?? ""),
         creditsUsed: Number(data.creditsCharged ?? 0),
         previewOnly: false,
         canDownload: true,
         videoUrl,
         durationSeconds: Number(data.durationSeconds ?? 30),
-        message: "Done ✓",
+        message: stageMessage || messageForPercent(100),
         simulationMode: false,
       };
-    } else if (status === "failed") {
+    } else if (status === "failed" || status === "cancelled") {
       throw new Error(
         String(data.errorMessage ?? "Long render failed on GPU worker")
       );
+    } else if (explicitPercent > 0) {
+      onProgress({
+        percent: Math.min(99, explicitPercent),
+        message: stageMessage || messageForPercent(explicitPercent),
+        stageIndex: stageIndexFromPercent(explicitPercent),
+      });
+    } else if (
+      (status === "generating" || status === "generating_chunks") &&
+      total > 0
+    ) {
+      const percent = Math.min(88, Math.round((done / total) * 78) + 10);
+      onProgress({
+        percent,
+        message: stageMessage || messageForPercent(percent),
+        stageIndex: stageIndexFromPercent(percent),
+      });
+    } else if (
+      status === "rendering" ||
+      status === "compiling_media"
+    ) {
+      onProgress({
+        percent: 93,
+        message: stageMessage || messageForPercent(93),
+        stageIndex: stageIndexFromPercent(93),
+      });
+    } else if (status === "uploading") {
+      onProgress({
+        percent: 96,
+        message: stageMessage || messageForPercent(96),
+        stageIndex: stageIndexFromPercent(96),
+      });
+    } else if (status === "preparing") {
+      onProgress({
+        percent: 12,
+        message: stageMessage || messageForPercent(12),
+        stageIndex: stageIndexFromPercent(12),
+      });
     } else {
       onProgress({
         percent: 8,
-        message: "Uploading Assets...",
-        stageIndex: 0,
+        message: stageMessage || messageForPercent(8),
+        stageIndex: stageIndexFromPercent(8),
       });
     }
 
@@ -703,8 +734,8 @@ export async function runBackendGeneration(
 
   onProgress({
     percent: 0,
-    message: "Uploading Assets...",
-    stageIndex: 0,
+    message: messageForPercent(0),
+    stageIndex: stageIndexFromPercent(0),
   });
 
   let requestBody = body;
@@ -713,9 +744,9 @@ export async function runBackendGeneration(
     : {};
   if (Object.keys(toUpload).length > 0) {
     onProgress({
-      percent: 3,
-      message: "Uploading Assets...",
-      stageIndex: 0,
+      percent: 10,
+      message: messageForPercent(10),
+      stageIndex: stageIndexFromPercent(10),
     });
     const uploadRes = await postUploadToBackend(toUpload, body.jobId);
     if (options?.signal?.aborted) {
@@ -735,9 +766,9 @@ export async function runBackendGeneration(
 
   if (response.pipelineQueued) {
     onProgress({
-      percent: 10,
-      message: "Analyzing Prompt...",
-      stageIndex: 1,
+      percent: 18,
+      message: messageForPercent(18),
+      stageIndex: stageIndexFromPercent(18),
     });
     return pollPipelineJob(response.jobId, onProgress, options?.signal);
   }
@@ -745,7 +776,7 @@ export async function runBackendGeneration(
   if (!response.steps?.length) {
     onProgress({
       percent: 100,
-      message: response.message || "Done ✓",
+      message: response.message || messageForPercent(100),
       stageIndex: GENERATION_LAST_STAGE_INDEX,
     });
     return response;

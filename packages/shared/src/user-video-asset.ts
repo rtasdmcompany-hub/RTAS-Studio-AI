@@ -1,33 +1,48 @@
 import type { PipelineStatus } from "./pipeline-status";
 import { pipelineStatusLabel } from "./pipeline-status";
+import {
+  isActiveJobStatus,
+  normalizeJobLifecycleStatus,
+} from "./job-orchestrator";
 
 /** Pipeline states that should trigger background refresh polling. */
 export const ACTIVE_PIPELINE_STATUSES = [
   "queued",
+  "preparing",
+  "generating",
   "generating_chunks",
+  "rendering",
   "compiling_media",
+  "uploading",
 ] as const satisfies readonly PipelineStatus[];
 
 export type ActivePipelineStatus = (typeof ACTIVE_PIPELINE_STATUSES)[number];
 
 export function isActivePipelineStatus(
-  status: PipelineStatus
+  status: PipelineStatus | string
 ): status is ActivePipelineStatus {
-  return (ACTIVE_PIPELINE_STATUSES as readonly string[]).includes(status);
+  return isActiveJobStatus(normalizeJobLifecycleStatus(status));
 }
 
 export function prismaStatusToPipeline(status: string): PipelineStatus {
-  switch (status.toUpperCase()) {
-    case "QUEUED":
+  const lifecycle = normalizeJobLifecycleStatus(status);
+  switch (lifecycle) {
+    case "queued":
       return "queued";
-    case "GENERATING_CHUNKS":
-      return "generating_chunks";
-    case "COMPILING_MEDIA":
-      return "compiling_media";
-    case "COMPLETED":
+    case "preparing":
+      return "preparing";
+    case "generating":
+      return "generating";
+    case "rendering":
+      return "rendering";
+    case "uploading":
+      return "uploading";
+    case "completed":
       return "completed";
-    case "FAILED":
+    case "failed":
       return "failed";
+    case "cancelled":
+      return "cancelled";
     default:
       return "queued";
   }
@@ -47,6 +62,8 @@ export interface UserVideoAsset {
   chunksCompleted: number | null;
   errorMessage: string | null;
   isPublic: boolean;
+  provider?: string | null;
+  projectId?: string | null;
   createdAt: string;
   completedAt: string | null;
 }
@@ -61,10 +78,13 @@ export function pipelineProgressPercent(asset: Pick<
   UserVideoAsset,
   "pipelineStatus" | "chunkTotal" | "chunksCompleted"
 >): number {
-  if (asset.pipelineStatus === "queued") return 8;
-  if (asset.pipelineStatus === "compiling_media") return 93;
-  if (asset.pipelineStatus === "completed") return 100;
-  if (asset.pipelineStatus === "failed") return 0;
+  const lifecycle = normalizeJobLifecycleStatus(asset.pipelineStatus);
+  if (lifecycle === "queued") return 8;
+  if (lifecycle === "preparing") return 12;
+  if (lifecycle === "rendering") return 93;
+  if (lifecycle === "uploading") return 96;
+  if (lifecycle === "completed") return 100;
+  if (lifecycle === "failed" || lifecycle === "cancelled") return 0;
   if (asset.chunkTotal && asset.chunkTotal > 0) {
     const done = asset.chunksCompleted ?? 0;
     return Math.min(92, Math.round(12 + (done / asset.chunkTotal) * 80));
@@ -84,6 +104,8 @@ export function serializeUserVideoAsset(input: {
   chunksCompleted?: number | null;
   errorMessage?: string | null;
   isPublic?: boolean;
+  provider?: string | null;
+  projectId?: string | null;
   createdAt: Date | string;
   completedAt?: Date | string | null;
 }): UserVideoAsset {
@@ -101,6 +123,8 @@ export function serializeUserVideoAsset(input: {
     chunksCompleted: input.chunksCompleted ?? null,
     errorMessage: input.errorMessage ?? null,
     isPublic: Boolean(input.isPublic),
+    provider: input.provider ?? null,
+    projectId: input.projectId ?? null,
     createdAt:
       input.createdAt instanceof Date
         ? input.createdAt.toISOString()

@@ -2,10 +2,13 @@ import { prisma, isPrismaConfigured } from "@/lib/prisma";
 import {
   DEFAULT_VIDEO_PAGE_SIZE,
   MAX_VIDEO_PAGE_SIZE,
+  lifecycleToPrismaStatus,
+  normalizeJobLifecycleStatus,
   serializeUserVideoAsset,
   type UserVideoAsset,
 } from "@rtas/shared";
 import { getServerProfile, saveServerProfile } from "@/lib/server/profile-store";
+import { logGeneration } from "@/lib/server/generation-logger";
 
 export const MAX_CONCURRENT_TRACKS = 3;
 
@@ -183,56 +186,166 @@ export async function releaseRenderingSlotOnFailure(
 
 type GenerationJobStatus =
   | "QUEUED"
+  | "PREPARING"
+  | "GENERATING"
   | "GENERATING_CHUNKS"
+  | "RENDERING"
   | "COMPILING_MEDIA"
+  | "UPLOADING"
   | "COMPLETED"
-  | "FAILED";
+  | "FAILED"
+  | "CANCELLED";
 
 type GenerationJobRecord = {
   id: string;
   status: GenerationJobStatus;
   userId?: string;
+  projectId?: string | null;
 };
 
 function mapPipelineStatusToPrisma(
   status: string
 ): GenerationJobStatus | null {
-  const normalized = status.toLowerCase().replace(/-/g, "_");
-  if (normalized === "queued") return "QUEUED";
-  if (normalized === "generating_chunks") return "GENERATING_CHUNKS";
-  if (normalized === "compiling_media") return "COMPILING_MEDIA";
-  if (normalized === "completed") return "COMPLETED";
-  if (normalized === "failed") return "FAILED";
-  return null;
+  const lifecycle = normalizeJobLifecycleStatus(status);
+  const prismaStatus = lifecycleToPrismaStatus(lifecycle) as GenerationJobStatus;
+  // Preserve legacy chunk pipeline strings when workers still emit them.
+  const raw = status.toLowerCase().replace(/-/g, "_");
+  if (raw === "generating_chunks") return "GENERATING_CHUNKS";
+  if (raw === "compiling_media") return "COMPILING_MEDIA";
+  return prismaStatus;
+}
+
+function progressForPrismaStatus(status: GenerationJobStatus): number {
+  switch (status) {
+    case "QUEUED":
+      return 5;
+    case "PREPARING":
+      return 12;
+    case "GENERATING":
+    case "GENERATING_CHUNKS":
+      return 40;
+    case "RENDERING":
+    case "COMPILING_MEDIA":
+      return 90;
+    case "UPLOADING":
+      return 96;
+    case "COMPLETED":
+      return 100;
+    default:
+      return 0;
+  }
+}
+
+export async function createStudioProject(input: {
+  userId: string;
+  title?: string | null;
+  prompt?: string | null;
+  inputImageUrl?: string | null;
+  audioUrl?: string | null;
+  settings?: unknown;
+  durationSeconds: number;
+  creditsUsed?: number;
+  provider?: string | null;
+  status?: string;
+}): Promise<{ id: string } | null> {
+  if (!isPrismaConfigured()) return null;
+
+  return prisma.project.create({
+    data: {
+      userId: input.userId,
+      title: input.title ?? null,
+      prompt: input.prompt ?? null,
+      inputImageUrl: input.inputImageUrl ?? null,
+      audioUrl: input.audioUrl ?? null,
+      settings: input.settings ?? undefined,
+      durationSeconds: input.durationSeconds,
+      creditsUsed: input.creditsUsed ?? 0,
+      provider: input.provider ?? null,
+      status: input.status ?? "queued",
+    },
+    select: { id: true },
+  });
 }
 
 export async function createGenerationJob(input: {
   userId: string;
   prompt?: string | null;
   inputImageUrl?: string | null;
+  audioUrl?: string | null;
   durationSeconds: number;
   creditsCharged?: number;
   backendJobId?: string | null;
   chunkTotal?: number | null;
   status?: GenerationJobStatus;
+  provider?: string | null;
+  settings?: unknown;
+  projectId?: string | null;
+  title?: string | null;
 }): Promise<GenerationJobRecord | null> {
   if (!isPrismaConfigured()) return null;
 
-  return prisma.generationJob.create({
+  const creditsCharged =
+    input.creditsCharged ?? creditsRequiredForDuration(input.durationSeconds);
+
+  let projectId = input.projectId ?? null;
+  if (!projectId) {
+    const project = await createStudioProject({
+      userId: input.userId,
+      title: input.title ?? input.prompt ?? null,
+      prompt: input.prompt ?? null,
+      inputImageUrl: input.inputImageUrl ?? null,
+      audioUrl: input.audioUrl ?? null,
+      settings: input.settings,
+      durationSeconds: input.durationSeconds,
+      creditsUsed: creditsCharged,
+      provider: input.provider ?? null,
+      status: "queued",
+    });
+    projectId = project?.id ?? null;
+  }
+
+  const job = await prisma.generationJob.create({
     data: {
       userId: input.userId,
+      projectId,
       status: input.status ?? "QUEUED",
       prompt: input.prompt ?? null,
       inputImageUrl: input.inputImageUrl ?? null,
+      audioUrl: input.audioUrl ?? null,
       durationSeconds: input.durationSeconds,
-      creditsCharged:
-        input.creditsCharged ?? creditsRequiredForDuration(input.durationSeconds),
+      creditsCharged,
+      creditsDebited: false,
+      provider: input.provider ?? null,
+      settings: input.settings ?? undefined,
+      progressPercent: 5,
+      stageLabel: "Queued for GPU worker",
       backendJobId: input.backendJobId ?? null,
       chunkTotal: input.chunkTotal ?? null,
       chunksCompleted: 0,
+      startedAt: new Date(),
     },
-    select: { id: true, status: true, userId: true },
+    select: { id: true, status: true, userId: true, projectId: true },
   });
+
+  if (projectId) {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { latestJobId: job.id, status: "queued" },
+    });
+  }
+
+  logGeneration({
+    event: "job_created",
+    generationId: job.id,
+    userId: input.userId,
+    projectId,
+    credits: creditsCharged,
+    durationSeconds: input.durationSeconds,
+    provider: input.provider ?? null,
+    status: job.status,
+  });
+
+  return job;
 }
 
 export async function updateGenerationJobPipeline(input: {
@@ -244,6 +357,11 @@ export async function updateGenerationJobPipeline(input: {
   generatedVideoUrl?: string;
   errorMessage?: string;
   backendJobId?: string;
+  provider?: string;
+  progressPercent?: number;
+  stageLabel?: string;
+  queuePosition?: number | null;
+  estimatedSecondsRemaining?: number | null;
 }): Promise<GenerationJobRecord | null> {
   if (!isPrismaConfigured()) return null;
 
@@ -252,6 +370,11 @@ export async function updateGenerationJobPipeline(input: {
 
   const data: Record<string, unknown> = {
     status: prismaStatus,
+    progressPercent:
+      input.progressPercent ?? progressForPrismaStatus(prismaStatus),
+    stageLabel:
+      input.stageLabel ??
+      normalizeJobLifecycleStatus(input.status).replace(/_/g, " "),
   };
 
   if (input.chunksCompleted !== undefined) {
@@ -272,15 +395,50 @@ export async function updateGenerationJobPipeline(input: {
   if (input.backendJobId !== undefined) {
     data.backendJobId = input.backendJobId;
   }
-  if (prismaStatus === "COMPLETED" || prismaStatus === "FAILED") {
+  if (input.provider !== undefined) {
+    data.provider = input.provider;
+  }
+  if (input.queuePosition !== undefined) {
+    data.queuePosition = input.queuePosition;
+  }
+  if (input.estimatedSecondsRemaining !== undefined) {
+    data.estimatedSecondsRemaining = input.estimatedSecondsRemaining;
+  }
+  if (
+    prismaStatus === "COMPLETED" ||
+    prismaStatus === "FAILED" ||
+    prismaStatus === "CANCELLED"
+  ) {
     data.completedAt = new Date();
   }
+  if (
+    prismaStatus === "PREPARING" ||
+    prismaStatus === "GENERATING" ||
+    prismaStatus === "GENERATING_CHUNKS"
+  ) {
+    data.startedAt = new Date();
+  }
 
-  return prisma.generationJob.update({
+  const job = await prisma.generationJob.update({
     where: { id: input.jobId },
     data,
-    select: { id: true, status: true, userId: true },
+    select: { id: true, status: true, userId: true, projectId: true },
   });
+
+  if (job.projectId) {
+    await prisma.project.update({
+      where: { id: job.projectId },
+      data: {
+        status: normalizeJobLifecycleStatus(prismaStatus),
+        ...(input.generatedVideoUrl
+          ? { outputUrl: input.generatedVideoUrl }
+          : {}),
+        ...(input.provider ? { provider: input.provider } : {}),
+      },
+    });
+  }
+
+  return job;
 }
 
 export async function getGenerationJobForUser(jobId: string, userId: string) {
@@ -295,11 +453,24 @@ export async function getGenerationJobForUser(jobId: string, userId: string) {
       generatedVideoUrl: true,
       durationSeconds: true,
       creditsCharged: true,
+      creditsDebited: true,
+      provider: true,
+      projectId: true,
+      progressPercent: true,
+      stageLabel: true,
+      queuePosition: true,
+      estimatedSecondsRemaining: true,
+      retryCount: true,
       chunkTotal: true,
       chunksCompleted: true,
       chunkManifest: true,
       errorMessage: true,
       backendJobId: true,
+      settings: true,
+      inputImageUrl: true,
+      audioUrl: true,
+      startedAt: true,
+      cancelledAt: true,
       createdAt: true,
       completedAt: true,
     },
@@ -318,40 +489,81 @@ export async function finalizeGenerationJobSuccess(
       userId: true,
       status: true,
       creditsCharged: true,
+      creditsDebited: true,
       durationSeconds: true,
+      projectId: true,
+      provider: true,
     },
   });
   if (!existing) return;
 
-  // Idempotent: already completed jobs must not debit credits again.
-  if (existing.status === "COMPLETED") {
+  // Idempotent: already debited → never double-charge.
+  if (existing.creditsDebited) {
     await prisma.generationJob.update({
       where: { id: jobId },
       data: {
         generatedVideoUrl,
+        status: "COMPLETED",
+        progressPercent: 100,
+        stageLabel: "Render complete",
         completedAt: new Date(),
         errorMessage: null,
       },
     });
+    if (existing.projectId) {
+      await prisma.project.update({
+        where: { id: existing.projectId },
+        data: {
+          status: "completed",
+          outputUrl: generatedVideoUrl,
+          creditsUsed: existing.creditsCharged,
+        },
+      });
+    }
     return;
   }
-
-  await prisma.generationJob.update({
-    where: { id: jobId },
-    data: {
-      status: "COMPLETED",
-      generatedVideoUrl,
-      completedAt: new Date(),
-      errorMessage: null,
-    },
-  });
 
   const creditsToDebit =
     existing.creditsCharged > 0
       ? existing.creditsCharged
       : creditsRequiredForDuration(existing.durationSeconds);
 
+  await prisma.generationJob.update({
+    where: { id: jobId },
+    data: {
+      status: "COMPLETED",
+      generatedVideoUrl,
+      progressPercent: 100,
+      stageLabel: "Render complete",
+      completedAt: new Date(),
+      errorMessage: null,
+      creditsDebited: true,
+    },
+  });
+
   await completeRenderingSlot(existing.userId, { creditsToDebit });
+
+  if (existing.projectId) {
+    await prisma.project.update({
+      where: { id: existing.projectId },
+      data: {
+        status: "completed",
+        outputUrl: generatedVideoUrl,
+        creditsUsed: creditsToDebit,
+        provider: existing.provider,
+      },
+    });
+  }
+
+  logGeneration({
+    event: "job_completed",
+    generationId: jobId,
+    userId: existing.userId,
+    projectId: existing.projectId,
+    credits: creditsToDebit,
+    provider: existing.provider,
+    status: "completed",
+  });
 }
 
 export async function finalizeGenerationJobFailure(
@@ -362,12 +574,16 @@ export async function finalizeGenerationJobFailure(
 
   const existing = await prisma.generationJob.findUnique({
     where: { id: jobId },
-    select: { userId: true, status: true },
+    select: { userId: true, status: true, projectId: true, creditsDebited: true },
   });
   if (!existing) return;
 
   // Idempotent: already terminal jobs must not release the slot twice.
-  if (existing.status === "FAILED" || existing.status === "COMPLETED") {
+  if (
+    existing.status === "FAILED" ||
+    existing.status === "COMPLETED" ||
+    existing.status === "CANCELLED"
+  ) {
     if (existing.status === "FAILED" && errorMessage) {
       await prisma.generationJob.update({
         where: { id: jobId },
@@ -383,27 +599,225 @@ export async function finalizeGenerationJobFailure(
       status: "FAILED",
       completedAt: new Date(),
       errorMessage: errorMessage ?? "Video generation failed",
+      progressPercent: 0,
+      stageLabel: "Render failed",
     },
   });
 
-  await releaseRenderingSlotOnFailure(existing.userId);
+  // Never debit on failure; only release the concurrent slot.
+  if (!existing.creditsDebited) {
+    await releaseRenderingSlotOnFailure(existing.userId);
+  }
+
+  if (existing.projectId) {
+    await prisma.project.update({
+      where: { id: existing.projectId },
+      data: { status: "failed" },
+    });
+  }
+
+  logGeneration({
+    event: "job_failed",
+    generationId: jobId,
+    userId: existing.userId,
+    projectId: existing.projectId,
+    failure: errorMessage ?? "Video generation failed",
+    status: "failed",
+  });
 }
 
-export async function completeGenerationJob(
+export async function cancelGenerationJobForUser(
   jobId: string,
-  generatedVideoUrl: string
-): Promise<void> {
-  if (!isPrismaConfigured()) return;
+  userId: string
+): Promise<{ cancelled: boolean; reason?: string }> {
+  if (!isPrismaConfigured()) {
+    return { cancelled: false, reason: "database_unavailable" };
+  }
+
+  const job = await prisma.generationJob.findFirst({
+    where: { id: jobId, userId },
+    select: {
+      status: true,
+      creditsDebited: true,
+      projectId: true,
+    },
+  });
+
+  if (!job) return { cancelled: false, reason: "not_found" };
+
+  const status = job.status.toUpperCase();
+  if (status === "COMPLETED" || status === "FAILED" || status === "CANCELLED") {
+    return { cancelled: false, reason: "already_terminal" };
+  }
 
   await prisma.generationJob.update({
     where: { id: jobId },
     data: {
-      status: "COMPLETED",
-      generatedVideoUrl,
+      status: "CANCELLED",
+      cancelledAt: new Date(),
       completedAt: new Date(),
-      errorMessage: null,
+      errorMessage: "Cancelled by user",
+      progressPercent: 0,
+      stageLabel: "Cancelled",
     },
   });
+
+  if (!job.creditsDebited) {
+    await releaseRenderingSlotOnFailure(userId);
+  }
+
+  if (job.projectId) {
+    await prisma.project.update({
+      where: { id: job.projectId },
+      data: { status: "cancelled" },
+    });
+  }
+
+  logGeneration({
+    event: "job_cancelled",
+    generationId: jobId,
+    userId,
+    projectId: job.projectId,
+    status: "cancelled",
+  });
+
+  return { cancelled: true };
+}
+
+export async function duplicateProjectForUser(
+  jobId: string,
+  userId: string
+): Promise<{
+  ok: boolean;
+  reason?: string;
+  project?: {
+    id: string;
+    prompt: string | null;
+    inputImageUrl: string | null;
+    audioUrl: string | null;
+    settings: unknown;
+    durationSeconds: number;
+    provider: string | null;
+  };
+}> {
+  if (!isPrismaConfigured()) {
+    return { ok: false, reason: "database_unavailable" };
+  }
+
+  const source = await prisma.generationJob.findFirst({
+    where: { id: jobId, userId },
+    select: {
+      prompt: true,
+      inputImageUrl: true,
+      audioUrl: true,
+      settings: true,
+      durationSeconds: true,
+      provider: true,
+      projectId: true,
+    },
+  });
+
+  if (!source) return { ok: false, reason: "not_found" };
+
+  const project = await createStudioProject({
+    userId,
+    title: source.prompt ? `Copy — ${source.prompt.slice(0, 48)}` : "Duplicated project",
+    prompt: source.prompt,
+    inputImageUrl: source.inputImageUrl,
+    audioUrl: source.audioUrl,
+    settings: source.settings ?? undefined,
+    durationSeconds: source.durationSeconds,
+    provider: source.provider,
+    status: "draft",
+  });
+
+  if (!project) return { ok: false, reason: "create_failed" };
+
+  return {
+    ok: true,
+    project: {
+      id: project.id,
+      prompt: source.prompt,
+      inputImageUrl: source.inputImageUrl,
+      audioUrl: source.audioUrl,
+      settings: source.settings,
+      durationSeconds: source.durationSeconds,
+      provider: source.provider,
+    },
+  };
+}
+
+export async function listProjectsForUser(
+  userId: string,
+  limit = 24
+): Promise<
+  Array<{
+    id: string;
+    title: string | null;
+    prompt: string | null;
+    outputUrl: string | null;
+    status: string;
+    durationSeconds: number;
+    creditsUsed: number;
+    provider: string | null;
+    latestJobId: string | null;
+    createdAt: Date;
+  }>
+> {
+  if (!isPrismaConfigured()) return [];
+
+  return prisma.project.findMany({
+    where: { userId },
+    orderBy: [{ createdAt: "desc" }],
+    take: Math.min(Math.max(limit, 1), 50),
+    select: {
+      id: true,
+      title: true,
+      prompt: true,
+      outputUrl: true,
+      status: true,
+      durationSeconds: true,
+      creditsUsed: true,
+      provider: true,
+      latestJobId: true,
+      createdAt: true,
+    },
+  });
+}
+
+export async function completeGenerationJob(
+  jobId: string,
+  generatedVideoUrl: string,
+  options?: { markCreditsDebited?: boolean; provider?: string | null }
+): Promise<void> {
+  if (!isPrismaConfigured()) return;
+
+  const job = await prisma.generationJob.update({
+    where: { id: jobId },
+    data: {
+      status: "COMPLETED",
+      generatedVideoUrl,
+      progressPercent: 100,
+      stageLabel: "Render complete",
+      completedAt: new Date(),
+      errorMessage: null,
+      ...(options?.markCreditsDebited ? { creditsDebited: true } : {}),
+      ...(options?.provider ? { provider: options.provider } : {}),
+    },
+    select: { projectId: true, creditsCharged: true, provider: true },
+  });
+
+  if (job.projectId) {
+    await prisma.project.update({
+      where: { id: job.projectId },
+      data: {
+        status: "completed",
+        outputUrl: generatedVideoUrl,
+        creditsUsed: job.creditsCharged,
+        provider: options?.provider ?? job.provider,
+      },
+    });
+  }
 }
 
 export async function failGenerationJob(
@@ -454,6 +868,8 @@ const generationJobGallerySelect = {
   chunksCompleted: true,
   errorMessage: true,
   isPublic: true,
+  provider: true,
+  projectId: true,
   createdAt: true,
   completedAt: true,
 } as const;
@@ -517,7 +933,8 @@ export async function deleteGenerationJobForUser(
   if (
     status !== "FAILED" &&
     status !== "COMPLETED" &&
-    status !== "QUEUED"
+    status !== "QUEUED" &&
+    status !== "CANCELLED"
   ) {
     return { deleted: false, reason: "job_in_progress" };
   }
