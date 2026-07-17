@@ -1949,3 +1949,105 @@ model AppearanceConsistencyRecord {
   @@index([characterId, createdAt(sort: Desc)])
   @@index([appearanceProfileJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 4 — AI Voice & Dialogue Intelligence Engine
+// ---------------------------------------------------------------------------
+
+model VoiceIntelligenceJob {
+  id                 String    @id @default(uuid())
+  userId             String?
+  backendJobId       String?   @unique
+  projectId          String
+  jobId              String
+  language           String    @default("en")
+  scriptPreview      String?
+  lineCount          Int       @default(0)
+  voiceCount         Int       @default(0)
+  totalDurationSec   Float?
+  consistencyScore   Float?
+  consistent         Boolean   @default(false)
+  productionReady    Boolean   @default(true)
+  version            Int       @default(1)
+  payloadJson        Json?
+  metadata           Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  lines      VoiceDialogueLineRecord[]
+  profiles   VoiceCharacterProfileRecord[]
+  checks     VoiceConsistencyRecord[]
+
+  @@index([projectId])
+  @@index([jobId])
+  @@index([language])
+}
+
+model VoiceDialogueLineRecord {
+  id                      String    @id @default(uuid())
+  voiceIntelligenceJobId  String?
+  voiceIntelligenceJob    VoiceIntelligenceJob? @relation(fields: [voiceIntelligenceJobId], references: [id], onDelete: Cascade)
+  projectId               String
+  lineId                  String
+  lineIndex               Int
+  role                    String
+  emotion                 String
+  voiceId                 String?
+  text                    String
+  startSec                Float?
+  endSec                  Float?
+  speakingDurationSec     Float?
+  pauseAfterSec           Float?
+  createdAt               DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([lineId])
+  @@index([role])
+  @@index([voiceIntelligenceJobId])
+}
+
+model VoiceCharacterProfileRecord {
+  id                      String    @id @default(uuid())
+  voiceIntelligenceJobId  String?
+  voiceIntelligenceJob    VoiceIntelligenceJob? @relation(fields: [voiceIntelligenceJobId], references: [id], onDelete: Cascade)
+  projectId               String
+  role                    String
+  voiceId                 String
+  gender                  String?
+  ageGroup                String?
+  language                String?
+  accent                  String?
+  speakingSpeed           Float?
+  pitch                   Float?
+  energy                  Float?
+  emotionStyle            String?
+  narrationStyle          String?
+  characterSlot           String?
+  profileJson             Json?
+  createdAt               DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([voiceId])
+  @@index([role])
+  @@index([voiceIntelligenceJobId])
+}
+
+model VoiceConsistencyRecord {
+  id                      String    @id @default(uuid())
+  voiceIntelligenceJobId  String?
+  voiceIntelligenceJob    VoiceIntelligenceJob? @relation(fields: [voiceIntelligenceJobId], references: [id], onDelete: Cascade)
+  projectId               String
+  consistencyScore        Float
+  consistent              Boolean   @default(false)
+  sameVoiceAcrossScenes   Boolean   @default(true)
+  sameAccent              Boolean   @default(true)
+  emotionContinuity       Boolean   @default(true)
+  noUnexpectedSwitching   Boolean   @default(true)
+  dialogueSynchronized    Boolean   @default(true)
+  issues                  Json?
+  notes                   Json?
+  createdAt               DateTime  @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([voiceIntelligenceJobId])
+}

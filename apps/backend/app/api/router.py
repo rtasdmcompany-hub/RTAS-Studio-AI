@@ -27,6 +27,7 @@ from app.api.routes import (
     text_to_video,
     upload,
     video_engine,
+    voice,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -56,3 +57,4 @@ api_router.include_router(timeline.router)
 api_router.include_router(export.router)
 api_router.include_router(audio_pipeline.router)
 api_router.include_router(avatar.router)
+api_router.include_router(voice.router)
