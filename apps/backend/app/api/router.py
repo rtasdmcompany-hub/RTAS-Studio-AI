@@ -12,6 +12,7 @@ from app.api.routes import (
     lip_sync,
     motion_intelligence,
     multi_ai,
+    multi_gpu,
     physics,
     scene_render,
     talking_avatar,
@@ -36,3 +37,4 @@ api_router.include_router(motion_intelligence.router)
 api_router.include_router(camera_motion.router)
 api_router.include_router(physics.router)
 api_router.include_router(scene_render.router)
+api_router.include_router(multi_gpu.router)

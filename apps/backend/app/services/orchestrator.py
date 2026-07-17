@@ -132,6 +132,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         camera_motion_summary: dict[str, Any] | None = None
         physics_summary: dict[str, Any] | None = None
         scene_render_summary: dict[str, Any] | None = None
+        multi_gpu_summary: dict[str, Any] | None = None
         motion_plan_obj: Any | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
@@ -524,6 +525,37 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasSceneRenderJobId"] = sr_plan.job_id
                 body.fields["rtasSceneRenderQuality"] = sr_plan.quality
                 body.fields["rtasRayTracingReady"] = str(sr_plan.ray_tracing_ready)
+
+                # Phase 3 Sprint 9 — Multi GPU Engine
+                try:
+                    from app.services.multi_gpu import build_multi_gpu_plan
+
+                    sr_payload = {
+                        "job_id": sr_plan.job_id,
+                        "quality": sr_plan.quality,
+                        "ray_tracing_ready": sr_plan.ray_tracing_ready,
+                        "scenes": len(sr_plan.scenes),
+                        "gpu_jobs": len(sr_plan.gpu_queue),
+                        "gpu_queue": [j.to_dict() for j in sr_plan.gpu_queue],
+                    }
+                    mg_plan = build_multi_gpu_plan(
+                        scene_render=sr_payload,
+                        strategy="capability_match",
+                        quality=sr_plan.quality,
+                        seed_fleet=True,
+                        distribute=True,
+                        parent_generation_id=generation_id,
+                        prompt=locked_prompt if enhanced else raw_prompt,
+                    )
+                    multi_gpu_summary = mg_plan.summary()
+                    body.fields["rtasMultiGpu"] = json.dumps(multi_gpu_summary)[:4000]
+                    body.fields["rtasMultiGpuJobId"] = mg_plan.job_id
+                    body.fields["rtasMultiGpuStrategy"] = mg_plan.strategy
+                    body.fields["rtasMultiGpuSkus"] = ",".join(
+                        multi_gpu_summary.get("skus") or []
+                    )
+                except Exception as mg_exc:
+                    logger.warning("Multi GPU plan skipped: %s", mg_exc)
             except Exception as sr_exc:
                 logger.warning("Scene render plan skipped: %s", sr_exc)
         _structured(
@@ -596,6 +628,18 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             else None,
             scene_render_gpu=(scene_render_summary or {}).get("gpu_jobs")
             if scene_render_summary
+            else None,
+            multi_gpu_workers=(multi_gpu_summary or {}).get("workers")
+            if multi_gpu_summary
+            else None,
+            multi_gpu_job_id=(multi_gpu_summary or {}).get("job_id")
+            if multi_gpu_summary
+            else None,
+            multi_gpu_assigned=(multi_gpu_summary or {}).get("assigned")
+            if multi_gpu_summary
+            else None,
+            multi_gpu_skus=(multi_gpu_summary or {}).get("skus")
+            if multi_gpu_summary
             else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
