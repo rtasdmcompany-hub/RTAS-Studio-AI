@@ -7,6 +7,7 @@ from app.api.routes import (
     audio_engine,
     camera,
     camera_motion,
+    emotion,
     generate,
     health,
     image_to_video,
@@ -62,3 +63,4 @@ api_router.include_router(avatar.router)
 api_router.include_router(voice.router)
 api_router.include_router(motion.router)
 api_router.include_router(camera.router)
+api_router.include_router(emotion.router)

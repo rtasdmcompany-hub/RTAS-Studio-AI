@@ -2347,3 +2347,138 @@ model ShotMetadataRecord {
   @@index([shotType])
   @@index([cameraIntelligenceJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 7 — AI Emotion, Expression & Performance Engine
+// ---------------------------------------------------------------------------
+
+model EmotionIntelligenceJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  backendJobId         String?   @unique
+  characterId          String?
+  status               String    @default("queued")
+  primaryEmotion       String?
+  expressionScore      Float?
+  performanceIntensity Float?
+  durationSec          Float?
+  consistent           Boolean   @default(false)
+  identityPreserved    Boolean   @default(true)
+  productionReady      Boolean   @default(true)
+  retryCount           Int       @default(0)
+  processingTimeMs     Float?
+  queueTimeMs          Float?
+  version              Int       @default(1)
+  analysisJson         Json?
+  expressionJson       Json?
+  performanceJson      Json?
+  integrationsJson     Json?
+  metadata             Json?
+  error                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  profiles  EmotionProfileRecord[]
+  timeline  EmotionTimelineRecord[]
+  history   CharacterEmotionHistory[]
+
+  @@index([characterId])
+  @@index([backendJobId])
+  @@index([status])
+  @@index([primaryEmotion])
+  @@index([createdAt(sort: Desc)])
+}
+
+model EmotionProfileRecord {
+  id                       String    @id @default(uuid())
+  emotionIntelligenceJobId String?
+  emotionIntelligenceJob   EmotionIntelligenceJob? @relation(fields: [emotionIntelligenceJobId], references: [id], onDelete: Cascade)
+  characterId              String?
+  primaryEmotion           String
+  secondaryEmotion         String?
+  intensity                Float?
+  faceEmbeddingRef         String?
+  dnaFingerprint           String?
+  memoryKey                String?
+  profileJson              Json?
+  createdAt                DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([primaryEmotion])
+  @@index([emotionIntelligenceJobId])
+}
+
+model ExpressionLibraryEntry {
+  id            String    @id @default(uuid())
+  expressionId  String    @unique
+  region        String?
+  intensity     Float?
+  payloadJson   Json?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  @@index([expressionId])
+  @@index([region])
+}
+
+model PerformanceLibraryEntry {
+  id             String    @id @default(uuid())
+  performanceId  String    @unique
+  category       String?
+  payloadJson    Json?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  @@index([performanceId])
+  @@index([category])
+}
+
+model EmotionTimelineRecord {
+  id                       String    @id @default(uuid())
+  emotionIntelligenceJobId String?
+  emotionIntelligenceJob   EmotionIntelligenceJob? @relation(fields: [emotionIntelligenceJobId], references: [id], onDelete: Cascade)
+  eventId                  String
+  startSec                 Float
+  endSec                   Float
+  emotion                  String
+  intensity                Float?
+  expressionId             String?
+  createdAt                DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([emotion])
+  @@index([emotionIntelligenceJobId])
+}
+
+model CharacterEmotionHistory {
+  id                       String    @id @default(uuid())
+  emotionIntelligenceJobId String?
+  emotionIntelligenceJob   EmotionIntelligenceJob? @relation(fields: [emotionIntelligenceJobId], references: [id], onDelete: Cascade)
+  characterId              String
+  emotion                  String
+  intensity                Float?
+  expressionScore          Float?
+  createdAt                DateTime  @default(now())
+
+  @@index([characterId, createdAt(sort: Desc)])
+  @@index([emotion])
+  @@index([emotionIntelligenceJobId])
+}
+
+model EmotionMetadataRecord {
+  id                       String    @id @default(uuid())
+  emotionIntelligenceJobId String?
+  characterId              String?
+  emotionType              String?
+  expressionScore          Float?
+  processingTimeMs         Float?
+  queueTimeMs              Float?
+  retryCount               Int       @default(0)
+  errorsJson               Json?
+  metadata                 Json?
+  createdAt                DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([emotionType])
+  @@index([emotionIntelligenceJobId])
+}
