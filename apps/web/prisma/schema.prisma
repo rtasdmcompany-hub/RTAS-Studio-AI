@@ -2051,3 +2051,153 @@ model VoiceConsistencyRecord {
   @@index([projectId, createdAt(sort: Desc)])
   @@index([voiceIntelligenceJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 5 — AI Character Motion & Cinematic Animation Engine
+// ---------------------------------------------------------------------------
+
+model CharacterMotionJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  backendJobId         String?   @unique
+  characterId          String?
+  status               String    @default("queued")
+  emotion              String?
+  durationSec          Float?
+  actionsJson          Json?
+  profileJson          Json?
+  consistencyScore     Float?
+  consistent           Boolean   @default(false)
+  noBodyDistortion     Boolean   @default(true)
+  productionReady      Boolean   @default(true)
+  retryCount           Int       @default(0)
+  processingTimeMs     Float?
+  queueTimeMs          Float?
+  version              Int       @default(1)
+  integrationsJson     Json?
+  metadata             Json?
+  error                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  clips      CharacterMotionClipRecord[]
+  timeline   CharacterMotionTimelineRecord[]
+  profiles   CharacterMotionProfileRecord[]
+
+  @@index([characterId])
+  @@index([backendJobId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+}
+
+model CharacterMotionClipRecord {
+  id                    String    @id @default(uuid())
+  characterMotionJobId  String?
+  characterMotionJob    CharacterMotionJob? @relation(fields: [characterMotionJobId], references: [id], onDelete: Cascade)
+  clipId                String
+  action                String
+  emotion               String?
+  durationSec           Float?
+  posesJson             Json?
+  locomotionJson        Json?
+  gesturesJson          Json?
+  metadata              Json?
+  createdAt             DateTime  @default(now())
+
+  @@index([clipId])
+  @@index([action])
+  @@index([characterMotionJobId])
+}
+
+model CharacterMotionTimelineRecord {
+  id                    String    @id @default(uuid())
+  characterMotionJobId  String?
+  characterMotionJob    CharacterMotionJob? @relation(fields: [characterMotionJobId], references: [id], onDelete: Cascade)
+  eventId               String
+  startSec              Float
+  endSec                Float
+  action                String
+  clipId                String
+  layer                 String    @default("body")
+  createdAt             DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([characterMotionJobId])
+}
+
+model CharacterMotionProfileRecord {
+  id                    String    @id @default(uuid())
+  characterMotionJobId  String?
+  characterMotionJob    CharacterMotionJob? @relation(fields: [characterMotionJobId], references: [id], onDelete: Cascade)
+  characterId           String
+  faceIdentityRef       String?
+  bodyShape             String?
+  height                String?
+  weight                String?
+  bodyProportions       String?
+  walkingStyle          String?
+  runningStyle          String?
+  gestureStyle          String?
+  eyeContact            String?
+  headMovement          String?
+  dnaFingerprint        String?
+  profileJson           Json?
+  createdAt             DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([faceIdentityRef])
+  @@index([characterMotionJobId])
+}
+
+model MotionLibraryEntry {
+  id          String    @id @default(uuid())
+  entryType   String
+  entryKey    String
+  category    String?
+  payloadJson Json?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([entryType, entryKey])
+  @@index([entryType])
+  @@index([category])
+}
+
+model PoseLibraryEntry {
+  id          String    @id @default(uuid())
+  poseId      String    @unique
+  name        String?
+  jointsJson  Json?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  @@index([poseId])
+}
+
+model GestureLibraryEntry {
+  id           String    @id @default(uuid())
+  gestureId    String    @unique
+  name         String?
+  payloadJson  Json?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  @@index([gestureId])
+}
+
+model AnimationMetadataRecord {
+  id                    String    @id @default(uuid())
+  characterMotionJobId  String?
+  characterId           String?
+  animationDurationSec  Float?
+  processingTimeMs      Float?
+  queueTimeMs           Float?
+  retryCount            Int       @default(0)
+  errorsJson            Json?
+  metadata              Json?
+  createdAt             DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([characterMotionJobId])
+}
