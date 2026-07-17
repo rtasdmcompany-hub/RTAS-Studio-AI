@@ -36,6 +36,9 @@ model User {
   projects       Project[]
   audioJobs      AudioJob[]
   voiceJobs      VoiceJob[]
+  voiceClones    VoiceClone[]
+  characterVoices CharacterVoice[]
+  speakerProfiles SpeakerProfile[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -349,4 +352,171 @@ model VoiceVersion {
   createdAt    DateTime  @default(now())
 
   @@index([voiceJobId, version])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 3 — Voice Cloning & Character Voice
+// ---------------------------------------------------------------------------
+
+model VoiceClone {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendCloneId       String?   @unique
+  status               String    @default("queued")
+  characterId          String?
+  referenceUrl         String
+  referenceChecksum    String?
+  language             String    @default("en")
+  accent               String    @default("neutral")
+  speakingStyle        String    @default("natural")
+  emotionProfile       String    @default("calm")
+  gender               String?
+  ageGroup             String?
+  voiceLocked          Boolean   @default(false)
+  voiceVersion         Int       @default(1)
+  provider             String?
+  qualityScore         Float?
+  qualityGrade         String?
+  speakerVerified      Boolean   @default(false)
+  previewUrl           String?
+  assetUrl             String?
+  productionReady      Boolean   @default(false)
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  trainingDurationMs   Float?
+  processingTimeMs     Float?
+  parentGenerationId   String?
+  parentVideoJobId     String?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  characterVoices      CharacterVoice[]
+  fingerprints         VoiceFingerprint[]
+  cloneMeta            VoiceCloneMeta[]
+  cloneVersions        VoiceCloneVersion[]
+  trainingHistory      VoiceTrainingHistory[]
+  speakerProfiles      SpeakerProfile[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([characterId])
+  @@index([backendCloneId])
+}
+
+model CharacterVoice {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  characterId     String
+  voiceCloneId    String?
+  voiceClone      VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: SetNull)
+  defaultVoice    String
+  language        String    @default("en")
+  accent          String    @default("neutral")
+  speakingStyle   String    @default("natural")
+  emotionProfile  String    @default("calm")
+  gender          String?
+  ageGroup        String?
+  voiceVersion    Int       @default(1)
+  voiceLocked     Boolean   @default(false)
+  speakerId       String?
+  previewUrl      String?
+  voiceMetadata   Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([characterId])
+  @@index([userId])
+  @@index([voiceCloneId])
+  @@index([defaultVoice])
+}
+
+model SpeakerProfile {
+  id              String    @id @default(uuid())
+  userId          String?
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  voiceCloneId    String?
+  voiceClone      VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: Cascade)
+  backendSpeakerId String?  @unique
+  gender          String?
+  ageGroup        String?
+  language        String    @default("en")
+  accent          String    @default("neutral")
+  speakingStyle   String    @default("natural")
+  emotionProfile  String    @default("calm")
+  locked          Boolean   @default(false)
+  version         Int       @default(1)
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  fingerprints    VoiceFingerprint[]
+
+  @@index([userId])
+  @@index([voiceCloneId])
+  @@index([backendSpeakerId])
+}
+
+model VoiceFingerprint {
+  id              String    @id @default(uuid())
+  voiceCloneId    String?
+  voiceClone      VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: Cascade)
+  speakerProfileId String?
+  speakerProfile  SpeakerProfile? @relation(fields: [speakerProfileId], references: [id], onDelete: SetNull)
+  fingerprintId   String    @unique
+  checksum        String
+  embeddingRef    String?
+  sampleRate      Int       @default(24000)
+  durationSec     Float     @default(0)
+  spectralHash    String?
+  speakerScore    Float?
+  createdAt       DateTime  @default(now())
+
+  @@index([voiceCloneId])
+  @@index([checksum])
+  @@index([speakerProfileId])
+}
+
+model VoiceCloneMeta {
+  id           String    @id @default(uuid())
+  voiceCloneId String?
+  voiceClone   VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: Cascade)
+  key          String
+  value        Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceCloneId, key])
+}
+
+model VoiceCloneVersion {
+  id           String    @id @default(uuid())
+  voiceCloneId String?
+  voiceClone   VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: Cascade)
+  version      Int
+  assetUrl     String?
+  previewUrl   String?
+  qualityScore Float?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceCloneId, version])
+}
+
+model VoiceTrainingHistory {
+  id                  String    @id @default(uuid())
+  voiceCloneId        String?
+  voiceClone          VoiceClone? @relation(fields: [voiceCloneId], references: [id], onDelete: Cascade)
+  version             Int
+  trainingDurationMs  Float?
+  provider            String?
+  qualityScore        Float?
+  status              String?
+  snapshot            Json?
+  createdAt           DateTime  @default(now())
+
+  @@index([voiceCloneId, createdAt(sort: Desc)])
 }

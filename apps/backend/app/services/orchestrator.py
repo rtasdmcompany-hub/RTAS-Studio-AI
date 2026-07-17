@@ -627,8 +627,13 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 logger.warning("Audio engine plan skipped: %s", ae_exc)
 
             # Phase 4 Sprint 2 — Voice Generation Engine
+            # Phase 4 Sprint 3 — restore Character Memory voice + optional clone
             try:
                 from app.services.voice_generation import generate_voice
+                from app.services.voice_cloning import (
+                    restore_voice_for_generation,
+                    clone_voice,
+                )
 
                 voice_seed = locked_prompt if enhanced else raw_prompt
                 vt = (plan.audio_director or {}).get("voice_timeline") or []
@@ -638,10 +643,30 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                         vt[0].get("text") or vt[0].get("dialogue") or voice_seed
                     )
                     lang_hint = str(vt[0].get("language") or "en")
+
+                char_voice = restore_voice_for_generation(plan.character_memory)
+                gender_hint = "female"
+                voice_id_hint = None
+                if char_voice:
+                    lang_hint = char_voice.language or lang_hint
+                    gender_hint = (
+                        char_voice.gender
+                        if char_voice.gender in ("male", "female")
+                        else "female"
+                    )
+                    voice_id_hint = char_voice.default_voice
+                    body.fields["rtasCharacterVoiceId"] = char_voice.character_id
+                    body.fields["rtasCharacterDefaultVoice"] = char_voice.default_voice
+                    if char_voice.clone_id:
+                        body.fields["rtasVoiceCloneId"] = char_voice.clone_id
+                    body.fields["rtasVoiceLocked"] = str(char_voice.voice_locked)
+                    body.fields["rtasVoiceVersion"] = str(char_voice.voice_version)
+
                 vg = generate_voice(
                     voice_seed[:2000],
                     language=lang_hint,
-                    gender="female",
+                    voice_id=voice_id_hint,
+                    gender=gender_hint,
                     enqueue=True,
                     auto_process=True,
                     parent_audio_job_id=(audio_engine_summary or {}).get("job_id"),
@@ -653,6 +678,38 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasVoiceLanguage"] = vg.language
                 body.fields["rtasVoiceId"] = vg.voice_id
                 body.fields["rtasVoiceQuality"] = str(vg.quality.overall)
+
+                # Ensure lead character has a clone identity linked to video engine
+                if char_voice and not char_voice.clone_id:
+                    try:
+                        ref = f"/media/refs/{char_voice.character_id}_voice.wav"
+                        clone_job = clone_voice(
+                            ref,
+                            character_id=char_voice.character_id,
+                            language=lang_hint,
+                            gender=gender_hint,
+                            accent=char_voice.accent,
+                            speaking_style=char_voice.speaking_style,
+                            emotion_profile=char_voice.emotion_profile,
+                            age_group=char_voice.age_group,
+                            lock_voice=True,
+                            duration_sec=5.0,
+                            sample_rate=24000,
+                            file_type=".wav",
+                            quality_hint=0.8,
+                            skip_duplicate_check=True,
+                            parent_generation_id=generation_id,
+                            parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                        )
+                        body.fields["rtasVoiceCloneId"] = clone_job.clone_id
+                        body.fields["rtasVoiceCloneQuality"] = str(
+                            clone_job.quality.overall
+                        )
+                        body.fields["rtasSpeakerVerified"] = str(
+                            clone_job.quality.speaker_verified
+                        )
+                    except Exception as clone_exc:
+                        logger.warning("Voice clone skipped: %s", clone_exc)
             except Exception as vg_exc:
                 logger.warning("Voice generation skipped: %s", vg_exc)
         _structured(

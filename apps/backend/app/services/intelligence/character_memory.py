@@ -130,6 +130,24 @@ def build_character_memories(
         char_refs = [refs[i]] if i < len(refs) else ([refs[0]] if refs and i == 0 else [])
         embedding_ref = f"embedding://pending/{cid}" if char_refs or style_hint == "real" else None
 
+        # Permanent voice defaults (Phase 4 Sprint 3) — restored every generation.
+        language = "en"
+        if any(k in lower for k in ("urdu", "pakistan")):
+            language = "ur"
+        elif "hindi" in lower or "india" in lower:
+            language = "hi"
+        elif "arabic" in lower:
+            language = "ar"
+        elif "punjabi" in lower:
+            language = "pa"
+        g_voice = gender if gender in ("male", "female") else "female"
+        age_group = {
+            "child": "child",
+            "teen": "teen",
+            "elder": "elder",
+        }.get(age, "adult")
+        default_voice = f"rtas_{language}_{g_voice}_01"
+
         memories.append(
             CharacterMemory(
                 character_id=cid,
@@ -150,7 +168,20 @@ def build_character_memories(
                     "clothing",
                     "body",
                     "proportions",
+                    "voice",
                 ],
+                default_voice=default_voice,
+                language=language,
+                accent="neutral",
+                speaking_style="natural",
+                emotion_profile="calm",
+                age_group=age_group,
+                voice_version=1,
+                voice_metadata={
+                    "source": "character_memory",
+                    "engine": "voice_cloning",
+                },
+                voice_locked=False,
             )
         )
     return memories

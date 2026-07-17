@@ -21,17 +21,39 @@ class CharacterMemory:
     reference_image_urls: list[str] = field(default_factory=list)
     face_embedding_ref: str | None = None  # future InstantID / embedding hook
     locked_traits: list[str] = field(default_factory=list)
+    # Phase 4 Sprint 3 — permanent voice identity (Character Memory)
+    default_voice: str | None = None
+    language: str = "en"
+    accent: str = "neutral"
+    speaking_style: str = "natural"
+    emotion_profile: str = "calm"
+    age_group: str | None = None
+    voice_version: int = 1
+    voice_metadata: dict[str, Any] = field(default_factory=dict)
+    voice_locked: bool = False
+    clone_id: str | None = None
+    speaker_id: str | None = None
+    preview_url: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def identity_lock_prompt(self) -> str:
         accessories = ", ".join(self.accessories) if self.accessories else "none"
+        voice_bit = ""
+        if self.default_voice or self.clone_id:
+            voice_bit = (
+                f" VOICE LOCK: voice={self.default_voice or self.clone_id}, "
+                f"lang={self.language}, accent={self.accent}, "
+                f"style={self.speaking_style}, emotion={self.emotion_profile}, "
+                f"v{self.voice_version}."
+            )
         return (
             f"IDENTITY LOCK [{self.character_id}]: "
             f"{self.gender}, age {self.age}, {self.hair} hair, beard={self.beard}, "
             f"skin={self.skin_tone}, face={self.face_shape}, eyes={self.eye_color}, "
-            f"outfit={self.outfit}, accessories={accessories}. "
+            f"outfit={self.outfit}, accessories={accessories}."
+            f"{voice_bit} "
             f"Keep identical face, hair, clothing, body proportions across all scenes."
         )
 
