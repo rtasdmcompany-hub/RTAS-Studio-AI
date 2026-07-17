@@ -42,6 +42,7 @@ model User {
   musicJobs      MusicJob[]
   sfxJobs        SfxJob[]
   mixJobs        AudioMixJob[]
+  localizationJobs LocalizationJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -1050,4 +1051,179 @@ model MixExportMetadata {
   createdAt        DateTime  @default(now())
 
   @@index([audioMixJobId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 7 — Multi-Language Dubbing & Localization
+// ---------------------------------------------------------------------------
+
+model LocalizationJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  status               String    @default("queued")
+  kind                 String    @default("localize")
+  sourceLanguage       String    @default("en")
+  targetLanguage       String
+  sourceText           String
+  translatedText       String?
+  accentProfile        String?
+  voicePreserved       Boolean   @default(true)
+  speakerCount         Int       @default(1)
+  subtitleUrl          String?
+  captionUrl           String?
+  dubbedAudioUrl       String?
+  provider             String?
+  localizationVersion  Int       @default(1)
+  productionReady      Boolean   @default(false)
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  parentVoiceJobId     String?
+  parentCloneId        String?
+  parentVideoJobId     String?
+  parentGenerationId   String?
+  lipSyncMetadata      Json?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  languageProfiles     LanguageProfileRecord[]
+  subtitleAssets       SubtitleAsset[]
+  captionAssets        CaptionAsset[]
+  speakerMaps          SpeakerMap[]
+  translationMemory    TranslationMemoryEntry[]
+  localizationHistory  LocalizationHistoryEntry[]
+  audioTracks          LocalizationAudioTrack[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([sourceLanguage, targetLanguage])
+  @@index([backendJobId])
+}
+
+model LanguageProfileRecord {
+  id              String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  code            String
+  name            String?
+  rtl             Boolean   @default(false)
+  defaultLocale   String?
+  accentDefault   String?
+  script          String?
+  createdAt       DateTime  @default(now())
+
+  @@index([code])
+  @@index([localizationJobId])
+}
+
+model SubtitleAsset {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  language          String
+  format            String    @default("vtt")
+  assetUrl          String?
+  cueCount          Int       @default(0)
+  cues              Json?
+  createdAt         DateTime  @default(now())
+
+  @@index([localizationJobId])
+  @@index([language])
+}
+
+model CaptionAsset {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  language          String
+  format            String    @default("vtt")
+  assetUrl          String?
+  cueCount          Int       @default(0)
+  cues              Json?
+  createdAt         DateTime  @default(now())
+
+  @@index([localizationJobId])
+  @@index([language])
+}
+
+model SpeakerMap {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  speakerId         String
+  characterId       String?
+  sourceVoiceId     String?
+  cloneId           String?
+  gender            String?
+  accent            String?
+  preserved         Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+
+  @@index([localizationJobId])
+  @@index([speakerId])
+  @@index([characterId])
+}
+
+model TranslationMemoryEntry {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: SetNull)
+  sourceLanguage    String
+  targetLanguage    String
+  sourceTextHash    String
+  sourceText        String
+  translatedText    String
+  hitCount          Int       @default(1)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([sourceLanguage, targetLanguage, sourceTextHash])
+  @@index([localizationJobId])
+}
+
+model LocalizationHistoryEntry {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  status            String?
+  snapshot          Json?
+  createdAt         DateTime  @default(now())
+
+  @@index([localizationJobId, createdAt(sort: Desc)])
+}
+
+model LocalizationAudioTrack {
+  id                String    @id @default(uuid())
+  localizationJobId String?
+  localizationJob   LocalizationJob? @relation(fields: [localizationJobId], references: [id], onDelete: Cascade)
+  trackId           String
+  language          String
+  kind              String    @default("dialogue")
+  assetUrl          String?
+  durationSec       Float     @default(0)
+  speakerId         String?
+  createdAt         DateTime  @default(now())
+
+  @@index([localizationJobId])
+  @@index([language])
+  @@index([trackId])
+}
+
+model LocalizationLanguageCatalog {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  name          String
+  nativeName    String?
+  rtl           Boolean   @default(false)
+  defaultLocale String?
+  accentDefault String?
+  script        String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  @@index([active])
 }

@@ -850,6 +850,57 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasAudioMasterUrl"] = mm.master_url or ""
             except Exception as mm_exc:
                 logger.warning("Mix/master skipped: %s", mm_exc)
+
+            # Phase 4 Sprint 7 — Multi-Language Dubbing & Localization
+            try:
+                from app.services.localization import dub
+
+                voice_seed = locked_prompt if enhanced else raw_prompt
+                vt = (plan.audio_director or {}).get("voice_timeline") or []
+                src_lang = "en"
+                if isinstance(vt, list) and vt and isinstance(vt[0], dict):
+                    voice_seed = str(
+                        vt[0].get("text") or vt[0].get("dialogue") or voice_seed
+                    )
+                    src_lang = str(vt[0].get("language") or "en")
+                # Prefer Character Memory language when present
+                target_lang = "ur"
+                if plan.character_memory and isinstance(plan.character_memory[0], dict):
+                    target_lang = str(
+                        plan.character_memory[0].get("language") or target_lang
+                    )
+                if target_lang == src_lang:
+                    target_lang = "ur" if src_lang == "en" else "en"
+
+                voice_summary = None
+                if body.fields.get("rtasVoiceGeneration"):
+                    try:
+                        voice_summary = json.loads(body.fields["rtasVoiceGeneration"])
+                    except Exception:
+                        voice_summary = {"job_id": body.fields.get("rtasVoiceJobId")}
+
+                loc_job = dub(
+                    voice_seed[:2000],
+                    source_language=src_lang,
+                    target_language=target_lang,
+                    character_memory=plan.character_memory,
+                    voice_summary=voice_summary,
+                    clone_id=body.fields.get("rtasVoiceCloneId"),
+                    parent_voice_job_id=body.fields.get("rtasVoiceJobId"),
+                    parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                    parent_generation_id=generation_id,
+                    enqueue=True,
+                    auto_process=True,
+                )
+                loc_summary = loc_job.summary()
+                body.fields["rtasLocalization"] = json.dumps(loc_summary)[:4000]
+                body.fields["rtasLocalizationJobId"] = loc_job.job_id
+                body.fields["rtasLocalizationSource"] = loc_job.source_language
+                body.fields["rtasLocalizationTarget"] = loc_job.target_language
+                body.fields["rtasLocalizationReady"] = str(loc_job.production_ready)
+                body.fields["rtasDubbedAudioUrl"] = loc_job.dubbed_audio_url or ""
+            except Exception as loc_exc:
+                logger.warning("Localization skipped: %s", loc_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
