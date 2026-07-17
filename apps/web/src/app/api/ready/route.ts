@@ -38,6 +38,9 @@ export async function GET(request: Request) {
   const paymentProvider = (
     process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "paddle"
   ).toLowerCase();
+  const deferPaddle =
+    process.env.RTAS_DEFER_PADDLE === "1" ||
+    process.env.RTAS_DEFER_PADDLE === "true";
   const detailed = isAdminAuthorized(request);
 
   const checks: Record<string, CheckResult> = {
@@ -85,12 +88,15 @@ export async function GET(request: Request) {
       ok:
         paymentProvider !== "paddle" ||
         !isProd ||
-        hasEnv("PADDLE_WEBHOOK_SECRET"),
+        hasEnv("PADDLE_WEBHOOK_SECRET") ||
+        deferPaddle,
       detail:
         paymentProvider === "paddle"
-          ? hasEnv("PADDLE_WEBHOOK_SECRET")
-            ? "paddle-webhook-configured"
-            : "PADDLE_WEBHOOK_SECRET missing"
+          ? deferPaddle && !hasEnv("PADDLE_WEBHOOK_SECRET")
+            ? "paddle-deferred-until-keys"
+            : hasEnv("PADDLE_WEBHOOK_SECRET")
+              ? "paddle-webhook-configured"
+              : "PADDLE_WEBHOOK_SECRET missing"
           : paymentProvider,
     },
     googleOAuth: {

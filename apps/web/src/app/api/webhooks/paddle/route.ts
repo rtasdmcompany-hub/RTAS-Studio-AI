@@ -16,6 +16,24 @@ export const runtime = "nodejs";
  * https://your-domain.com/api/webhooks/paddle
  */
 export async function POST(request: Request) {
+  const deferPaddle =
+    process.env.RTAS_DEFER_PADDLE === "1" ||
+    process.env.RTAS_DEFER_PADDLE === "true";
+  const hasSecret = Boolean(process.env.PADDLE_WEBHOOK_SECRET?.trim());
+
+  // Keep Paddle routes mounted; defer verification until production keys exist.
+  // Do not accept unsigned payloads as successful payments.
+  if (deferPaddle && !hasSecret) {
+    return NextResponse.json(
+      {
+        error: "Paddle webhook verification deferred until production keys are configured.",
+        deferred: true,
+        code: "PADDLE_DEFERRED",
+      },
+      { status: 503 }
+    );
+  }
+
   const rawBody = await request.text();
   const signature =
     request.headers.get("paddle-signature") ??

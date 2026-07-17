@@ -34,12 +34,21 @@ function getRedisRestConfig(): { url: string; token: string } | null {
   return { url, token };
 }
 
-export function isPersistentStoreConfigured(): boolean {
-  return getRedisRestConfig() !== null;
+const memoryDocuments = new Map<string, unknown>();
+
+/** Temporary RC / infra gate: allow in-memory store until Upstash/KV is linked. */
+function isMemoryStoreAllowed(): boolean {
+  const v = process.env.RTAS_ALLOW_MEMORY_STORE?.trim().toLowerCase();
+  return v === "1" || v === "true";
 }
 
-export function getPersistentStoreMode(): "redis" | "local-file" {
+export function isPersistentStoreConfigured(): boolean {
+  return getRedisRestConfig() !== null || isMemoryStoreAllowed();
+}
+
+export function getPersistentStoreMode(): "redis" | "memory" | "local-file" {
   if (getRedisRestConfig()) return "redis";
+  if (isMemoryStoreAllowed()) return "memory";
   return "local-file";
 }
 
@@ -94,6 +103,12 @@ export async function readJsonDocument<T>(name: string, fallback: T): Promise<T>
     return value ?? fallback;
   }
 
+  if (isMemoryStoreAllowed()) {
+    const key = storeKey(name);
+    if (!memoryDocuments.has(key)) return fallback;
+    return memoryDocuments.get(key) as T;
+  }
+
   if (isServerlessRuntime()) {
     assertServerlessPersistence();
   }
@@ -106,6 +121,11 @@ export async function writeJsonDocument<T>(name: string, data: T): Promise<void>
   const redis = getRedis();
   if (redis) {
     await redis.set(storeKey(name), data);
+    return;
+  }
+
+  if (isMemoryStoreAllowed()) {
+    memoryDocuments.set(storeKey(name), data);
     return;
   }
 

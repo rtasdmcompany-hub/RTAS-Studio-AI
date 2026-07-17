@@ -28,8 +28,11 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    ensure_dirs()
-    settings.local_output_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        ensure_dirs()
+        settings.local_output_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        logger.warning("ensure_dirs skipped on read-only runtime: %s", exc)
     routing = get_routing_policy_summary()
     logger.info(
         "Model routing active: cost optimization, ceiling $%.3f/s, max weight %.1fx",
@@ -41,7 +44,10 @@ async def lifespan(_app: FastAPI):
         "CORS origins (align with NEXTAUTH_URL / Google JS origins): %s",
         ", ".join(settings.cors_origin_list),
     )
-    await run_fal_startup_verification()
+    try:
+        await run_fal_startup_verification()
+    except Exception as exc:  # noqa: BLE001 — worker must stay up for planner APIs
+        logger.warning("Fal startup verification skipped: %s", exc)
     yield
 
 
@@ -68,20 +74,21 @@ app.add_middleware(ContentModerationMiddleware)
 app.include_router(api_router)
 
 # Static mounts require existing directories at import time (before lifespan).
-ensure_dirs()
-
-# Serve generated MP4s: /media/outputs/{job_id}.mp4
-app.mount(
-    "/media/outputs",
-    StaticFiles(directory=str(settings.local_output_dir)),
-    name="generated_outputs",
-)
-
-app.mount(
-    "/media/uploads",
-    StaticFiles(directory=str(settings.local_upload_dir)),
-    name="uploaded_assets",
-)
+# On read-only serverless hosts, skip mounts so planner/video-engine APIs still boot.
+try:
+    ensure_dirs()
+    app.mount(
+        "/media/outputs",
+        StaticFiles(directory=str(settings.local_output_dir)),
+        name="generated_outputs",
+    )
+    app.mount(
+        "/media/uploads",
+        StaticFiles(directory=str(settings.local_upload_dir)),
+        name="uploaded_assets",
+    )
+except OSError as exc:
+    logger.warning("Skipping local media mounts (non-writable runtime): %s", exc)
 
 
 @app.get("/")

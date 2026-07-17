@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.routes import (
     admin,
     ai,
+    audio_engine,
     camera_motion,
     generate,
     health,
@@ -40,3 +41,4 @@ api_router.include_router(physics.router)
 api_router.include_router(scene_render.router)
 api_router.include_router(multi_gpu.router)
 api_router.include_router(video_engine.router)
+api_router.include_router(audio_engine.router)

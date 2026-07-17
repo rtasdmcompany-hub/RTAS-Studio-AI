@@ -602,6 +602,28 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasQualityGrade"] = ve_plan.quality.grade
             except Exception as ve_exc:
                 logger.warning("Video engine plan skipped: %s", ve_exc)
+
+            # Phase 4 Sprint 1 — AI Audio Production Engine
+            try:
+                from app.services.audio_engine import build_audio_engine_plan
+
+                ae_plan = build_audio_engine_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    audio_director=plan.audio_director,
+                    lip_sync=None,
+                    provider="simulation",
+                    enqueue=True,
+                    auto_process=True,
+                    parent_generation_id=generation_id,
+                )
+                audio_engine_summary = ae_plan.summary()
+                body.fields["rtasAudioEngine"] = json.dumps(audio_engine_summary)[:4000]
+                body.fields["rtasAudioEngineJobId"] = ae_plan.job_id
+                body.fields["rtasAudioEngineVersion"] = ae_plan.version
+                body.fields["rtasAudioEngineState"] = ae_plan.state
+                body.fields["rtasAudioProductionReady"] = str(ae_plan.production_ready)
+            except Exception as ae_exc:
+                logger.warning("Audio engine plan skipped: %s", ae_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

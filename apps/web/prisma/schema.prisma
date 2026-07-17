@@ -34,6 +34,7 @@ model User {
 
   generationJobs GenerationJob[]
   projects       Project[]
+  audioJobs      AudioJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -56,6 +57,7 @@ model Project {
   updatedAt       DateTime @updatedAt
 
   generationJobs GenerationJob[]
+  audioJobs      AudioJob[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, status])
@@ -96,6 +98,8 @@ model GenerationJob {
   updatedAt         DateTime            @updatedAt
   completedAt       DateTime?
 
+  audioJobs         AudioJob[]
+
   @@index([userId, status])
   @@index([userId, createdAt(sort: Desc)])
   @@index([projectId])
@@ -113,4 +117,119 @@ enum GenerationJobStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+/** Phase 4 — AI Audio Production Engine jobs. */
+model AudioJob {
+  id                 String    @id @default(uuid())
+  userId             String?
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectId          String?
+  project            Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  generationJobId    String?
+  generationJob      GenerationJob? @relation(fields: [generationJobId], references: [id], onDelete: SetNull)
+  backendJobId       String?   @unique
+  status             String    @default("queued")
+  prompt             String?
+  provider           String?
+  engineVersion      String?
+  durationSec        Float     @default(0)
+  validationPassed   Boolean   @default(false)
+  productionReady    Boolean   @default(false)
+  exportReady        Boolean   @default(false)
+  retryCount         Int       @default(0)
+  queuePosition      Int?
+  errorMessage       String?
+  metadata           Json?
+  timeline           Json?
+  observability      Json?
+  version            Int       @default(1)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  completedAt        DateTime?
+
+  voiceAssets        VoiceAsset[]
+  musicAssets        MusicAsset[]
+  soundEffects       SoundEffectAsset[]
+  timelineMeta       AudioTimelineMeta[]
+  history            AudioGenerationHistory[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([backendJobId])
+}
+
+model VoiceAsset {
+  id           String    @id @default(uuid())
+  audioJobId   String?
+  audioJob     AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: Cascade)
+  clipId       String
+  text         String?
+  character    String?
+  language     String    @default("en")
+  startSec     Float     @default(0)
+  endSec       Float     @default(0)
+  providerHint String?
+  assetUrl     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([audioJobId])
+  @@index([clipId])
+}
+
+model MusicAsset {
+  id           String    @id @default(uuid())
+  audioJobId   String?
+  audioJob     AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: Cascade)
+  clipId       String
+  style        String?
+  mood         String?
+  startSec     Float     @default(0)
+  endSec       Float     @default(0)
+  loop         Boolean   @default(false)
+  providerHint String?
+  assetUrl     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([audioJobId])
+}
+
+model SoundEffectAsset {
+  id           String    @id @default(uuid())
+  audioJobId   String?
+  audioJob     AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: Cascade)
+  clipId       String
+  label        String?
+  category     String?
+  startSec     Float     @default(0)
+  durationSec  Float     @default(0.5)
+  assetUrl     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([audioJobId])
+}
+
+model AudioTimelineMeta {
+  id           String    @id @default(uuid())
+  audioJobId   String?
+  audioJob     AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: Cascade)
+  trackId      String
+  kind         String
+  gainDb       Float     @default(0)
+  clips        Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([audioJobId])
+}
+
+model AudioGenerationHistory {
+  id           String    @id @default(uuid())
+  audioJobId   String?
+  audioJob     AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: Cascade)
+  version      Int       @default(1)
+  status       String?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([audioJobId, createdAt(sort: Desc)])
 }

@@ -1,0 +1,13 @@
+.venv
+__pycache__
+**/__pycache__
+*.pyc
+data/uploads/**
+data/outputs/**
+tests
+.env
+.env.*
+!.env.example
+.pytest_cache
+*.mp4
+*.mov

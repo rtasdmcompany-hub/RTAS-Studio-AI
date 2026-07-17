@@ -16,8 +16,30 @@ logger = logging.getLogger(__name__)
 
 
 def ensure_dirs() -> None:
-    settings.local_upload_dir.mkdir(parents=True, exist_ok=True)
-    settings.local_output_dir.mkdir(parents=True, exist_ok=True)
+    """Create local media dirs; fall back to /tmp on read-only serverless runtimes."""
+    import tempfile
+
+    for attr in ("local_upload_dir", "local_output_dir"):
+        path: Path = getattr(settings, attr)
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            fallback = Path(tempfile.gettempdir()) / "rtas" / path.name
+            try:
+                fallback.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                logger.warning("Unable to create media dir for %s", attr)
+                continue
+            try:
+                setattr(settings, attr, fallback)
+            except Exception:
+                settings.__dict__[attr] = fallback
+            logger.warning(
+                "Using temp media dir for %s -> %s (read-only runtime)",
+                attr,
+                fallback,
+            )
+
 
 
 def job_upload_dir(job_id: str) -> Path:
