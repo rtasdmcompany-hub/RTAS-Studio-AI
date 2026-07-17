@@ -112,12 +112,14 @@ def create_world(
     )
     world_queue.enqueue(job)
     store.save(job)
+    payload = job.to_dict()
     return {
+        **payload,
         "engine": ENGINE_NAME,
         "version": ENGINE_VERSION,
+        "job_version": payload.get("version"),
         "label": ENGINE_LABEL,
         "operation": "create",
-        **job.to_dict(),
         "queue": world_queue.status(),
     }
 
@@ -239,12 +241,14 @@ def generate_world(
     processed = process_world_job(job_id)
     if not processed:
         raise ValueError(f"Failed to process world job: {job_id}")
+    payload = processed.to_dict()
     return {
+        **payload,
         "engine": ENGINE_NAME,
         "version": ENGINE_VERSION,
+        "job_version": payload.get("version"),
         "label": ENGINE_LABEL,
         "operation": "generate",
-        **processed.to_dict(),
         "queue": world_queue.status(),
     }
 
@@ -253,7 +257,13 @@ def get_world(job_id: str) -> dict[str, Any] | None:
     job = store.get(job_id) or world_queue.get(job_id)
     if not job:
         return None
-    return {"engine": ENGINE_NAME, "version": ENGINE_VERSION, **job.to_dict()}
+    payload = job.to_dict()
+    return {
+        **payload,
+        "engine": ENGINE_NAME,
+        "version": ENGINE_VERSION,
+        "job_version": payload.get("version"),
+    }
 
 
 def world_history(limit: int = 50) -> dict[str, Any]:
