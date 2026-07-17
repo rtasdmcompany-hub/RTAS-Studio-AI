@@ -547,3 +547,150 @@ async def get_environment_profile(
         "categories": sa.list_categories(),
         "engine": sa.ENGINE_LABEL,
     }
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 Sprint 6 — Mixing & Mastering
+# ---------------------------------------------------------------------------
+
+
+class MixMasterRequest(BaseModel):
+    target_lufs: float | None = Field(None, alias="targetLufs")
+    true_peak_ceiling: float | None = Field(None, alias="truePeakCeiling")
+    export_format: str | None = Field(None, alias="exportFormat")
+    sample_rate: int | None = Field(None, alias="sampleRate")
+    bit_depth: int | None = Field(None, alias="bitDepth")
+    dialogue_priority: bool = Field(True, alias="dialoguePriority")
+    music_ducking_db: float | None = Field(None, alias="musicDuckingDb")
+    sfx_balance: float | None = Field(None, alias="sfxBalance")
+    ambient_level: float | None = Field(None, alias="ambientLevel")
+    stereo_width: float | None = Field(None, alias="stereoWidth")
+    noise_reduction: bool = Field(True, alias="noiseReduction")
+    provider: str = "simulation"
+    enqueue: bool = True
+    auto_process: bool = Field(True, alias="autoProcess")
+    voice_summary: dict | None = Field(None, alias="voiceSummary")
+    music_summary: dict | None = Field(None, alias="musicSummary")
+    sfx_summary: dict | None = Field(None, alias="sfxSummary")
+    audio_engine_summary: dict | None = Field(None, alias="audioEngineSummary")
+    video_engine: dict | None = Field(None, alias="videoEngine")
+    parent_generation_id: str | None = Field(None, alias="parentGenerationId")
+
+    model_config = {"populate_by_name": True}
+
+
+def _mix_kwargs(body: MixMasterRequest) -> dict:
+    return {
+        "target_lufs": body.target_lufs,
+        "true_peak_ceiling": body.true_peak_ceiling,
+        "export_format": body.export_format,
+        "sample_rate": body.sample_rate,
+        "bit_depth": body.bit_depth,
+        "dialogue_priority": body.dialogue_priority,
+        "music_ducking_db": body.music_ducking_db,
+        "sfx_balance": body.sfx_balance,
+        "ambient_level": body.ambient_level,
+        "stereo_width": body.stereo_width,
+        "noise_reduction": body.noise_reduction,
+        "provider": body.provider,
+        "enqueue": body.enqueue,
+        "auto_process": body.auto_process,
+        "voice_summary": body.voice_summary,
+        "music_summary": body.music_summary,
+        "sfx_summary": body.sfx_summary,
+        "audio_engine_summary": body.audio_engine_summary,
+        "video_engine": body.video_engine,
+        "parent_generation_id": body.parent_generation_id,
+    }
+
+
+@router.post("/mix")
+async def mix_audio_endpoint(
+    body: MixMasterRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    from app.services import mixing_mastering as mm
+
+    try:
+        result = mm.mix_dict(**_mix_kwargs(body))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Audio mix failed") from exc
+    return {"ok": True, **result}
+
+
+@router.post("/master")
+async def master_audio_endpoint(
+    body: MixMasterRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    from app.services import mixing_mastering as mm
+
+    try:
+        result = mm.master_dict(**_mix_kwargs(body))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Audio master failed") from exc
+    return {"ok": True, **result}
+
+
+@router.get("/mix/{job_id}")
+async def get_mix_job(
+    job_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    from app.services import mixing_mastering as mm
+
+    job = mm.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Mix job not found")
+    return {
+        "ok": True,
+        "job": job.to_dict(),
+        "summary": job.summary(),
+        "history": mm.store.get_job_history(job_id),
+        "engine": mm.ENGINE_LABEL,
+    }
+
+
+@router.get("/master/{job_id}")
+async def get_master_job(
+    job_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    from app.services import mixing_mastering as mm
+
+    job = mm.get_job(job_id)
+    if not job or not job.master_job_id:
+        # Also allow lookup by master id alias
+        job = mm.get_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Master job not found")
+    return {
+        "ok": True,
+        "job": job.to_dict(),
+        "summary": job.summary(),
+        "master_job_id": job.master_job_id,
+        "master_url": job.master_url,
+        "engine": mm.ENGINE_LABEL,
+    }
+
+
+@router.get("/quality-report/{job_id}")
+async def get_quality_report(
+    job_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    from app.services import mixing_mastering as mm
+
+    report = mm.get_quality_report(job_id)
+    if not report:
+        raise HTTPException(status_code=404, detail="Quality report not found")
+    return {"ok": True, "report": report, "engine": mm.ENGINE_LABEL}

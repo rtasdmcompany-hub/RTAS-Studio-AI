@@ -763,6 +763,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 logger.warning("Music generation skipped: %s", mg_exc)
 
             # Phase 4 Sprint 5 — Sound Effects & Ambient Audio Engine
+            sfx_summary = None
             try:
                 from app.services.sfx_ambient import generate_sfx_ambient
 
@@ -809,6 +810,46 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasSfxProductionReady"] = str(sfx_job.production_ready)
             except Exception as sfx_exc:
                 logger.warning("SFX/ambient generation skipped: %s", sfx_exc)
+
+            # Phase 4 Sprint 6 — Mixing & Mastering Engine (pre-export master)
+            try:
+                from app.services.mixing_mastering import run_mix_master
+
+                voice_summary = None
+                if body.fields.get("rtasVoiceGeneration"):
+                    try:
+                        voice_summary = json.loads(body.fields["rtasVoiceGeneration"])
+                    except Exception:
+                        voice_summary = {"job_id": body.fields.get("rtasVoiceJobId")}
+                video_summary = None
+                if body.fields.get("rtasVideoEngine"):
+                    try:
+                        video_summary = json.loads(body.fields["rtasVideoEngine"])
+                    except Exception:
+                        video_summary = {"job_id": body.fields.get("rtasVideoEngineJobId")}
+
+                mm = run_mix_master(
+                    kind="mix_master",
+                    voice_summary=voice_summary,
+                    music_summary=mg_summary,
+                    sfx_summary=sfx_summary,
+                    audio_engine_summary=audio_engine_summary,
+                    video_engine=video_summary,
+                    enqueue=True,
+                    auto_process=True,
+                    parent_generation_id=generation_id,
+                )
+                mm_summary = mm.summary()
+                body.fields["rtasMixMaster"] = json.dumps(mm_summary)[:4000]
+                body.fields["rtasMixJobId"] = mm.mix_job_id or mm.job_id
+                body.fields["rtasMasterJobId"] = mm.master_job_id or ""
+                body.fields["rtasAudioLufs"] = str(mm.loudness.integrated_lufs)
+                body.fields["rtasAudioQualityScore"] = str(mm.quality.overall_score)
+                body.fields["rtasAudioQualityGrade"] = mm.quality.grade
+                body.fields["rtasAudioMasterReady"] = str(mm.production_ready)
+                body.fields["rtasAudioMasterUrl"] = mm.master_url or ""
+            except Exception as mm_exc:
+                logger.warning("Mix/master skipped: %s", mm_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

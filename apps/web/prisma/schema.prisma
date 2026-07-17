@@ -41,6 +41,7 @@ model User {
   speakerProfiles SpeakerProfile[]
   musicJobs      MusicJob[]
   sfxJobs        SfxJob[]
+  mixJobs        AudioMixJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -874,4 +875,179 @@ model SfxCategoryLibrary {
 
   @@index([kind])
   @@index([active])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 6 — Mixing & Mastering
+// ---------------------------------------------------------------------------
+
+model AudioMixJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  status               String    @default("queued")
+  kind                 String    @default("mix_master")
+  mixJobId             String?
+  masterJobId          String?
+  targetLufs           Float     @default(-14)
+  truePeakCeiling      Float     @default(-1)
+  integratedLufs       Float?
+  truePeakDbtp         Float?
+  qualityScore         Float?
+  qualityGrade         String?
+  clarityScore         Float?
+  stereoWidth          Float?
+  productionReady      Boolean   @default(false)
+  assetUrl             String?
+  masterUrl            String?
+  exportFormat         String    @default("wav")
+  exportSampleRate     Int       @default(48000)
+  exportBitDepth       Int       @default(24)
+  provider             String?
+  audioVersion         Int       @default(1)
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  parentVoiceJobId     String?
+  parentMusicJobId     String?
+  parentSfxJobId       String?
+  parentAudioJobId     String?
+  parentVideoJobId     String?
+  parentGenerationId   String?
+  mixProfile           Json?
+  masterProfile        Json?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  masteringJobs        MasteringJob[]
+  mixProfiles          MixProfileRecord[]
+  masterProfiles       MasterProfileRecord[]
+  loudnessReports      LoudnessReport[]
+  frequencyAnalyses    FrequencyAnalysis[]
+  qualityReports       AudioQualityReport[]
+  exportMetadata       MixExportMetadata[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([kind])
+  @@index([backendJobId])
+  @@index([mixJobId])
+  @@index([masterJobId])
+}
+
+model MasteringJob {
+  id              String    @id @default(uuid())
+  audioMixJobId   String?
+  audioMixJob     AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  backendMasterId String?   @unique
+  status          String    @default("queued")
+  targetLufs      Float     @default(-14)
+  truePeakCeiling Float     @default(-1)
+  masterUrl       String?
+  qualityScore    Float?
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@index([audioMixJobId])
+  @@index([backendMasterId])
+}
+
+model MixProfileRecord {
+  id              String    @id @default(uuid())
+  audioMixJobId   String?
+  audioMixJob     AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  dialoguePriority Boolean  @default(true)
+  musicDuckingDb  Float     @default(-8)
+  sfxBalance      Float     @default(0.75)
+  ambientLevel    Float     @default(0.45)
+  compressionRatio Float    @default(3)
+  profile         Json?
+  createdAt       DateTime  @default(now())
+
+  @@index([audioMixJobId])
+}
+
+model MasterProfileRecord {
+  id                    String    @id @default(uuid())
+  audioMixJobId         String?
+  audioMixJob           AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  targetLufs            Float     @default(-14)
+  truePeakCeilingDbtp   Float     @default(-1)
+  stereoWidth           Float     @default(1.15)
+  noiseReduction        Boolean   @default(true)
+  profile               Json?
+  createdAt             DateTime  @default(now())
+
+  @@index([audioMixJobId])
+}
+
+model LoudnessReport {
+  id               String    @id @default(uuid())
+  audioMixJobId    String?
+  audioMixJob      AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  integratedLufs   Float
+  shortTermLufs    Float?
+  momentaryLufs    Float?
+  truePeakDbtp     Float?
+  peakDbfs         Float?
+  loudnessRangeLu  Float?
+  normalized       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  @@index([audioMixJobId])
+}
+
+model FrequencyAnalysis {
+  id                  String    @id @default(uuid())
+  audioMixJobId       String?
+  audioMixJob         AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  lowEnergy           Float?
+  midEnergy           Float?
+  highEnergy          Float?
+  spectralCentroidHz  Float?
+  tonalBalanceScore   Float?
+  bands               Json?
+  createdAt           DateTime  @default(now())
+
+  @@index([audioMixJobId])
+}
+
+model AudioQualityReport {
+  id               String    @id @default(uuid())
+  audioMixJobId    String?
+  audioMixJob      AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  lufs             Float?
+  peakDbfs         Float?
+  truePeakDbtp     Float?
+  dynamicRangeDb   Float?
+  stereoWidth      Float?
+  noiseFloorDb     Float?
+  frequencyBalance Float?
+  clarityScore     Float?
+  overallScore     Float?
+  grade            String?
+  productionReady  Boolean   @default(false)
+  notes            Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([audioMixJobId])
+  @@index([overallScore])
+}
+
+model MixExportMetadata {
+  id               String    @id @default(uuid())
+  audioMixJobId    String?
+  audioMixJob      AudioMixJob? @relation(fields: [audioMixJobId], references: [id], onDelete: Cascade)
+  format           String    @default("wav")
+  sampleRate       Int       @default(48000)
+  bitDepth         Int       @default(24)
+  masterUrl        String?
+  assetUrl         String?
+  metadata         Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([audioMixJobId])
 }
