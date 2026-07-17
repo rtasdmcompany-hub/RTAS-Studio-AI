@@ -131,6 +131,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         motion_summary: dict[str, Any] | None = None
         camera_motion_summary: dict[str, Any] | None = None
         physics_summary: dict[str, Any] | None = None
+        scene_render_summary: dict[str, Any] | None = None
         motion_plan_obj: Any | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
@@ -488,6 +489,43 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     )
             except Exception as phys_exc:
                 logger.warning("Physics plan skipped: %s", phys_exc)
+
+            # Phase 3 Sprint 8 — Scene Render Engine
+            try:
+                from app.services.scene_render import build_scene_render_plan
+
+                sr_plan = build_scene_render_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    scenes=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.scenes or [])
+                    ],
+                    cameras=[
+                        c.to_dict() if hasattr(c, "to_dict") else c
+                        for c in (plan.cameras or [])
+                    ],
+                    director_plan=plan.director_plan,
+                    scene_breakdown=plan.scene_breakdown,
+                    production_package=plan.production_package,
+                    production_render=plan.production_render,
+                    prompt_understanding=plan.prompt_understanding,
+                    visual_style=plan.visual_style,
+                    physics=physics_summary,
+                    camera_motion=camera_motion_summary,
+                    quality="production",
+                    duration_seconds=float(body.duration_seconds or 0) or None,
+                    enqueue_gpu=True,
+                    parent_generation_id=generation_id,
+                )
+                scene_render_summary = sr_plan.summary()
+                body.fields["rtasSceneRender"] = json.dumps(scene_render_summary)[
+                    :4000
+                ]
+                body.fields["rtasSceneRenderJobId"] = sr_plan.job_id
+                body.fields["rtasSceneRenderQuality"] = sr_plan.quality
+                body.fields["rtasRayTracingReady"] = str(sr_plan.ray_tracing_ready)
+            except Exception as sr_exc:
+                logger.warning("Scene render plan skipped: %s", sr_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -546,6 +584,18 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             else None,
             physics_particles=(physics_summary or {}).get("particle_systems")
             if physics_summary
+            else None,
+            scene_render_scenes=(scene_render_summary or {}).get("scenes")
+            if scene_render_summary
+            else None,
+            scene_render_job_id=(scene_render_summary or {}).get("job_id")
+            if scene_render_summary
+            else None,
+            scene_render_rt=(scene_render_summary or {}).get("ray_tracing_ready")
+            if scene_render_summary
+            else None,
+            scene_render_gpu=(scene_render_summary or {}).get("gpu_jobs")
+            if scene_render_summary
             else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
