@@ -712,6 +712,54 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                         logger.warning("Voice clone skipped: %s", clone_exc)
             except Exception as vg_exc:
                 logger.warning("Voice generation skipped: %s", vg_exc)
+
+            # Phase 4 Sprint 4 — Music Generation & Composition Engine
+            try:
+                from app.services.music_generation import generate_music
+
+                scenes_raw = plan.scenes or []
+                scenes_dicts = [
+                    s.to_dict() if hasattr(s, "to_dict") else s for s in scenes_raw
+                ]
+                director_raw = plan.director if hasattr(plan, "director") else None
+                director_dict = (
+                    director_raw.to_dict()
+                    if director_raw and hasattr(director_raw, "to_dict")
+                    else (director_raw if isinstance(director_raw, dict) else None)
+                )
+                cam_summary = body.fields.get("rtasCameraMotion")
+                video_summary = None
+                if body.fields.get("rtasVideoEngine"):
+                    try:
+                        video_summary = json.loads(body.fields["rtasVideoEngine"])
+                    except Exception:
+                        video_summary = {"job_id": body.fields.get("rtasVideoEngineJobId")}
+
+                mg = generate_music(
+                    prompt=locked_prompt if enhanced else raw_prompt,
+                    audio_director=plan.audio_director,
+                    video_engine=video_summary,
+                    director=director_dict,
+                    scenes=scenes_dicts if isinstance(scenes_dicts, list) else None,
+                    character_memory=plan.character_memory,
+                    camera_motion=cam_summary,
+                    enqueue=True,
+                    auto_process=True,
+                    parent_audio_job_id=(audio_engine_summary or {}).get("job_id"),
+                    parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                    parent_generation_id=generation_id,
+                )
+                mg_summary = mg.summary()
+                body.fields["rtasMusicGeneration"] = json.dumps(mg_summary)[:4000]
+                body.fields["rtasMusicJobId"] = mg.job_id
+                body.fields["rtasMusicGenre"] = mg.genre
+                body.fields["rtasMusicBpm"] = str(mg.controls.bpm)
+                body.fields["rtasMusicMood"] = mg.controls.mood
+                body.fields["rtasMusicDuration"] = str(mg.controls.duration_sec)
+                body.fields["rtasMusicLibraryId"] = mg.library_id or ""
+                body.fields["rtasMusicProductionReady"] = str(mg.production_ready)
+            except Exception as mg_exc:
+                logger.warning("Music generation skipped: %s", mg_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

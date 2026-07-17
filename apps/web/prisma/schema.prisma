@@ -39,6 +39,7 @@ model User {
   voiceClones    VoiceClone[]
   characterVoices CharacterVoice[]
   speakerProfiles SpeakerProfile[]
+  musicJobs      MusicJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -519,4 +520,167 @@ model VoiceTrainingHistory {
   createdAt           DateTime  @default(now())
 
   @@index([voiceCloneId, createdAt(sort: Desc)])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 4 — Music Generation & Composition
+// ---------------------------------------------------------------------------
+
+model MusicJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  status               String    @default("queued")
+  genre                String    @default("cinematic")
+  role                 String    @default("background")
+  title                String?
+  bpm                  Int       @default(90)
+  keySignature         String?   @map("key")
+  mood                 String?
+  energy               Float     @default(0.6)
+  intensity            Float     @default(0.5)
+  durationSec          Float     @default(30)
+  instruments          Json?
+  loop                 Boolean   @default(false)
+  fadeInSec            Float     @default(1)
+  fadeOutSec           Float     @default(2)
+  stems                Json?
+  assetUrl             String?
+  previewUrl           String?
+  stemUrls             Json?
+  libraryId            String?
+  provider             String?
+  musicVersion         Int       @default(1)
+  productionReady      Boolean   @default(false)
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  sceneEmotion         String?
+  sceneDurationSec     Float?
+  cameraMotion         String?
+  storyBeat            String?
+  parentAudioJobId     String?
+  parentVideoJobId     String?
+  parentGenerationId   String?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  compositionAssets    MusicCompositionAsset[]
+  libraryEntries       MusicLibraryEntry[]
+  metaRecords          MusicMeta[]
+  versions             MusicCompositionVersion[]
+  historyEntries       MusicHistoryEntry[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([genre])
+  @@index([backendJobId])
+  @@index([libraryId])
+}
+
+model MusicCompositionAsset {
+  id           String    @id @default(uuid())
+  musicJobId   String?
+  musicJob     MusicJob? @relation(fields: [musicJobId], references: [id], onDelete: Cascade)
+  format       String    @default("wav")
+  assetUrl     String?
+  filename     String?
+  stemName     String?
+  bytes        Int?
+  checksum     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([musicJobId])
+}
+
+model MusicLibraryEntry {
+  id           String    @id @default(uuid())
+  musicJobId   String?
+  musicJob     MusicJob? @relation(fields: [musicJobId], references: [id], onDelete: SetNull)
+  libraryId    String    @unique
+  title        String?
+  genre        String
+  role         String
+  bpm          Int?
+  keySignature String?   @map("key")
+  mood         String?
+  durationSec  Float?
+  instruments  Json?
+  loop         Boolean   @default(false)
+  assetUrl     String?
+  previewUrl   String?
+  musicVersion Int       @default(1)
+  tags         Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([genre])
+  @@index([role])
+  @@index([musicJobId])
+}
+
+model MusicMeta {
+  id           String    @id @default(uuid())
+  musicJobId   String?
+  musicJob     MusicJob? @relation(fields: [musicJobId], references: [id], onDelete: Cascade)
+  key          String
+  value        Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([musicJobId, key])
+}
+
+model MusicCompositionVersion {
+  id           String    @id @default(uuid())
+  musicJobId   String?
+  musicJob     MusicJob? @relation(fields: [musicJobId], references: [id], onDelete: Cascade)
+  version      Int
+  genre        String?
+  bpm          Int?
+  assetUrl     String?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([musicJobId, version])
+}
+
+model MusicHistoryEntry {
+  id           String    @id @default(uuid())
+  musicJobId   String?
+  musicJob     MusicJob? @relation(fields: [musicJobId], references: [id], onDelete: Cascade)
+  status       String?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([musicJobId, createdAt(sort: Desc)])
+}
+
+model GenreLibrary {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  name          String
+  defaultBpm    Int       @default(90)
+  defaultMood   String?
+  defaultEnergy Float     @default(0.6)
+  defaultKey    String?
+  tags          Json?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  @@index([active])
+}
+
+model InstrumentLibrary {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  name         String
+  family       String?
+  genres       Json?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  @@index([family])
+  @@index([active])
 }
