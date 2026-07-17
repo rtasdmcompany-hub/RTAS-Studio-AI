@@ -6,6 +6,7 @@ from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services import appearance as ap
 from app.services import character_generation as cg
 from app.services import face_lock as fl
 
@@ -80,6 +81,35 @@ class AvatarVerifyRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class AvatarStyleRequest(BaseModel):
+    character_id: str = Field(..., alias="characterId")
+    style_preset: str | None = Field(None, alias="stylePreset")
+    hairstyle: str | None = None
+    hair_color: str | None = Field(None, alias="hairColor")
+    beard_style: str | None = Field(None, alias="beardStyle")
+    eye_color: str | None = Field(None, alias="eyeColor")
+    skin_tone: str | None = Field(None, alias="skinTone")
+    body_type: str | None = Field(None, alias="bodyType")
+    height: str | None = None
+    clothing_style: str | None = Field(None, alias="clothingStyle")
+    shoes: str | None = None
+    accessories: list[str] | None = None
+
+    model_config = {"populate_by_name": True}
+
+
+class AvatarOutfitRequest(BaseModel):
+    character_id: str = Field(..., alias="characterId")
+    outfit_id: str | None = Field(None, alias="outfitId")
+    category: str | None = None
+    custom_name: str | None = Field(None, alias="customName")
+    clothing_style: str | None = Field(None, alias="clothingStyle")
+    shoes: str | None = None
+    accessories: list[str] | None = None
+
+    model_config = {"populate_by_name": True}
+
+
 def _feature_overrides(body: AvatarLockRequest | AvatarVerifyRequest) -> dict:
     raw = {
         "face_structure": body.face_structure,
@@ -93,6 +123,22 @@ def _feature_overrides(body: AvatarLockRequest | AvatarVerifyRequest) -> dict:
         "age": body.age,
         "skin_tone": body.skin_tone,
         "body_proportions": body.body_proportions,
+    }
+    return {k: v for k, v in raw.items() if v is not None}
+
+
+def _style_overrides(body: AvatarStyleRequest) -> dict:
+    raw = {
+        "hairstyle": body.hairstyle,
+        "hair_color": body.hair_color,
+        "beard_style": body.beard_style,
+        "eye_color": body.eye_color,
+        "skin_tone": body.skin_tone,
+        "body_type": body.body_type,
+        "height": body.height,
+        "clothing_style": body.clothing_style,
+        "shoes": body.shoes,
+        "accessories": body.accessories,
     }
     return {k: v for k, v in raw.items() if v is not None}
 
@@ -172,6 +218,53 @@ async def verify_avatar_identity(
     return {"ok": True, **result}
 
 
+@router.post("/style")
+async def set_avatar_style(
+    body: AvatarStyleRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    try:
+        overrides = _style_overrides(body)
+        result = ap.style_dict(
+            character_id=body.character_id,
+            style_preset=body.style_preset,
+            overrides=overrides or None,
+            hairstyle=body.hairstyle,
+            hair_color=body.hair_color,
+            beard_style=body.beard_style,
+            accessories=body.accessories,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Style apply failed") from exc
+    return {"ok": True, **result}
+
+
+@router.post("/outfit")
+async def set_avatar_outfit(
+    body: AvatarOutfitRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    try:
+        result = ap.outfit_dict(
+            character_id=body.character_id,
+            outfit_id=body.outfit_id,
+            category=body.category,
+            custom_name=body.custom_name,
+            clothing_style=body.clothing_style,
+            shoes=body.shoes,
+            accessories=body.accessories,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Outfit apply failed") from exc
+    return {"ok": True, **result}
+
+
 @router.get("/list")
 async def list_avatars(
     limit: int = Query(50, ge=1, le=500),
@@ -199,6 +292,30 @@ async def get_avatar_identity(
     payload = fl.get_identity(character_id)
     if not payload:
         raise HTTPException(status_code=404, detail="Identity lock not found")
+    return {"ok": True, **payload}
+
+
+@router.get("/style/{character_id}")
+async def get_avatar_style(
+    character_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    payload = ap.get_style(character_id)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Appearance style not found")
+    return {"ok": True, **payload}
+
+
+@router.get("/outfits/{character_id}")
+async def get_avatar_outfits(
+    character_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    payload = ap.get_outfits(character_id)
+    if not payload:
+        raise HTTPException(status_code=404, detail="Outfits not found")
     return {"ok": True, **payload}
 
 

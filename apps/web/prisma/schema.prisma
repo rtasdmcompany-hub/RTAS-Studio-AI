@@ -1875,3 +1875,77 @@ model FaceReferenceRecord {
   @@index([kind])
   @@index([faceLockJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 3 — AI Character Style & Appearance Engine
+// ---------------------------------------------------------------------------
+
+model AppearanceProfileJob {
+  id                  String    @id @default(uuid())
+  userId              String?
+  backendJobId        String?   @unique
+  characterId         String
+  profileId           String
+  stylePresetId       String?
+  activeOutfitId      String?
+  appearanceScore     Float?
+  driftDetected       Boolean   @default(false)
+  profileJson         Json?
+  facialFingerprint   String?
+  appearanceFingerprint String?
+  version             Int       @default(1)
+  productionReady     Boolean   @default(true)
+  metadata            Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  outfits AppearanceOutfitRecord[]
+  checks  AppearanceConsistencyRecord[]
+
+  @@index([characterId])
+  @@index([profileId])
+  @@index([stylePresetId])
+  @@index([activeOutfitId])
+}
+
+model AppearanceOutfitRecord {
+  id                    String    @id @default(uuid())
+  appearanceProfileJobId String?
+  appearanceProfileJob  AppearanceProfileJob? @relation(fields: [appearanceProfileJobId], references: [id], onDelete: Cascade)
+  characterId           String
+  outfitId              String
+  category              String
+  name                  String
+  clothingStyle         String
+  shoes                 String
+  accessories           Json?
+  custom                Boolean   @default(false)
+  active                Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([outfitId])
+  @@index([category])
+  @@index([appearanceProfileJobId])
+}
+
+model AppearanceConsistencyRecord {
+  id                    String    @id @default(uuid())
+  appearanceProfileJobId String?
+  appearanceProfileJob  AppearanceProfileJob? @relation(fields: [appearanceProfileJobId], references: [id], onDelete: Cascade)
+  characterId           String
+  appearanceScore       Float
+  consistent            Boolean   @default(false)
+  driftDetected         Boolean   @default(false)
+  facePreserved         Boolean   @default(true)
+  bodyPreserved         Boolean   @default(true)
+  hairPreserved         Boolean   @default(true)
+  clothingMatch         Boolean   @default(true)
+  accessoriesMatch      Boolean   @default(true)
+  driftFlags            Json?
+  notes                 Json?
+  createdAt             DateTime  @default(now())
+
+  @@index([characterId, createdAt(sort: Desc)])
+  @@index([appearanceProfileJobId])
+}

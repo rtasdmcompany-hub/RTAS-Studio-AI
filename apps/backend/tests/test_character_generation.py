@@ -35,6 +35,10 @@ def _ensure_parents(pkg_name: str):
 
 def _load_pkg(pkg_name: str, pkg_path: Path, modules: list[tuple[str, str]]):
     _ensure_parents(pkg_name)
+    if pkg_name in sys.modules and all(
+        f"{pkg_name}.{mod_name}" in sys.modules for mod_name, _ in modules
+    ):
+        return
     pkg = type(sys)(pkg_name)
     pkg.__path__ = [str(pkg_path)]
     sys.modules[pkg_name] = pkg
