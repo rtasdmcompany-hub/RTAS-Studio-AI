@@ -18,6 +18,7 @@ from app.api.routes import (
     talking_avatar,
     text_to_video,
     upload,
+    video_engine,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -38,3 +39,4 @@ api_router.include_router(camera_motion.router)
 api_router.include_router(physics.router)
 api_router.include_router(scene_render.router)
 api_router.include_router(multi_gpu.router)
+api_router.include_router(video_engine.router)

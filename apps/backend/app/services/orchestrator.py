@@ -133,6 +133,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
         physics_summary: dict[str, Any] | None = None
         scene_render_summary: dict[str, Any] | None = None
         multi_gpu_summary: dict[str, Any] | None = None
+        video_engine_summary: dict[str, Any] | None = None
         motion_plan_obj: Any | None = None
         if enhanced and body.fields is not None:
             # Preserve original; feed enhanced + identity lock into generation.
@@ -558,6 +559,49 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                     logger.warning("Multi GPU plan skipped: %s", mg_exc)
             except Exception as sr_exc:
                 logger.warning("Scene render plan skipped: %s", sr_exc)
+
+            # Phase 3 Sprint 10 — Production Ready Video Engine v1.0
+            try:
+                from app.services.video_engine import build_video_engine_plan
+
+                ve_plan = build_video_engine_plan(
+                    locked_prompt if enhanced else raw_prompt,
+                    intelligence=plan.to_dict(),
+                    director_plan=plan.director_plan,
+                    scenes=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.scenes or [])
+                    ],
+                    shots=[
+                        s.to_dict() if hasattr(s, "to_dict") else s
+                        for s in (plan.shots or [])
+                    ],
+                    cameras=[
+                        c.to_dict() if hasattr(c, "to_dict") else c
+                        for c in (plan.cameras or [])
+                    ],
+                    character_memory=plan.character_memory,
+                    cinematic_quality=plan.cinematic_quality,
+                    character_consistency=plan.character_consistency,
+                    production_render=plan.production_render,
+                    scene_render=scene_render_summary,
+                    camera_motion=camera_motion_summary,
+                    physics=physics_summary,
+                    multi_gpu=multi_gpu_summary,
+                    text_to_video=t2v_summary,
+                    auto_retry=True,
+                    run_stress=False,
+                    parent_generation_id=generation_id,
+                )
+                video_engine_summary = ve_plan.summary()
+                body.fields["rtasVideoEngine"] = json.dumps(video_engine_summary)[:4000]
+                body.fields["rtasVideoEngineJobId"] = ve_plan.job_id
+                body.fields["rtasVideoEngineVersion"] = ve_plan.version
+                body.fields["rtasProductionReady"] = str(ve_plan.production_ready)
+                body.fields["rtasQualityScore"] = str(ve_plan.quality.overall)
+                body.fields["rtasQualityGrade"] = ve_plan.quality.grade
+            except Exception as ve_exc:
+                logger.warning("Video engine plan skipped: %s", ve_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
@@ -640,6 +684,18 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
             else None,
             multi_gpu_skus=(multi_gpu_summary or {}).get("skus")
             if multi_gpu_summary
+            else None,
+            video_engine_job_id=(video_engine_summary or {}).get("job_id")
+            if video_engine_summary
+            else None,
+            video_engine_version=(video_engine_summary or {}).get("version")
+            if video_engine_summary
+            else None,
+            video_engine_ready=(video_engine_summary or {}).get("production_ready")
+            if video_engine_summary
+            else None,
+            video_engine_quality=(video_engine_summary or {}).get("quality_score")
+            if video_engine_summary
             else None,
             cinematic_score=(plan.cinematic_quality or {}).get("overall"),
             quality_passed=plan.quality.passed,
