@@ -2201,3 +2201,149 @@ model AnimationMetadataRecord {
   @@index([characterId])
   @@index([characterMotionJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 6 — AI Cinematic Camera & Shot Intelligence Engine
+// ---------------------------------------------------------------------------
+
+model CameraIntelligenceJob {
+  id                 String    @id @default(uuid())
+  userId             String?
+  backendJobId       String?   @unique
+  sceneId            String?
+  status             String    @default("queued")
+  promptPreview      String?
+  durationSec        Float?
+  shotCount          Int       @default(0)
+  primaryShotType    String?
+  primaryLens        String?
+  coverageScore      Float?
+  productionReady    Boolean   @default(true)
+  retryCount         Int       @default(0)
+  processingTimeMs   Float?
+  queueTimeMs        Float?
+  version            Int       @default(1)
+  analysisJson       Json?
+  integrationsJson   Json?
+  metadata           Json?
+  error              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  shots      CameraShotRecord[]
+  timeline   CameraTimelineRecord[]
+
+  @@index([backendJobId])
+  @@index([sceneId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+}
+
+model CameraShotRecord {
+  id                       String    @id @default(uuid())
+  cameraIntelligenceJobId  String?
+  cameraIntelligenceJob    CameraIntelligenceJob? @relation(fields: [cameraIntelligenceJobId], references: [id], onDelete: Cascade)
+  shotId                   String
+  shotType                 String
+  lensId                   String?
+  focalLengthMm            Float?
+  durationSec              Float?
+  startSec                 Float?
+  endSec                   Float?
+  framingJson              Json?
+  compositionJson          Json?
+  motionJson               Json?
+  metadata                 Json?
+  createdAt                DateTime  @default(now())
+
+  @@index([shotId])
+  @@index([shotType])
+  @@index([cameraIntelligenceJobId])
+}
+
+model CameraTimelineRecord {
+  id                       String    @id @default(uuid())
+  cameraIntelligenceJobId  String?
+  cameraIntelligenceJob    CameraIntelligenceJob? @relation(fields: [cameraIntelligenceJobId], references: [id], onDelete: Cascade)
+  eventId                  String
+  startSec                 Float
+  endSec                   Float
+  shotId                   String
+  shotType                 String
+  layer                    String    @default("camera")
+  createdAt                DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([cameraIntelligenceJobId])
+}
+
+model ShotLibraryEntry {
+  id          String    @id @default(uuid())
+  shotId      String    @unique
+  category    String?
+  payloadJson Json?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+}
+
+model LensLibraryEntry {
+  id             String    @id @default(uuid())
+  lensId         String    @unique
+  name           String?
+  focalLengthMm  Float?
+  aperture       Float?
+  depthOfField   String?
+  useCase        String?
+  payloadJson    Json?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  @@index([lensId])
+}
+
+model CameraPresetEntry {
+  id          String    @id @default(uuid())
+  presetId    String    @unique
+  name        String?
+  payloadJson Json?
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([presetId])
+}
+
+model CompositionProfileRecord {
+  id                       String    @id @default(uuid())
+  cameraIntelligenceJobId  String?
+  sceneId                  String?
+  ruleOfThirds             Boolean   @default(true)
+  leadRoom                 Boolean   @default(true)
+  headroom                 Boolean   @default(true)
+  profileJson              Json?
+  createdAt                DateTime  @default(now())
+
+  @@index([sceneId])
+  @@index([cameraIntelligenceJobId])
+}
+
+model ShotMetadataRecord {
+  id                       String    @id @default(uuid())
+  cameraIntelligenceJobId  String?
+  shotType                 String?
+  lensUsed                 String?
+  sceneId                  String?
+  processingTimeMs         Float?
+  queueTimeMs              Float?
+  retryCount               Int       @default(0)
+  errorsJson               Json?
+  metadata                 Json?
+  createdAt                DateTime  @default(now())
+
+  @@index([sceneId])
+  @@index([shotType])
+  @@index([cameraIntelligenceJobId])
+}

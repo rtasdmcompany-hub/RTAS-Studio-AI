@@ -5,6 +5,7 @@ from app.api.routes import (
     ai,
     audio,
     audio_engine,
+    camera,
     camera_motion,
     generate,
     health,
@@ -60,3 +61,4 @@ api_router.include_router(audio_pipeline.router)
 api_router.include_router(avatar.router)
 api_router.include_router(voice.router)
 api_router.include_router(motion.router)
+api_router.include_router(camera.router)
