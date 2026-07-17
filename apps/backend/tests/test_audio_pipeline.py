@@ -173,6 +173,25 @@ def test_simulation_pipeline_e2e():
 
 def test_live_pipeline_e2e():
     """Full live module chain — requires Phase 4 packages on PYTHONPATH."""
+    # Clear incomplete package stubs left by sibling unit-test loaders
+    doomed = [
+        k
+        for k in list(sys.modules)
+        if k.startswith("app.services.")
+        and k != "app.services.audio_pipeline"
+        and not k.startswith("app.services.audio_pipeline.")
+    ]
+    for k in doomed:
+        mod = sys.modules.get(k)
+        if mod is not None and (
+            not getattr(mod, "__file__", None)
+            or getattr(mod, "create_export", None) is None
+            and k.endswith("audio_export")
+        ):
+            # Only drop namespace stubs / incomplete loaders
+            if getattr(mod, "__file__", None) is None:
+                del sys.modules[k]
+
     job = engine.run_pipeline(
         "Live pipeline cinematic dialogue with music and effects",
         platform="tiktok",

@@ -144,14 +144,15 @@ def run_live_stages(
     character_memory: list[dict[str, Any]] | None = None,
 ) -> list[StageResult]:
     """Execute the full Phase 4 module chain using live engines."""
-    from app.services.audio_export import create_export, download_export
-    from app.services.audio_timeline import create_timeline
-    from app.services.localization import dub
-    from app.services.mixing_mastering import run_mix_master
-    from app.services.music_generation import generate_music
-    from app.services.sfx_ambient import generate_sfx_ambient
-    from app.services.voice_cloning import clone_voice
-    from app.services.voice_generation import generate_voice
+    # Import engine modules directly to avoid incomplete package stubs from unit tests.
+    from app.services.audio_export.engine import create_export, download_export
+    from app.services.audio_timeline.engine import create_timeline
+    from app.services.localization.engine import dub
+    from app.services.mixing_mastering.engine import run_mix_master
+    from app.services.music_generation.engine import generate_music
+    from app.services.sfx_ambient.engine import generate_sfx_ambient
+    from app.services.voice_cloning.engine import clone_voice
+    from app.services.voice_generation.engine import generate_voice
 
     stages: list[StageResult] = []
     scenes = scenes or [{"id": "s1", "emotion": "cinematic", "environment": "studio"}]
