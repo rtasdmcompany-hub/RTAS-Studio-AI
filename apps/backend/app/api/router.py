@@ -31,6 +31,7 @@ from app.api.routes import (
     upload,
     video_engine,
     voice,
+    world,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -64,3 +65,4 @@ api_router.include_router(voice.router)
 api_router.include_router(motion.router)
 api_router.include_router(camera.router)
 api_router.include_router(emotion.router)
+api_router.include_router(world.router)
