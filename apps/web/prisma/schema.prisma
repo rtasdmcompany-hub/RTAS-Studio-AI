@@ -46,6 +46,7 @@ model User {
   timelineJobs   TimelineJob[]
   exportJobs     ExportJob[]
   audioPipelineJobs AudioPipelineJob[]
+  avatarCharacterJobs AvatarCharacterJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -1694,4 +1695,99 @@ model AudioPipelineMetricsRecord {
   createdAt          DateTime  @default(now())
 
   @@index([audioPipelineJobId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 1 — AI Avatar & Character Generation Engine
+// ---------------------------------------------------------------------------
+
+model AvatarCharacterJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  characterId          String
+  uniqueId             String?
+  registrySlot         String?
+  status               String    @default("queued")
+  name                 String?
+  templateId           String?
+  characterVersion     Int       @default(1)
+  gender               String?
+  age                  Int?
+  ethnicity            String?
+  bodyType             String?
+  hairstyle            String?
+  beard                String?
+  skin                 String?
+  eyeColor             String?
+  clothing             String?
+  accessories          Json?
+  dnaFingerprint       String?
+  dnaJson              Json?
+  previewUrl           String?
+  dnaUrl               String?
+  productionReady      Boolean   @default(false)
+  paddleVerified       Boolean   @default(false)
+  provider             String?
+  parentGenerationId   String?
+  retryCount           Int       @default(0)
+  errorMessage         String?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  dnaRecords AvatarCharacterDNA[]
+  history    AvatarCharacterHistory[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([characterId])
+  @@index([registrySlot])
+  @@index([backendJobId])
+  @@index([status])
+}
+
+model AvatarCharacterDNA {
+  id                 String    @id @default(uuid())
+  avatarCharacterJobId String?
+  avatarCharacterJob AvatarCharacterJob? @relation(fields: [avatarCharacterJobId], references: [id], onDelete: Cascade)
+  characterId        String
+  dnaId              String
+  version            Int       @default(1)
+  fingerprint        String?
+  locked             Boolean   @default(true)
+  payload            Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([characterId])
+  @@index([dnaId])
+  @@index([avatarCharacterJobId])
+}
+
+model AvatarCharacterHistory {
+  id                   String    @id @default(uuid())
+  avatarCharacterJobId String?
+  avatarCharacterJob   AvatarCharacterJob? @relation(fields: [avatarCharacterJobId], references: [id], onDelete: Cascade)
+  status               String?
+  snapshot             Json?
+  createdAt            DateTime  @default(now())
+
+  @@index([avatarCharacterJobId, createdAt(sort: Desc)])
+}
+
+model AvatarCharacterRegistry {
+  id           String    @id @default(uuid())
+  slot         String    @unique
+  characterId  String?
+  uniqueId     String?
+  name         String?
+  snapshot     Json?
+  active       Boolean   @default(true)
+  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([active])
 }

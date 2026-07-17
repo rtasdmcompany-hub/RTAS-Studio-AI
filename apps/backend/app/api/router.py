@@ -16,6 +16,7 @@ from app.api.routes import (
     timeline,
     export,
     audio_pipeline,
+    avatar,
     motion_intelligence,
     multi_ai,
     multi_gpu,
@@ -54,3 +55,4 @@ api_router.include_router(localization.router)
 api_router.include_router(timeline.router)
 api_router.include_router(export.router)
 api_router.include_router(audio_pipeline.router)
+api_router.include_router(avatar.router)
