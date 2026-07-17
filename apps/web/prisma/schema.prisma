@@ -35,6 +35,7 @@ model User {
   generationJobs GenerationJob[]
   projects       Project[]
   audioJobs      AudioJob[]
+  voiceJobs      VoiceJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -153,6 +154,7 @@ model AudioJob {
   soundEffects       SoundEffectAsset[]
   timelineMeta       AudioTimelineMeta[]
   history            AudioGenerationHistory[]
+  voiceJobs          VoiceJob[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status])
@@ -232,4 +234,119 @@ model AudioGenerationHistory {
   createdAt    DateTime  @default(now())
 
   @@index([audioJobId, createdAt(sort: Desc)])
+}
+
+/** Phase 4 Sprint 2 — Voice Generation Engine */
+model VoiceJob {
+  id                  String    @id @default(uuid())
+  userId              String?
+  user                User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  audioJobId          String?
+  audioJob            AudioJob? @relation(fields: [audioJobId], references: [id], onDelete: SetNull)
+  backendJobId        String?   @unique
+  status              String    @default("queued")
+  text                String
+  language            String    @default("en")
+  voiceId             String
+  gender              String?
+  provider            String?
+  voiceModel          String?
+  speed               Float     @default(1)
+  pitch               Float     @default(0)
+  volume              Float     @default(1)
+  pauseMs             Int       @default(0)
+  ssml                String?
+  estimatedDurationSec Float    @default(0)
+  qualityScore        Float?
+  qualityGrade        String?
+  assetUrl            String?
+  productionReady     Boolean   @default(false)
+  exportReady         Boolean   @default(false)
+  retryCount          Int       @default(0)
+  queuePosition       Int?
+  errorMessage        String?
+  version             Int       @default(1)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  completedAt         DateTime?
+
+  profiles            VoiceProfile[]
+  synthAssets         VoiceSynthAsset[]
+  metaRecords         VoiceMeta[]
+  historyEntries      VoiceHistoryEntry[]
+  versions            VoiceVersion[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([language])
+  @@index([backendJobId])
+}
+
+model VoiceProfile {
+  id           String    @id @default(uuid())
+  voiceJobId   String?
+  voiceJob     VoiceJob? @relation(fields: [voiceJobId], references: [id], onDelete: Cascade)
+  voiceId      String
+  name         String?
+  language     String
+  gender       String?
+  style        String?
+  providerModel String?
+  sampleRate   Int       @default(24000)
+  tags         Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceId])
+  @@index([language])
+  @@index([voiceJobId])
+}
+
+model VoiceSynthAsset {
+  id           String    @id @default(uuid())
+  voiceJobId   String?
+  voiceJob     VoiceJob? @relation(fields: [voiceJobId], references: [id], onDelete: Cascade)
+  format       String    @default("wav")
+  assetUrl     String?
+  filename     String?
+  bytes        Int?
+  checksum     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceJobId])
+}
+
+model VoiceMeta {
+  id           String    @id @default(uuid())
+  voiceJobId   String?
+  voiceJob     VoiceJob? @relation(fields: [voiceJobId], references: [id], onDelete: Cascade)
+  key          String
+  value        Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceJobId, key])
+}
+
+model VoiceHistoryEntry {
+  id           String    @id @default(uuid())
+  voiceJobId   String?
+  voiceJob     VoiceJob? @relation(fields: [voiceJobId], references: [id], onDelete: Cascade)
+  status       String?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceJobId, createdAt(sort: Desc)])
+}
+
+model VoiceVersion {
+  id           String    @id @default(uuid())
+  voiceJobId   String?
+  voiceJob     VoiceJob? @relation(fields: [voiceJobId], references: [id], onDelete: Cascade)
+  version      Int
+  ssml         String?
+  assetUrl     String?
+  qualityScore Float?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([voiceJobId, version])
 }

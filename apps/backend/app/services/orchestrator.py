@@ -604,6 +604,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 logger.warning("Video engine plan skipped: %s", ve_exc)
 
             # Phase 4 Sprint 1 — AI Audio Production Engine
+            audio_engine_summary = None
             try:
                 from app.services.audio_engine import build_audio_engine_plan
 
@@ -624,6 +625,36 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasAudioProductionReady"] = str(ae_plan.production_ready)
             except Exception as ae_exc:
                 logger.warning("Audio engine plan skipped: %s", ae_exc)
+
+            # Phase 4 Sprint 2 — Voice Generation Engine
+            try:
+                from app.services.voice_generation import generate_voice
+
+                voice_seed = locked_prompt if enhanced else raw_prompt
+                vt = (plan.audio_director or {}).get("voice_timeline") or []
+                lang_hint = "en"
+                if isinstance(vt, list) and vt and isinstance(vt[0], dict):
+                    voice_seed = str(
+                        vt[0].get("text") or vt[0].get("dialogue") or voice_seed
+                    )
+                    lang_hint = str(vt[0].get("language") or "en")
+                vg = generate_voice(
+                    voice_seed[:2000],
+                    language=lang_hint,
+                    gender="female",
+                    enqueue=True,
+                    auto_process=True,
+                    parent_audio_job_id=(audio_engine_summary or {}).get("job_id"),
+                    parent_generation_id=generation_id,
+                )
+                vg_summary = vg.summary()
+                body.fields["rtasVoiceGeneration"] = json.dumps(vg_summary)[:4000]
+                body.fields["rtasVoiceJobId"] = vg.job_id
+                body.fields["rtasVoiceLanguage"] = vg.language
+                body.fields["rtasVoiceId"] = vg.voice_id
+                body.fields["rtasVoiceQuality"] = str(vg.quality.overall)
+            except Exception as vg_exc:
+                logger.warning("Voice generation skipped: %s", vg_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,
