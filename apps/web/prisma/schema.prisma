@@ -43,6 +43,7 @@ model User {
   sfxJobs        SfxJob[]
   mixJobs        AudioMixJob[]
   localizationJobs LocalizationJob[]
+  timelineJobs   TimelineJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -1226,4 +1227,179 @@ model LocalizationLanguageCatalog {
   createdAt     DateTime  @default(now())
 
   @@index([active])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 8 — Audio Timeline & Cinematic Synchronization
+// ---------------------------------------------------------------------------
+
+model TimelineJob {
+  id                       String    @id @default(uuid())
+  userId                   String?
+  user                     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId             String?   @unique
+  status                   String    @default("queued")
+  fps                      Float     @default(24)
+  durationSec              Float     @default(0)
+  trackCount               Int       @default(0)
+  sceneCount               Int       @default(0)
+  shotCount                Int       @default(0)
+  beatCount                Int       @default(0)
+  syncAccuracy             Float     @default(0)
+  locked                   Boolean   @default(false)
+  snapEnabled              Boolean   @default(true)
+  autoAlign                Boolean   @default(true)
+  productionReady          Boolean   @default(false)
+  exportUrl                String?
+  masterTimelineUrl        String?
+  provider                 String?
+  timelineVersion          Int       @default(1)
+  retryCount               Int       @default(0)
+  queuePosition            Int?
+  errorMessage             String?
+  parentVoiceJobId         String?
+  parentMusicJobId         String?
+  parentSfxJobId           String?
+  parentMixJobId           String?
+  parentLocalizationJobId  String?
+  parentVideoJobId         String?
+  parentGenerationId       String?
+  metadata                 Json?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  completedAt              DateTime?
+
+  tracks        TimelineTrackRecord[]
+  events        TimelineEventRecord[]
+  audioLayers   AudioLayerRecord[]
+  syncMetadata  SyncMetadataRecord[]
+  beatMarkers   BeatMarkerRecord[]
+  history       TimelineHistoryEntry[]
+  versions      TimelineVersionRecord[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([backendJobId])
+  @@index([parentGenerationId])
+}
+
+model TimelineTrackRecord {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  trackId       String
+  kind          String
+  name          String?
+  gainDb        Float     @default(0)
+  muted         Boolean   @default(false)
+  locked        Boolean   @default(false)
+  snapEnabled   Boolean   @default(true)
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId])
+  @@index([trackId])
+  @@index([kind])
+}
+
+model TimelineEventRecord {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  eventId       String
+  trackId       String
+  kind          String
+  startSec      Float     @default(0)
+  endSec        Float     @default(0)
+  label         String?
+  sceneId       String?
+  shotId        String?
+  frame         Int?
+  emotion       String?
+  assetUrl      String?
+  gainDb        Float     @default(0)
+  locked        Boolean   @default(false)
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId])
+  @@index([trackId])
+  @@index([sceneId])
+  @@index([shotId])
+}
+
+model AudioLayerRecord {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  layerId       String
+  name          String
+  trackIds      Json?
+  blendMode     String    @default("mix")
+  gainDb        Float     @default(0)
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId])
+  @@index([layerId])
+}
+
+model SyncMetadataRecord {
+  id                   String    @id @default(uuid())
+  timelineJobId        String?
+  timelineJob          TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  mode                 String    @default("auto")
+  fps                  Float     @default(24)
+  frameAccuracyMs      Float     @default(0)
+  syncAccuracy         Float     @default(0)
+  sceneCount           Int       @default(0)
+  shotCount            Int       @default(0)
+  beatCount            Int       @default(0)
+  lipSyncAligned       Boolean   @default(false)
+  emotionAligned       Boolean   @default(false)
+  cameraMusicAligned   Boolean   @default(false)
+  dynamicBalance       Boolean   @default(true)
+  snapGridMs           Float     @default(33.33)
+  details              Json?
+  createdAt            DateTime  @default(now())
+
+  @@index([timelineJobId])
+}
+
+model BeatMarkerRecord {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  markerId      String
+  timeSec       Float
+  beatIndex     Int       @default(0)
+  intensity     Float     @default(0.5)
+  bar           Int?
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId])
+  @@index([timeSec])
+}
+
+model TimelineHistoryEntry {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  status        String?
+  snapshot      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId, createdAt(sort: Desc)])
+}
+
+model TimelineVersionRecord {
+  id            String    @id @default(uuid())
+  timelineJobId String?
+  timelineJob   TimelineJob? @relation(fields: [timelineJobId], references: [id], onDelete: Cascade)
+  version       Int
+  label         String?
+  snapshot      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([timelineJobId, version])
 }

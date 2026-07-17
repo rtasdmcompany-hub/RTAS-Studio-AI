@@ -901,6 +901,97 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasDubbedAudioUrl"] = loc_job.dubbed_audio_url or ""
             except Exception as loc_exc:
                 logger.warning("Localization skipped: %s", loc_exc)
+
+            # Phase 4 Sprint 8 — Audio Timeline & Cinematic Synchronization
+            try:
+                from app.services.audio_timeline import create_timeline
+
+                def _parse_field(key: str):
+                    raw = body.fields.get(key)
+                    if not raw:
+                        return None
+                    try:
+                        return json.loads(raw)
+                    except Exception:
+                        return None
+
+                voice_summary = _parse_field("rtasVoiceGeneration")
+                music_summary = _parse_field("rtasMusicGeneration")
+                sfx_summary = _parse_field("rtasSfxAmbient")
+                ambient_summary = _parse_field("rtasSfxAmbient")
+                mix_summary = _parse_field("rtasMixMaster")
+                loc_summary = _parse_field("rtasLocalization")
+                lip_sync_meta = None
+                if isinstance(loc_summary, dict):
+                    lip_sync_meta = loc_summary.get("lip_sync_metadata")
+                if not lip_sync_meta:
+                    lip_sync_meta = {
+                        "cues": (plan.audio_director or {}).get("lip_sync_timeline") or []
+                    }
+
+                def _as_dicts(items):
+                    out = []
+                    for i, item in enumerate(items or []):
+                        if isinstance(item, dict):
+                            out.append(item)
+                        elif hasattr(item, "to_dict"):
+                            out.append(item.to_dict())
+                        else:
+                            out.append(
+                                {
+                                    "id": getattr(item, "id", i),
+                                    "emotion": getattr(item, "emotion", "neutral"),
+                                    "start_sec": getattr(item, "start_sec", i * 0.5),
+                                }
+                            )
+                    return out
+
+                scenes = _as_dicts(plan.scenes)
+                shots = _as_dicts(plan.shots)
+                camera_plan = (
+                    plan.camera_director
+                    if isinstance(getattr(plan, "camera_director", None), dict)
+                    else None
+                )
+
+                tl_job = create_timeline(
+                    fps=24.0,
+                    scenes=scenes,
+                    shots=shots,
+                    lip_sync=lip_sync_meta if isinstance(lip_sync_meta, dict) else None,
+                    camera_plan=camera_plan,
+                    audio_director=plan.audio_director
+                    if isinstance(plan.audio_director, dict)
+                    else None,
+                    voice_summary=voice_summary if isinstance(voice_summary, dict) else None,
+                    music_summary=music_summary if isinstance(music_summary, dict) else None,
+                    sfx_summary=sfx_summary if isinstance(sfx_summary, dict) else None,
+                    ambient_summary=ambient_summary
+                    if isinstance(ambient_summary, dict)
+                    else None,
+                    mix_summary=mix_summary if isinstance(mix_summary, dict) else None,
+                    localization_summary=loc_summary
+                    if isinstance(loc_summary, dict)
+                    else None,
+                    parent_voice_job_id=body.fields.get("rtasVoiceJobId"),
+                    parent_music_job_id=body.fields.get("rtasMusicJobId"),
+                    parent_sfx_job_id=body.fields.get("rtasSfxJobId"),
+                    parent_mix_job_id=body.fields.get("rtasMixJobId"),
+                    parent_localization_job_id=body.fields.get("rtasLocalizationJobId"),
+                    parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                    parent_generation_id=generation_id,
+                    enqueue=True,
+                    auto_process=True,
+                )
+                tl_summary = tl_job.summary()
+                body.fields["rtasAudioTimeline"] = json.dumps(tl_summary)[:4000]
+                body.fields["rtasTimelineJobId"] = tl_job.job_id
+                body.fields["rtasTimelineSyncAccuracy"] = str(tl_job.sync.sync_accuracy)
+                body.fields["rtasTimelineTrackCount"] = str(len(tl_job.tracks))
+                body.fields["rtasTimelineReady"] = str(tl_job.production_ready)
+                body.fields["rtasMasterTimelineUrl"] = tl_job.master_timeline_url or ""
+            except Exception as tl_exc:
+                logger.warning("Audio timeline skipped: %s", tl_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

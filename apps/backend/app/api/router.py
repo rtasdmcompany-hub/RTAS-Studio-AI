@@ -13,6 +13,7 @@ from app.api.routes import (
     jobs,
     lip_sync,
     localization,
+    timeline,
     motion_intelligence,
     multi_ai,
     multi_gpu,
@@ -48,3 +49,4 @@ api_router.include_router(audio_engine.router)
 api_router.include_router(audio.router)
 api_router.include_router(music.router)
 api_router.include_router(localization.router)
+api_router.include_router(timeline.router)
