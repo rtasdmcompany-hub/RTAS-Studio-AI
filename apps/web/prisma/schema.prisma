@@ -1791,3 +1791,87 @@ model AvatarCharacterRegistry {
   @@index([characterId])
   @@index([active])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 2 — AI Face Lock & Identity Engine
+// ---------------------------------------------------------------------------
+
+model FaceLockJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  backendJobId         String?   @unique
+  characterId          String
+  lockId               String
+  status               String    @default("locked")
+  faceEmbeddingRef     String?
+  identityStrength     Float     @default(0.95)
+  identityScore        Float?
+  driftDetected        Boolean   @default(false)
+  featuresJson         Json?
+  referenceUrl         String?
+  referenceKind        String?
+  version              Int       @default(1)
+  productionReady      Boolean   @default(true)
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  embeddings FaceEmbeddingRecord[]
+  verifications IdentityVerificationRecord[]
+  references FaceReferenceRecord[]
+
+  @@index([characterId])
+  @@index([lockId])
+  @@index([faceEmbeddingRef])
+  @@index([status])
+}
+
+model FaceEmbeddingRecord {
+  id               String    @id @default(uuid())
+  faceLockJobId    String?
+  faceLockJob      FaceLockJob? @relation(fields: [faceLockJobId], references: [id], onDelete: Cascade)
+  characterId      String
+  faceEmbeddingRef String
+  dimension        Int       @default(64)
+  locked           Boolean   @default(true)
+  regenerated      Boolean   @default(false)
+  vector           Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([faceEmbeddingRef])
+  @@index([faceLockJobId])
+}
+
+model IdentityVerificationRecord {
+  id               String    @id @default(uuid())
+  faceLockJobId    String?
+  faceLockJob      FaceLockJob? @relation(fields: [faceLockJobId], references: [id], onDelete: Cascade)
+  characterId      String
+  identityScore    Float
+  passed           Boolean   @default(false)
+  driftDetected    Boolean   @default(false)
+  cosineSimilarity Float?
+  driftFlags       Json?
+  notes            Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([characterId, createdAt(sort: Desc)])
+  @@index([faceLockJobId])
+}
+
+model FaceReferenceRecord {
+  id            String    @id @default(uuid())
+  faceLockJobId String?
+  faceLockJob   FaceLockJob? @relation(fields: [faceLockJobId], references: [id], onDelete: Cascade)
+  characterId   String
+  referenceId   String
+  kind          String
+  url           String
+  source        String?
+  createdAt     DateTime  @default(now())
+
+  @@index([characterId])
+  @@index([kind])
+  @@index([faceLockJobId])
+}
