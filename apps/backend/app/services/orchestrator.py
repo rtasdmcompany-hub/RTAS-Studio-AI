@@ -714,6 +714,7 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 logger.warning("Voice generation skipped: %s", vg_exc)
 
             # Phase 4 Sprint 4 — Music Generation & Composition Engine
+            mg_summary = None
             try:
                 from app.services.music_generation import generate_music
 
@@ -760,6 +761,54 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasMusicProductionReady"] = str(mg.production_ready)
             except Exception as mg_exc:
                 logger.warning("Music generation skipped: %s", mg_exc)
+
+            # Phase 4 Sprint 5 — Sound Effects & Ambient Audio Engine
+            try:
+                from app.services.sfx_ambient import generate_sfx_ambient
+
+                scenes_raw = plan.scenes or []
+                scenes_dicts = [
+                    s.to_dict() if hasattr(s, "to_dict") else s for s in scenes_raw
+                ]
+                director_raw = plan.director if hasattr(plan, "director") else None
+                director_dict = (
+                    director_raw.to_dict()
+                    if director_raw and hasattr(director_raw, "to_dict")
+                    else (director_raw if isinstance(director_raw, dict) else None)
+                )
+                cam_summary = body.fields.get("rtasCameraMotion")
+                video_summary = None
+                if body.fields.get("rtasVideoEngine"):
+                    try:
+                        video_summary = json.loads(body.fields["rtasVideoEngine"])
+                    except Exception:
+                        video_summary = {"job_id": body.fields.get("rtasVideoEngineJobId")}
+
+                sfx_job = generate_sfx_ambient(
+                    kind="scene",
+                    prompt=locked_prompt if enhanced else raw_prompt,
+                    audio_director=plan.audio_director,
+                    video_engine=video_summary,
+                    director=director_dict,
+                    scenes=scenes_dicts if isinstance(scenes_dicts, list) else None,
+                    music_summary=mg_summary,
+                    camera_motion=cam_summary,
+                    enqueue=True,
+                    auto_process=True,
+                    parent_audio_job_id=(audio_engine_summary or {}).get("job_id"),
+                    parent_music_job_id=(mg_summary or {}).get("job_id") if mg_summary else None,
+                    parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                    parent_generation_id=generation_id,
+                )
+                sfx_summary = sfx_job.summary()
+                body.fields["rtasSfxAmbient"] = json.dumps(sfx_summary)[:4000]
+                body.fields["rtasSfxJobId"] = sfx_job.job_id
+                body.fields["rtasSfxEnvironment"] = sfx_job.environment.environment
+                body.fields["rtasSfxCategories"] = ",".join(sfx_job.categories[:8])
+                body.fields["rtasSfxLayers"] = str(len(sfx_job.layers))
+                body.fields["rtasSfxProductionReady"] = str(sfx_job.production_ready)
+            except Exception as sfx_exc:
+                logger.warning("SFX/ambient generation skipped: %s", sfx_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

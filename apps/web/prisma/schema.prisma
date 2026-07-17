@@ -40,6 +40,7 @@ model User {
   characterVoices CharacterVoice[]
   speakerProfiles SpeakerProfile[]
   musicJobs      MusicJob[]
+  sfxJobs        SfxJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -682,5 +683,195 @@ model InstrumentLibrary {
   createdAt    DateTime  @default(now())
 
   @@index([family])
+  @@index([active])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 5 — Sound Effects & Ambient Audio
+// ---------------------------------------------------------------------------
+
+model SfxJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  status               String    @default("queued")
+  kind                 String    @default("scene")
+  categories           Json?
+  environment          String?
+  mood                 String?
+  energy               Float     @default(0.5)
+  sceneId              String?
+  durationSec          Float     @default(12)
+  volume               Float     @default(0.5)
+  loop                 Boolean   @default(false)
+  fadeInSec            Float     @default(0.5)
+  fadeOutSec           Float     @default(1)
+  assetUrl             String?
+  previewUrl           String?
+  libraryIds           Json?
+  provider             String?
+  audioVersion         Int       @default(1)
+  productionReady      Boolean   @default(false)
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  parentAudioJobId     String?
+  parentMusicJobId     String?
+  parentVideoJobId     String?
+  parentGenerationId   String?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  ambientAssets        AmbientAsset[]
+  sfxLibraryEntries    SfxLibraryEntry[]
+  environmentProfiles  EnvironmentProfile[]
+  audioLayers          AudioLayer[]
+  timelineEvents       SfxTimelineEvent[]
+  metaRecords          SfxAssetMeta[]
+  historyEntries       SfxHistoryEntry[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([kind])
+  @@index([environment])
+  @@index([backendJobId])
+  @@index([sceneId])
+}
+
+model AmbientAsset {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  category     String
+  kind         String    @default("ambient")
+  assetUrl     String?
+  filename     String?
+  durationSec  Float?
+  loop         Boolean   @default(true)
+  volume       Float     @default(0.5)
+  checksum     String?
+  createdAt    DateTime  @default(now())
+
+  @@index([sfxJobId])
+  @@index([category])
+}
+
+model SfxLibraryEntry {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: SetNull)
+  libraryId    String    @unique
+  category     String
+  kind         String
+  environment  String?
+  durationSec  Float?
+  loop         Boolean   @default(false)
+  volume       Float?
+  assetUrl     String?
+  audioVersion Int       @default(1)
+  tags         Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([category])
+  @@index([kind])
+  @@index([sfxJobId])
+}
+
+model EnvironmentProfile {
+  id                      String    @id @default(uuid())
+  sfxJobId                String?
+  sfxJob                  SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  environment             String
+  mood                    String?
+  energy                  Float     @default(0.5)
+  sceneId                 String?
+  recommendedCategories   Json?
+  metadata                Json?
+  createdAt               DateTime  @default(now())
+
+  @@index([environment])
+  @@index([sfxJobId])
+  @@index([sceneId])
+}
+
+model AudioLayer {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  layerId      String
+  category     String
+  kind         String
+  volume       Float     @default(0.5)
+  startSec     Float     @default(0)
+  endSec       Float     @default(0)
+  loop         Boolean   @default(false)
+  fadeInSec    Float     @default(0.5)
+  fadeOutSec   Float     @default(1)
+  spatial      Json?
+  assetUrl     String?
+  libraryId    String?
+  createdAt    DateTime  @default(now())
+
+  @@index([sfxJobId])
+  @@index([layerId])
+  @@index([category])
+}
+
+model SfxTimelineEvent {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  eventId      String
+  sceneId      String?
+  atSec        Float     @default(0)
+  category     String
+  action       String
+  layerId      String?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([sfxJobId, atSec])
+  @@index([sceneId])
+  @@index([eventId])
+}
+
+model SfxAssetMeta {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  key          String
+  value        Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([sfxJobId, key])
+}
+
+model SfxHistoryEntry {
+  id           String    @id @default(uuid())
+  sfxJobId     String?
+  sfxJob       SfxJob?   @relation(fields: [sfxJobId], references: [id], onDelete: Cascade)
+  status       String?
+  snapshot     Json?
+  createdAt    DateTime  @default(now())
+
+  @@index([sfxJobId, createdAt(sort: Desc)])
+}
+
+model SfxCategoryLibrary {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  name            String
+  kind            String    @default("sfx")
+  defaultVolume   Float     @default(0.5)
+  loopable        Boolean   @default(false)
+  tags            Json?
+  moodAffinity    Json?
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+
+  @@index([kind])
   @@index([active])
 }
