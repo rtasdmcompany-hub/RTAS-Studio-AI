@@ -1047,6 +1047,24 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 )
             except Exception as exp_exc:
                 logger.warning("Audio export skipped: %s", exp_exc)
+
+            # Phase 4 Sprint 10 — Complete Audio Production Pipeline v1.0
+            try:
+                from app.services.audio_pipeline import finalize_from_orchestrator_fields
+
+                pipe_job = finalize_from_orchestrator_fields(
+                    body.fields,
+                    parent_generation_id=generation_id,
+                )
+                pipe_summary = pipe_job.summary()
+                body.fields["rtasAudioPipeline"] = json.dumps(pipe_summary)[:4000]
+                body.fields["rtasAudioPipelineJobId"] = pipe_job.job_id
+                body.fields["rtasAudioQualityScore"] = str(pipe_job.quality.overall_score)
+                body.fields["rtasAudioQualityPassed"] = str(pipe_job.quality.passed)
+                body.fields["rtasAudioEngineVersion"] = pipe_job.version
+                body.fields["rtasAudioEngineReady"] = str(pipe_job.production_ready)
+            except Exception as pipe_exc:
+                logger.warning("Audio pipeline finalize skipped: %s", pipe_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

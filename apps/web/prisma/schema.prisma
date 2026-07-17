@@ -45,6 +45,7 @@ model User {
   localizationJobs LocalizationJob[]
   timelineJobs   TimelineJob[]
   exportJobs     ExportJob[]
+  audioPipelineJobs AudioPipelineJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -1574,4 +1575,123 @@ model ExportVersionRecord {
   createdAt   DateTime  @default(now())
 
   @@index([exportJobId, version])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 10 — Complete AI Audio Production Pipeline v1.0
+// ---------------------------------------------------------------------------
+
+model AudioPipelineJob {
+  id                   String    @id @default(uuid())
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId         String?   @unique
+  status               String    @default("queued")
+  prompt               String
+  platform             String    @default("youtube")
+  engineVersion        String    @default("1.0.0")
+  qualityScore         Float     @default(0)
+  qualityPassed        Boolean   @default(false)
+  productionReady      Boolean   @default(false)
+  stagesCompleted      Int       @default(0)
+  stagesTotal          Int       @default(15)
+  processingTimeMs     Float     @default(0)
+  queueTimeMs          Float     @default(0)
+  downloadUrl          String?
+  voiceJobId           String?
+  cloneId              String?
+  musicJobId           String?
+  sfxJobId             String?
+  mixJobId             String?
+  localizationJobId    String?
+  timelineJobId        String?
+  exportJobId          String?
+  parentGenerationId   String?
+  retryCount           Int       @default(0)
+  queuePosition        Int?
+  errorMessage         String?
+  provider             String?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  completedAt          DateTime?
+
+  qualityReports AudioQualityReportRecord[]
+  stageResults   AudioPipelineStageRecord[]
+  history        AudioPipelineHistoryEntry[]
+  metrics        AudioPipelineMetricsRecord[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([backendJobId])
+  @@index([parentGenerationId])
+  @@index([engineVersion])
+}
+
+model AudioQualityReportRecord {
+  id                     String    @id @default(uuid())
+  audioPipelineJobId     String?
+  audioPipelineJob       AudioPipelineJob? @relation(fields: [audioPipelineJobId], references: [id], onDelete: Cascade)
+  voiceQuality           Float     @default(0)
+  musicQuality           Float     @default(0)
+  audioSynchronization   Float     @default(0)
+  loudnessLufs           Float     @default(-14)
+  dynamicRange           Float     @default(0)
+  noiseScore             Float     @default(0)
+  clippingScore          Float     @default(0)
+  timelineAccuracy       Float     @default(0)
+  subtitleAccuracy       Float     @default(0)
+  localizationAccuracy   Float     @default(0)
+  overallScore           Float     @default(0)
+  passed                 Boolean   @default(false)
+  details                Json?
+  createdAt              DateTime  @default(now())
+
+  @@index([audioPipelineJobId])
+  @@index([overallScore])
+}
+
+model AudioPipelineStageRecord {
+  id                 String    @id @default(uuid())
+  audioPipelineJobId String?
+  audioPipelineJob   AudioPipelineJob? @relation(fields: [audioPipelineJobId], references: [id], onDelete: Cascade)
+  stage              String
+  status             String
+  stageJobId         String?
+  durationMs         Float     @default(0)
+  summary            Json?
+  errorMessage       String?
+  createdAt          DateTime  @default(now())
+
+  @@index([audioPipelineJobId])
+  @@index([stage])
+}
+
+model AudioPipelineHistoryEntry {
+  id                 String    @id @default(uuid())
+  audioPipelineJobId String?
+  audioPipelineJob   AudioPipelineJob? @relation(fields: [audioPipelineJobId], references: [id], onDelete: Cascade)
+  status             String?
+  snapshot           Json?
+  createdAt          DateTime  @default(now())
+
+  @@index([audioPipelineJobId, createdAt(sort: Desc)])
+}
+
+model AudioPipelineMetricsRecord {
+  id                 String    @id @default(uuid())
+  audioPipelineJobId String?
+  audioPipelineJob   AudioPipelineJob? @relation(fields: [audioPipelineJobId], references: [id], onDelete: Cascade)
+  totalProcessingMs  Float     @default(0)
+  queueTimeMs        Float     @default(0)
+  exportTimeMs       Float     @default(0)
+  downloadTimeMs     Float     @default(0)
+  memoryMbEstimate   Float     @default(0)
+  cpuPercentEstimate Float     @default(0)
+  gpuPercentEstimate Float?
+  successRate        Float     @default(0)
+  details            Json?
+  createdAt          DateTime  @default(now())
+
+  @@index([audioPipelineJobId])
 }
