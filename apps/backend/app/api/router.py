@@ -14,6 +14,7 @@ from app.api.routes import (
     lip_sync,
     localization,
     timeline,
+    export,
     motion_intelligence,
     multi_ai,
     multi_gpu,
@@ -50,3 +51,4 @@ api_router.include_router(audio.router)
 api_router.include_router(music.router)
 api_router.include_router(localization.router)
 api_router.include_router(timeline.router)
+api_router.include_router(export.router)

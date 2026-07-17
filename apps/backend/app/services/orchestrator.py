@@ -992,6 +992,61 @@ async def orchestrate_generation(body: GenerateRequest) -> GenerationJobResult:
                 body.fields["rtasMasterTimelineUrl"] = tl_job.master_timeline_url or ""
             except Exception as tl_exc:
                 logger.warning("Audio timeline skipped: %s", tl_exc)
+
+            # Phase 4 Sprint 9 — Audio Export, Delivery & Distribution
+            try:
+                from app.services.audio_export import create_export
+
+                def _parse_export_field(key: str):
+                    raw = body.fields.get(key)
+                    if not raw:
+                        return None
+                    try:
+                        return json.loads(raw)
+                    except Exception:
+                        return None
+
+                tl_summary = _parse_export_field("rtasAudioTimeline")
+                loc_summary = _parse_export_field("rtasLocalization")
+                mix_summary = _parse_export_field("rtasMixMaster")
+                platform = str(
+                    body.fields.get("rtasExportPlatform")
+                    or body.fields.get("exportPlatform")
+                    or "youtube"
+                )
+                exp_job = create_export(
+                    platform=platform,
+                    quality=str(body.fields.get("rtasExportQuality") or "high"),
+                    watermark=str(body.fields.get("rtasWatermark") or "").lower()
+                    in ("1", "true", "yes"),
+                    timeline_summary=tl_summary if isinstance(tl_summary, dict) else None,
+                    localization_summary=loc_summary
+                    if isinstance(loc_summary, dict)
+                    else None,
+                    mix_summary=mix_summary if isinstance(mix_summary, dict) else None,
+                    character_memory=plan.character_memory
+                    if isinstance(plan.character_memory, list)
+                    else None,
+                    parent_timeline_job_id=body.fields.get("rtasTimelineJobId"),
+                    parent_video_job_id=body.fields.get("rtasVideoEngineJobId"),
+                    parent_localization_job_id=body.fields.get("rtasLocalizationJobId"),
+                    parent_mix_job_id=body.fields.get("rtasMixJobId"),
+                    parent_generation_id=generation_id,
+                    enqueue=True,
+                    auto_process=True,
+                )
+                exp_summary = exp_job.summary()
+                body.fields["rtasAudioExport"] = json.dumps(exp_summary)[:4000]
+                body.fields["rtasExportJobId"] = exp_job.job_id
+                body.fields["rtasExportPlatform"] = exp_job.profile.platform
+                body.fields["rtasExportPackageUrl"] = exp_job.package_url or ""
+                body.fields["rtasExportDownloadUrl"] = exp_job.download_url or ""
+                body.fields["rtasExportReady"] = str(exp_job.production_ready)
+                body.fields["rtasExportSizeBytes"] = str(
+                    exp_job.observability.export_size_bytes
+                )
+            except Exception as exp_exc:
+                logger.warning("Audio export skipped: %s", exp_exc)
         _structured(
             "intelligence_ready",
             generation_id=generation_id,

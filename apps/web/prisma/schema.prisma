@@ -44,6 +44,7 @@ model User {
   mixJobs        AudioMixJob[]
   localizationJobs LocalizationJob[]
   timelineJobs   TimelineJob[]
+  exportJobs     ExportJob[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -1402,4 +1403,175 @@ model TimelineVersionRecord {
   createdAt     DateTime  @default(now())
 
   @@index([timelineJobId, version])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 Sprint 9 — Audio Export, Delivery & Distribution
+// ---------------------------------------------------------------------------
+
+model ExportJob {
+  id                        String    @id @default(uuid())
+  userId                    String?
+  user                      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  backendJobId              String?   @unique
+  status                    String    @default("queued")
+  platform                  String    @default("youtube")
+  profileId                 String?
+  quality                   String    @default("high")
+  videoFormat               String?
+  audioFormat               String?
+  resolution                String?
+  watermark                 Boolean   @default(false)
+  batchId                   String?
+  packageUrl                String?
+  downloadUrl               String?
+  signedUrl                 String?
+  expiresAt                 DateTime?
+  productionReady           Boolean   @default(false)
+  verified                  Boolean   @default(false)
+  exportSizeBytes           Int       @default(0)
+  downloadCount             Int       @default(0)
+  exportVersion             Int       @default(1)
+  retryCount                Int       @default(0)
+  queuePosition             Int?
+  errorMessage              String?
+  resumeToken               String?
+  provider                  String?
+  parentTimelineJobId       String?
+  parentVideoJobId          String?
+  parentLocalizationJobId   String?
+  parentMixJobId            String?
+  parentGenerationId        String?
+  metadata                  Json?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+  completedAt               DateTime?
+
+  profiles         ExportProfileRecord[]
+  assets           ExportAssetRecord[]
+  history          ExportHistoryEntry[]
+  deliveryLogs     DeliveryLog[]
+  downloadHistory  DownloadHistoryEntry[]
+  analytics        ExportAnalyticsRecord[]
+  versions         ExportVersionRecord[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([platform])
+  @@index([backendJobId])
+  @@index([batchId])
+  @@index([parentGenerationId])
+}
+
+model ExportProfileRecord {
+  id                String    @id @default(uuid())
+  exportJobId       String?
+  exportJob         ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  profileId         String
+  platform          String
+  label             String?
+  videoFormat       String?
+  audioFormat       String?
+  resolution        String?
+  width             Int?
+  height            Int?
+  videoBitrateKbps  Int?
+  audioBitrateKbps  Int?
+  audioLoudnessLufs Float?
+  videoCodec        String?
+  audioCodec        String?
+  fps               Float?
+  aspectRatio       String?
+  metadataFormat    String?
+  settings          Json?
+  createdAt         DateTime  @default(now())
+
+  @@index([exportJobId])
+  @@index([profileId])
+  @@index([platform])
+}
+
+model ExportAssetRecord {
+  id            String    @id @default(uuid())
+  exportJobId   String?
+  exportJob     ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  assetId       String
+  kind          String
+  format        String
+  url           String?
+  sizeBytes     Int       @default(0)
+  checksum      String?
+  mimeType      String?
+  verified      Boolean   @default(false)
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([exportJobId])
+  @@index([assetId])
+  @@index([kind])
+}
+
+model ExportHistoryEntry {
+  id          String    @id @default(uuid())
+  exportJobId String?
+  exportJob   ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  status      String?
+  snapshot    Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([exportJobId, createdAt(sort: Desc)])
+}
+
+model DeliveryLog {
+  id          String    @id @default(uuid())
+  exportJobId String?
+  exportJob   ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  event       String
+  url         String?
+  signed      Boolean   @default(false)
+  details     Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([exportJobId, createdAt(sort: Desc)])
+}
+
+model DownloadHistoryEntry {
+  id            String    @id @default(uuid())
+  exportJobId   String?
+  exportJob     ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  authorized    Boolean   @default(false)
+  downloadCount Int       @default(0)
+  details       Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([exportJobId, createdAt(sort: Desc)])
+}
+
+model ExportAnalyticsRecord {
+  id               String    @id @default(uuid())
+  exportJobId      String?
+  exportJob        ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  platform         String?
+  format           String?
+  sizeBytes        Int       @default(0)
+  processingTimeMs Float     @default(0)
+  downloadCount    Int       @default(0)
+  success          Boolean   @default(false)
+  compressionRatio Float     @default(1)
+  createdAt        DateTime  @default(now())
+
+  @@index([exportJobId])
+  @@index([platform])
+}
+
+model ExportVersionRecord {
+  id          String    @id @default(uuid())
+  exportJobId String?
+  exportJob   ExportJob? @relation(fields: [exportJobId], references: [id], onDelete: Cascade)
+  version     Int
+  label       String?
+  snapshot    Json?
+  createdAt   DateTime  @default(now())
+
+  @@index([exportJobId, version])
 }
