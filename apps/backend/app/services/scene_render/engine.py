@@ -212,16 +212,12 @@ def build_scene_render_plan(
         sp.directives = scene_directives(sp) + sp.directives
         passes.append(sp)
 
-    if _dbg:
-        print("enqueue", enqueue_gpu, flush=True)
     if enqueue_gpu:
         enqueue_many(gpu_jobs)
 
     mem_opt = optimize_memory_plan(budgets, quality=q)
     mem_opt["cache_stats"] = cache_stats()
     mem_opt["gpu_queue"] = queue_status()
-    if _dbg:
-        print("mem_opt ok", flush=True)
 
     timeline = []
     offset = 0.0
