@@ -1,4 +1,4 @@
-"""Billing & Subscription APIs — Phase 8 Sprint 1–2."""
+"""Billing & Subscription APIs — Phase 8 Sprint 1–2 / 5."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services import billing as billing_svc
+from app.services import billing_automation as automation_svc
 from app.services import paddle_billing as paddle_svc
 from app.services.enterprise_auth.errors import AccessError
 from app.services.multi_tenant.validation import ValidationError
@@ -28,6 +29,10 @@ def _svc():
 
 def _paddle():
     return paddle_svc.get_paddle_billing_service()
+
+
+def _auto():
+    return automation_svc.get_billing_automation_service()
 
 
 def _map(exc: Exception) -> HTTPException:
@@ -279,6 +284,125 @@ async def resume_subscription(
     try:
         return _paddle().subscriptions.resume(
             body.model_dump(by_alias=True), actor_id=actor
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+# --- Phase 8 Sprint 5 — Invoicing, tax, coupons, retries ---
+
+
+class CouponRequest(BaseModel):
+    organization_id: str = Field(..., alias="organizationId")
+    code: str
+    subtotal_usd: float | None = Field(None, alias="subtotalUsd")
+    invoice_id: str | None = Field(None, alias="invoiceId")
+    model_config = {"populate_by_name": True}
+
+
+class RetryPaymentRequest(BaseModel):
+    invoice_id: str = Field(..., alias="invoiceId")
+    succeed: bool | None = None
+    force_fail: bool = Field(False, alias="forceFail")
+    error: str | None = None
+    model_config = {"populate_by_name": True}
+
+
+@router.get("/invoices")
+async def list_invoices(
+    organization_id: str = Query(..., alias="organizationId"),
+    limit: int = Query(100, ge=1, le=500),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().invoices.list(
+            actor_id=actor, organization_id=organization_id, limit=limit
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.get("/invoices/{invoice_id}")
+async def get_invoice(
+    invoice_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().invoices.get(actor_id=actor, invoice_id=invoice_id)
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.post("/coupon/validate")
+async def validate_coupon(
+    body: CouponRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().coupons.validate(
+            body.model_dump(by_alias=True, exclude_none=True), actor_id=actor
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.post("/coupon/apply")
+async def apply_coupon(
+    body: CouponRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().coupons.apply(
+            body.model_dump(by_alias=True, exclude_none=True), actor_id=actor
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.get("/tax")
+async def get_tax(
+    organization_id: str = Query(..., alias="organizationId"),
+    country: str | None = Query(None),
+    amount_usd: float | None = Query(None, alias="amountUsd"),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().tax.get(
+            actor_id=actor,
+            organization_id=organization_id,
+            country=country,
+            amount_usd=amount_usd,
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.post("/retry-payment")
+async def retry_payment(
+    body: RetryPaymentRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _auto().retries.process(
+            body.model_dump(by_alias=True, exclude_none=True), actor_id=actor
         )
     except Exception as exc:
         raise _map(exc) from exc

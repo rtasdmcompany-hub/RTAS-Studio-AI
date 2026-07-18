@@ -3487,6 +3487,13 @@ model Organization {
   costCalculations          CostCalculation[]
   providerCostRates         ProviderCost[]
 
+  // Phase 8 Sprint 5 — Invoicing, tax, coupons & billing automation
+  invoiceItems              InvoiceItem[]
+  taxRecords                TaxRecord[]
+  couponUsages              CouponUsage[]
+  discountRecords           Discount[]
+  paymentRetries            PaymentRetry[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -4869,10 +4876,17 @@ model Invoice {
   status           String    @default("draft")
   currency         String    @default("USD")
   subtotalUsd      Float     @default(0)
+  discountUsd      Float     @default(0)
   taxUsd           Float     @default(0)
   totalUsd         Float     @default(0)
+  taxType          String    @default("none")
+  taxRate          Float     @default(0)
+  country          String    @default("US")
   billingCycle     String    @default("monthly")
   planKey          String?
+  couponCode       String?
+  receiptNumber    String?
+  pdfMetadataJson  Json?
   periodStart      DateTime?
   periodEnd        DateTime?
   issuedAt         DateTime?
@@ -4882,6 +4896,9 @@ model Invoice {
   metadataJson     Json?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  items            InvoiceItem[]
+  taxRecords       TaxRecord[]
+  paymentRetries   PaymentRetry[]
 
   @@unique([invoiceNumber])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -5220,5 +5237,127 @@ model ProviderCost {
   @@index([organizationId])
   @@index([active])
   @@map("ProviderCosts")
+}
+
+// =============================================================================
+// Phase 8 Sprint 5 — Invoicing, Tax, Coupons & Billing Automation
+// =============================================================================
+
+model InvoiceItem {
+  id               String   @id @default(uuid())
+  invoiceId        String
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  description      String
+  quantity         Float    @default(1)
+  unitPriceUsd     Float    @default(0)
+  amountUsd        Float    @default(0)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([organizationId])
+  @@map("InvoiceItems")
+}
+
+model TaxRecord {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceId        String?
+  invoice          Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  country          String
+  taxType          String
+  rate             Float    @default(0)
+  taxableUsd       Float    @default(0)
+  taxUsd           Float    @default(0)
+  exempt           Boolean  @default(false)
+  exemptionReason  String   @default("")
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([invoiceId])
+  @@index([country, taxType])
+  @@map("TaxRecords")
+}
+
+model Coupon {
+  id               String    @id @default(uuid())
+  code             String    @unique
+  couponType       String
+  percentOff       Float     @default(0)
+  amountOffUsd     Float     @default(0)
+  category         String    @default("promotional")
+  maxRedemptions   Int       @default(100)
+  redemptionCount  Int       @default(0)
+  perOrgLimit      Int       @default(1)
+  trialDays        Int       @default(0)
+  active           Boolean   @default(true)
+  expiresAt        DateTime?
+  metadataJson     Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  usages           CouponUsage[]
+
+  @@index([couponType])
+  @@index([active, expiresAt])
+  @@map("Coupons")
+}
+
+model CouponUsage {
+  id               String   @id @default(uuid())
+  couponId         String
+  coupon           Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  couponCode       String
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId          String?
+  discountUsd      Float    @default(0)
+  invoiceId        String?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([couponId])
+  @@index([couponCode])
+  @@map("CouponUsage")
+}
+
+model Discount {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  discountType     String
+  amountUsd        Float    @default(0)
+  percentOff       Float    @default(0)
+  couponCode       String?
+  invoiceId        String?
+  reason           String   @default("")
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([couponCode])
+  @@map("Discounts")
+}
+
+model PaymentRetry {
+  id               String    @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceId        String
+  invoice          Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  attempt          Int       @default(0)
+  maxAttempts      Int       @default(3)
+  status           String    @default("scheduled")
+  nextRetryAt      DateTime?
+  lastError        String    @default("")
+  actorId          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([invoiceId])
+  @@index([status, nextRetryAt])
+  @@map("PaymentRetries")
 }
 
