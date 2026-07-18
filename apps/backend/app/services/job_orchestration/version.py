@@ -1,0 +1,10 @@
+"""AI Job Orchestration Engine — Phase 6 Sprint 4."""
+
+ENGINE_NAME = "RTAS AI Job Orchestration Engine"
+ENGINE_VERSION = "1.0.0"
+ENGINE_LABEL = f"{ENGINE_NAME} v{ENGINE_VERSION}"
+PHASE = 6
+SPRINT = 4
+DEFAULT_MAX_CONCURRENT = 8
+DEFAULT_TIMEOUT_SEC = 120.0
+MAX_RETRIES = 3
