@@ -19,7 +19,12 @@ from app.services.world_intelligence.consistency import (
 from app.services.world_intelligence.library import list_world_library
 from app.services.world_intelligence.models import WorldIntelligenceJob, WorldObservability
 from app.services.world_intelligence.queue import world_queue
-from app.services.world_intelligence.version import ENGINE_LABEL, ENGINE_NAME, ENGINE_VERSION
+from app.services.world_intelligence.version import (
+    ENGINE_LABEL,
+    ENGINE_NAME,
+    ENGINE_VERSION,
+    WORLD_CONSISTENCY_THRESHOLD,
+)
 
 
 def _job_id(*parts: str) -> str:
@@ -183,7 +188,10 @@ def process_world_job(job_id: str) -> WorldIntelligenceJob | None:
                 ]
                 job.consistency.score = max(job.consistency.score, 92.0) if not job.consistency.drift_flags else job.consistency.score
                 job.consistency.no_continuity_breaks = len(job.consistency.drift_flags) == 0
-                job.consistency.consistent = job.consistency.no_continuity_breaks
+                job.consistency.consistent = (
+                    job.consistency.no_continuity_breaks
+                    and job.consistency.score >= WORLD_CONSISTENCY_THRESHOLD
+                )
         else:
             job.consistency = verify_consistency(job.world_id, blueprint)
 
