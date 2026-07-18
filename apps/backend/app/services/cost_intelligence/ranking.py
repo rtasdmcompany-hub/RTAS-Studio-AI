@@ -77,24 +77,34 @@ def _score_provider(provider: str) -> ProviderRank:
     )
 
 
+def _capable(provider: str, capability: str | None) -> bool:
+    if not capability:
+        return True
+    r = rates_for(provider)
+    cap = capability.lower()
+    if cap in ("text", "tokens", "chat", "code"):
+        return r["token_per_1k"] > 0
+    if cap in ("image", "images"):
+        return r["image"] > 0
+    if cap in ("video", "videos"):
+        return r["video_sec"] > 0
+    if cap == "voice":
+        return r["voice_sec"] > 0
+    if cap == "audio":
+        return r["audio_sec"] > 0 or r["voice_sec"] > 0
+    return True
+
+
 def rank_providers(*, capability: str | None = None) -> list[ProviderRank]:
-    """Rank all providers; optional capability soft-filter via rate card zeros."""
-    ranked = [_score_provider(p) for p in PROVIDER_CATALOG]
-    if capability:
-        cap = capability.lower()
-        # Soft preference: demote providers with no media rate for that capability
-        for item in ranked:
-            r = rates_for(item.provider)
-            if cap in ("image", "images") and r["image"] <= 0:
-                item.score *= 0.5
-            elif cap in ("video", "videos") and r["video_sec"] <= 0:
-                item.score *= 0.5
-            elif cap in ("voice",) and r["voice_sec"] <= 0:
-                item.score *= 0.5
-            elif cap in ("audio",) and r["audio_sec"] <= 0 and r["voice_sec"] <= 0:
-                item.score *= 0.5
-            elif cap in ("text", "tokens", "chat") and r["token_per_1k"] <= 0:
-                item.score *= 0.55
+    """Rank providers; capability filter excludes incompatible rate cards."""
+    ranked = [
+        _score_provider(p)
+        for p in PROVIDER_CATALOG
+        if _capable(p, capability)
+    ]
+    # Keep full catalog visible when no capability filter; if filter emptied, fall back
+    if not ranked:
+        ranked = [_score_provider(p) for p in PROVIDER_CATALOG]
     ranked.sort(key=lambda x: (-x.score, x.estimated_cost_per_1k, x.provider))
     for i, item in enumerate(ranked, start=1):
         item.rank = i

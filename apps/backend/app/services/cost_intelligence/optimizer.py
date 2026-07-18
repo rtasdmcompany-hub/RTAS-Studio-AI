@@ -19,6 +19,24 @@ def _mode_weights(mode: OptimizeMode) -> dict[str, float]:
     }.get(mode, {"cost": 0.30, "speed": 0.25, "quality": 0.25, "reliability": 0.20})
 
 
+def _supports_capability(provider: str, capability: str | None) -> bool:
+    if not capability:
+        return True
+    r = rates_for(provider)
+    cap = capability.lower()
+    if cap in ("text", "tokens", "chat", "code"):
+        return r["token_per_1k"] > 0
+    if cap in ("image", "images"):
+        return r["image"] > 0
+    if cap in ("video", "videos"):
+        return r["video_sec"] > 0
+    if cap == "voice":
+        return r["voice_sec"] > 0
+    if cap == "audio":
+        return r["audio_sec"] > 0 or r["voice_sec"] > 0
+    return True
+
+
 def optimize(
     *,
     mode: OptimizeMode = "balanced",
@@ -35,6 +53,8 @@ def optimize(
     scored: list[tuple[float, Any, float, float]] = []
 
     for item in ranked:
+        if not _supports_capability(item.provider, capability):
+            continue
         # Re-score with mode weights
         s = (
             (item.cost_score / 100.0) * weights["cost"]
@@ -54,6 +74,26 @@ def optimize(
         )
         latency = rates_for(item.provider)["latency_ms"]
         scored.append((s, item, breakdown.total_usd, latency))
+
+    if not scored:
+        # Fallback: score all ranked providers if capability filter emptied the set
+        for item in ranked:
+            s = (
+                (item.cost_score / 100.0) * weights["cost"]
+                + (item.speed_score / 100.0) * weights["speed"]
+                + (item.quality_score / 100.0) * weights["quality"]
+                + (item.reliability_score / 100.0) * weights["reliability"]
+            )
+            breakdown = calculate_cost(
+                item.provider,
+                tokens=tokens,
+                images=images,
+                video_sec=video_sec,
+                audio_sec=audio_sec,
+                voice_sec=voice_sec,
+            )
+            latency = rates_for(item.provider)["latency_ms"]
+            scored.append((s, item, breakdown.total_usd, latency))
 
     scored.sort(key=lambda x: (-x[0], x[2]))
     best_score, best, best_cost, best_latency = scored[0]
