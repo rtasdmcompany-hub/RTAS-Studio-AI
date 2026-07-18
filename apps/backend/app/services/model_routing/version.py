@@ -1,0 +1,8 @@
+"""AI Model Routing Engine — Phase 6 Sprint 3."""
+
+ENGINE_NAME = "RTAS AI Model Routing Engine"
+ENGINE_VERSION = "1.0.0"
+ENGINE_LABEL = f"{ENGINE_NAME} v{ENGINE_VERSION}"
+PHASE = 6
+SPRINT = 3
+ROUTING_ACCURACY_THRESHOLD = 85.0
