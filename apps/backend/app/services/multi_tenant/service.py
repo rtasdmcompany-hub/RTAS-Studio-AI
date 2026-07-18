@@ -37,7 +37,12 @@ class MultiTenantService:
     """Business logic for organizations, workspaces, teams, members, invites, RBAC."""
 
     def __init__(self, repo: MultiTenantRepository | None = None) -> None:
-        self.repo = repo or get_repository()
+        self._repo = repo
+
+    @property
+    def repo(self) -> MultiTenantRepository:
+        # Always resolve through the factory so resets cannot leave a stale repo handle.
+        return self._repo or get_repository()
 
     def status(self) -> dict[str, Any]:
         stats = self.repo.stats()
