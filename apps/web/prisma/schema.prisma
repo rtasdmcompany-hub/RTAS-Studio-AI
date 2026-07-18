@@ -3494,6 +3494,17 @@ model Organization {
   discountRecords           Discount[]
   paymentRetries            PaymentRetry[]
 
+  // Phase 8 Sprint 6 — Referral, affiliate & commission
+  referralCodes             ReferralCode[]
+  referrals                 Referral[]
+  affiliates                Affiliate[]
+  affiliateCampaigns        AffiliateCampaign[]
+  affiliateClicks           AffiliateClick[]
+  affiliateConversions      AffiliateConversion[]
+  commissions               Commission[]
+  payoutRequests            PayoutRequest[]
+  payoutHistoryEntries      PayoutHistory[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -5359,5 +5370,230 @@ model PaymentRetry {
   @@index([invoiceId])
   @@index([status, nextRetryAt])
   @@map("PaymentRetries")
+}
+
+// =============================================================================
+// Phase 8 Sprint 6 — Referral, Affiliate & Commission Engine
+// =============================================================================
+
+model ReferralCode {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUserId      String
+  code             String   @unique
+  link             String   @default("")
+  active           Boolean  @default(true)
+  uses             Int      @default(0)
+  maxUses          Int      @default(0)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  referrals        Referral[]
+
+  @@index([organizationId])
+  @@index([ownerUserId])
+  @@index([active])
+  @@map("ReferralCodes")
+}
+
+model Referral {
+  id                    String   @id @default(uuid())
+  organizationId        String
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  referralCodeId        String
+  referralCode          ReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  code                  String
+  referrerUserId        String
+  referredEmail         String   @default("")
+  referredUserId        String?
+  status                String   @default("invited")
+  rewardCredits         Int      @default(0)
+  referredBonusCredits  Int      @default(0)
+  invitedAt             DateTime @default(now())
+  signedUpAt            DateTime?
+  convertedAt           DateTime?
+  rewardedAt            DateTime?
+  metadataJson          Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([referrerUserId])
+  @@index([referredUserId])
+  @@index([status])
+  @@map("Referrals")
+}
+
+model Affiliate {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId             String
+  name               String   @default("")
+  email              String   @default("")
+  status             String   @default("active")
+  commissionType     String   @default("percentage")
+  commissionRate     Float    @default(20)
+  recurringRatePct   Float    @default(10)
+  payoutMethod       String   @default("paypal")
+  parentAffiliateId  String?
+  pendingUsd         Float    @default(0)
+  approvedUsd        Float    @default(0)
+  paidUsd            Float    @default(0)
+  lifetimeUsd        Float    @default(0)
+  metadataJson       Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  campaigns          AffiliateCampaign[]
+  clicks             AffiliateClick[]
+  conversions        AffiliateConversion[]
+  commissionEntries  Commission[]
+  payoutRequests     PayoutRequest[]
+  payoutHistory      PayoutHistory[]
+
+  @@unique([organizationId, userId])
+  @@index([status])
+  @@index([parentAffiliateId])
+  @@map("Affiliates")
+}
+
+model AffiliateCampaign {
+  id               String   @id @default(uuid())
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String
+  slug             String   @unique
+  link             String   @default("")
+  active           Boolean  @default(true)
+  clicks           Int      @default(0)
+  conversions      Int      @default(0)
+  revenueUsd       Float    @default(0)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  clickEvents      AffiliateClick[]
+  conversionEvents AffiliateConversion[]
+
+  @@index([affiliateId])
+  @@index([organizationId])
+  @@index([active])
+  @@map("AffiliateCampaigns")
+}
+
+model AffiliateClick {
+  id               String   @id @default(uuid())
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId       String?
+  campaign         AffiliateCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  source           String   @default("")
+  referrerUrl      String   @default("")
+  ipHash           String   @default("")
+  userAgent        String   @default("")
+  createdAt        DateTime @default(now())
+
+  @@index([affiliateId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@map("AffiliateClicks")
+}
+
+model AffiliateConversion {
+  id               String   @id @default(uuid())
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId       String?
+  campaign         AffiliateCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  orderRef         String   @default("")
+  kind             String   @default("one_time")
+  amountUsd        Float    @default(0)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  commissions      Commission[]
+
+  @@index([affiliateId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@map("AffiliateConversions")
+}
+
+model Commission {
+  id               String   @id @default(uuid())
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversionId     String?
+  conversion       AffiliateConversion? @relation(fields: [conversionId], references: [id], onDelete: SetNull)
+  level            Int      @default(1)
+  commissionType   String   @default("percentage")
+  kind             String   @default("one_time")
+  baseAmountUsd    Float    @default(0)
+  rate             Float    @default(0)
+  amountUsd        Float    @default(0)
+  status           String   @default("pending")
+  payoutId         String?
+  approvedAt       DateTime?
+  paidAt           DateTime?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([affiliateId, createdAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([conversionId])
+  @@map("Commissions")
+}
+
+model PayoutRequest {
+  id               String   @id @default(uuid())
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  amountUsd        Float    @default(0)
+  status           String   @default("requested")
+  method           String   @default("paypal")
+  note             String   @default("")
+  commissionIdsJson Json?
+  requestedAt      DateTime @default(now())
+  processedAt      DateTime?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  history          PayoutHistory[]
+
+  @@index([affiliateId, createdAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("PayoutRequests")
+}
+
+model PayoutHistory {
+  id               String   @id @default(uuid())
+  payoutId         String
+  payout           PayoutRequest @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  affiliateId      String
+  affiliate        Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  action           String
+  amountUsd        Float    @default(0)
+  detail           String   @default("")
+  actorId          String?
+  createdAt        DateTime @default(now())
+
+  @@index([payoutId])
+  @@index([affiliateId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@map("PayoutHistory")
 }
 

@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 8 invoicing, tax & billing automation."""
+    """Production readiness probe — Phase 8 referral, affiliate & commission."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,7 +33,7 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 8,
-        "sprint": 5,
+        "sprint": 6,
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,
@@ -45,6 +45,8 @@ async def ready():
         "quota_engine": "RTAS Credit Consumption, Usage Metering & Quota Engine v1.0",
         "billing_automation": "RTAS Invoicing, Tax, Coupons & Billing Automation Engine v1.0",
         "invoice_engine": "RTAS Invoicing, Tax, Coupons & Billing Automation Engine v1.0",
+        "referral_engine": "RTAS Referral, Affiliate & Commission Engine v1.0",
+        "affiliate_engine": "RTAS Referral, Affiliate & Commission Engine v1.0",
         "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
         "project_engine": "RTAS Project Management & Collaboration Engine v1.0",
         "asset_engine": "RTAS Enterprise Asset Management & Digital Library Engine v1.0",
