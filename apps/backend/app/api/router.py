@@ -18,8 +18,10 @@ from app.api.routes import (
     lip_sync,
     localization,
     memory,
+    pipeline,
     timeline,
     export,
+    workflow,
     audio_pipeline,
     avatar,
     motion,
@@ -56,6 +58,8 @@ api_router.include_router(ai_router.router)
 api_router.include_router(memory.router)
 api_router.include_router(context.router)
 api_router.include_router(knowledge.router)
+api_router.include_router(workflow.router)
+api_router.include_router(pipeline.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

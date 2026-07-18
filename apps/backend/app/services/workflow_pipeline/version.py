@@ -1,0 +1,12 @@
+"""AI Workflow Automation & Pipeline Engine versioning."""
+
+ENGINE_NAME = "RTAS AI Workflow Automation & Pipeline Engine"
+ENGINE_VERSION = "1.0.0"
+ENGINE_LABEL = f"{ENGINE_NAME} v{ENGINE_VERSION}"
+PHASE = 6
+SPRINT = 7
+
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_STAGE_TIMEOUT_SEC = 30.0
+DEFAULT_MAX_CONCURRENT = 4
+MAX_WORKFLOWS = 5000

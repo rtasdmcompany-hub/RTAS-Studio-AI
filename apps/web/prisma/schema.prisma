@@ -3022,3 +3022,105 @@ model RetrievalIndex {
   @@index([userId, sourceType])
   @@index([projectId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 Sprint 7 — AI Workflow Automation & Pipeline Engine
+// ---------------------------------------------------------------------------
+
+model WorkflowJob {
+  id               String    @id @default(uuid())
+  userId           String
+  projectId        String?
+  name             String
+  templateId       String
+  status           String    @default("draft")
+  prompt           String
+  activeStage      String?
+  retryCount       Int       @default(0)
+  maxRetries       Int       @default(3)
+  autoTrigger      Boolean   @default(true)
+  stagesJson       Json?
+  logsJson         Json?
+  notificationsJson Json?
+  metadataJson     Json?
+  processingTimeMs Float     @default(0)
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([projectId, status])
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model PipelineJob {
+  id               String    @id @default(uuid())
+  workflowId       String
+  userId           String
+  status           String    @default("pending")
+  activeStage      String?
+  completedStagesJson Json?
+  failedStagesJson Json?
+  retryCount       Int       @default(0)
+  processingTimeMs Float     @default(0)
+  logsJson         Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([workflowId])
+  @@index([userId, status])
+  @@index([updatedAt(sort: Desc)])
+}
+
+model AutomationLog {
+  id         String   @id @default(uuid())
+  workflowId String
+  action     String
+  detail     String
+  stage      String?
+  createdAt  DateTime @default(now())
+
+  @@index([workflowId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+}
+
+model WorkflowTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  stagesJson  Json
+  builtin     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([builtin])
+}
+
+model PipelineHistory {
+  id         String   @id @default(uuid())
+  workflowId String
+  userId     String
+  status     String
+  summary    String?
+  stagesJson Json?
+  runtimeMs  Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([workflowId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model ExecutionTimeline {
+  id         String   @id @default(uuid())
+  workflowId String
+  stage      String?
+  eventType  String
+  message    String
+  payloadJson Json?
+  createdAt  DateTime @default(now())
+
+  @@index([workflowId, createdAt(sort: Desc)])
+  @@index([stage, createdAt(sort: Desc)])
+}
