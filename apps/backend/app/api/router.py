@@ -4,6 +4,7 @@ from app.api.routes import (
     access,
     admin,
     ai,
+    analytics,
     assets,
     audio,
     audio_engine,
@@ -91,6 +92,9 @@ api_router.include_router(comms.announcements_router)
 api_router.include_router(version_control.versions_router)
 api_router.include_router(version_control.reviews_router)
 api_router.include_router(version_control.changelog_router)
+api_router.include_router(analytics.analytics_router)
+api_router.include_router(analytics.reports_router)
+api_router.include_router(analytics.kpi_router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

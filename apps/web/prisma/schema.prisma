@@ -85,6 +85,9 @@ model User {
   orgProjectReviewComments    OrgProjectReviewComment[]   @relation("OrgProjectReviewCommentAuthor")
   orgProjectChangeLogs        OrgProjectChangeLog[]       @relation("OrgProjectChangeActor")
   orgProjectRollbacks         OrgProjectRollbackHistory[] @relation("OrgProjectRollbackActor")
+
+  // Phase 7 Sprint 8 — Reporting, analytics & BI
+  analyticsReportsGenerated   AnalyticsReportHistory[]    @relation("AnalyticsReportGenerator")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3435,6 +3438,13 @@ model Organization {
   orgProjectReviews OrgProjectReview[]
   orgProjectChangeLogs OrgProjectChangeLog[]
   orgProjectRollbacks OrgProjectRollbackHistory[]
+  analyticsRecords AnalyticsRecord[]
+  businessMetrics BusinessMetric[]
+  kpiRecords KpiRecord[]
+  analyticsReports AnalyticsReportHistory[]
+  usageStatistics UsageStatistic[]
+  performanceStatistics PerformanceStatistic[]
+  forecastRecords ForecastRecord[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3470,6 +3480,13 @@ model Workspace {
   orgProjectReviews OrgProjectReview[]
   orgProjectChangeLogs OrgProjectChangeLog[]
   orgProjectRollbacks OrgProjectRollbackHistory[]
+  analyticsRecords AnalyticsRecord[]
+  businessMetrics BusinessMetric[]
+  kpiRecords KpiRecord[]
+  analyticsReports AnalyticsReportHistory[]
+  usageStatistics UsageStatistic[]
+  performanceStatistics PerformanceStatistic[]
+  forecastRecords ForecastRecord[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -4367,5 +4384,144 @@ model OrgProjectRollbackHistory {
   @@index([organizationId, projectId, createdAt(sort: Desc)])
   @@index([actorId])
   @@index([toVersionId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 8 — Enterprise Reporting, Analytics & Business Intelligence
+// ---------------------------------------------------------------------------
+
+model AnalyticsRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  category       String
+  metricKey      String
+  metricValue    Float    @default(0)
+  dimensionsJson Json?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, category, recordedAt(sort: Desc)])
+  @@index([workspaceId, recordedAt(sort: Desc)])
+  @@index([metricKey])
+}
+
+model BusinessMetric {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  name           String
+  value          Float    @default(0)
+  unit           String?
+  period         String   @default("daily")
+  metadataJson   Json?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, name, recordedAt(sort: Desc)])
+  @@index([period])
+}
+
+model KpiRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  kpiKey         String
+  label          String
+  value          Float    @default(0)
+  target         Float?
+  unit           String?
+  trend          String?
+  metadataJson   Json?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, kpiKey, recordedAt(sort: Desc)])
+  @@index([workspaceId])
+}
+
+model AnalyticsReportHistory {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  generatedById  String?
+  generatedBy    User?    @relation("AnalyticsReportGenerator", fields: [generatedById], references: [id], onDelete: SetNull)
+  reportType     String
+  scope          String   @default("organization")
+  title          String
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  status         String   @default("ready")
+  payloadJson    Json?
+  durationMs     Float    @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, reportType, createdAt(sort: Desc)])
+  @@index([scope])
+  @@index([generatedById])
+}
+
+model UsageStatistic {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  usageType      String
+  count          Int      @default(0)
+  bytes          BigInt   @default(0)
+  metadataJson   Json?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, usageType, recordedAt(sort: Desc)])
+  @@index([workspaceId])
+}
+
+model PerformanceStatistic {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  metricKey      String
+  avgMs          Float    @default(0)
+  p95Ms          Float    @default(0)
+  successRate    Float    @default(1)
+  sampleCount    Int      @default(0)
+  metadataJson   Json?
+  recordedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, metricKey, recordedAt(sort: Desc)])
+  @@index([workspaceId])
+}
+
+model ForecastRecord {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  metricKey      String
+  horizonDays    Int      @default(30)
+  predictedValue Float    @default(0)
+  confidence     Float    @default(0.7)
+  method         String   @default("linear")
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, metricKey, createdAt(sort: Desc)])
+  @@index([workspaceId])
 }
 
