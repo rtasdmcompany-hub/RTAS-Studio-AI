@@ -59,6 +59,10 @@ model User {
   orgProjectMembers  OrgProjectMember[]
   orgProjectNotes    OrgProjectNote[]     @relation("OrgProjectNoteAuthor")
   orgProjectTasksAssigned OrgProjectTask[] @relation("OrgProjectTaskAssignee")
+
+  // Phase 7 Sprint 5 — Asset library
+  ownedLibraryAssets LibraryAsset[]       @relation("LibraryAssetOwner")
+  libraryAssetPermissions LibraryAssetPermission[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3397,6 +3401,8 @@ model Organization {
   activityLogs TeamActivityLog[]
   orgProjects OrgProject[]
   orgProjectTemplates OrgProjectTemplate[]
+  libraryAssets LibraryAsset[]
+  libraryCollections LibraryAssetCollection[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3420,6 +3426,8 @@ model Workspace {
   settings WorkspaceSettings?
   activityLogs TeamActivityLog[]
   orgProjects OrgProject[]
+  libraryAssets LibraryAsset[]
+  libraryCollections LibraryAssetCollection[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -3780,5 +3788,179 @@ model OrgProjectTask {
 
   @@index([projectId, status])
   @@index([assigneeId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 5 — Enterprise Asset Management & Digital Library Engine
+// ---------------------------------------------------------------------------
+
+model LibraryAsset {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  ownerId        String
+  owner          User     @relation("LibraryAssetOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  assetType      String
+  mimeType       String?
+  category       String   @default("general")
+  status         String   @default("active")
+  storageKey     String
+  storageUrl     String?
+  sizeBytes      Int      @default(0)
+  checksum       String?
+  currentVersion Int      @default(1)
+  isFavorite     Boolean  @default(false)
+  isShared       Boolean  @default(false)
+  downloadCount  Int      @default(0)
+  useCount       Int      @default(0)
+  tagsJson       Json?
+  metadataJson   Json?
+  previewUrl     String?
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  versions    LibraryAssetVersion[]
+  metadata    LibraryAssetMetadata?
+  tags        LibraryAssetTag[]
+  permissions LibraryAssetPermission[]
+  activity    LibraryAssetActivity[]
+  collections LibraryAssetCollectionItem[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, assetType, createdAt(sort: Desc)])
+  @@index([workspaceId, status])
+  @@index([ownerId])
+  @@index([category])
+  @@index([status])
+  @@index([isFavorite])
+  @@index([deletedAt])
+}
+
+model LibraryAssetVersion {
+  id         String   @id @default(uuid())
+  assetId    String
+  asset      LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  version    Int
+  storageKey String
+  storageUrl String?
+  sizeBytes  Int      @default(0)
+  checksum   String?
+  note       String?
+  createdById String
+  createdAt  DateTime @default(now())
+
+  @@unique([assetId, version])
+  @@index([assetId, createdAt(sort: Desc)])
+}
+
+model LibraryAssetMetadata {
+  id        String   @id @default(uuid())
+  assetId   String   @unique
+  asset     LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  title     String?
+  description String?
+  width     Int?
+  height    Int?
+  durationSec Float?
+  language  String?
+  attributesJson Json?
+  embeddingHint String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LibraryAssetTag {
+  id        String   @id @default(uuid())
+  assetId   String
+  asset     LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tag       String
+  createdAt DateTime @default(now())
+
+  @@unique([assetId, tag])
+  @@index([tag])
+}
+
+model LibraryAssetCategory {
+  id             String   @id @default(uuid())
+  organizationId String?
+  key            String
+  name           String
+  description    String?
+  isSystem       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, key])
+  @@index([key])
+}
+
+model LibraryAssetPermission {
+  id        String   @id @default(uuid())
+  assetId   String
+  asset     LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  subjectType String
+  subjectId String
+  role      String   @default("read")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([assetId, subjectType, subjectId])
+  @@index([subjectType, subjectId])
+  @@index([userId])
+}
+
+model LibraryAssetActivity {
+  id        String   @id @default(uuid())
+  assetId   String
+  asset     LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  actorId   String
+  action    String
+  detail    String?
+  metadataJson Json?
+  createdAt DateTime @default(now())
+
+  @@index([assetId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([action])
+}
+
+model LibraryAssetCollection {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  name           String
+  slug           String
+  libraryScope   String   @default("organization")
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items LibraryAssetCollectionItem[]
+
+  @@unique([organizationId, slug])
+  @@index([workspaceId])
+  @@index([libraryScope])
+}
+
+model LibraryAssetCollectionItem {
+  id           String   @id @default(uuid())
+  collectionId String
+  collection   LibraryAssetCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  assetId      String
+  asset        LibraryAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  position     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@unique([collectionId, assetId])
+  @@index([assetId])
 }
 

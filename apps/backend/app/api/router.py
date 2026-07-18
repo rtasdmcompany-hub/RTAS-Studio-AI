@@ -4,6 +4,7 @@ from app.api.routes import (
     access,
     admin,
     ai,
+    assets,
     audio,
     audio_engine,
     camera,
@@ -80,6 +81,7 @@ api_router.include_router(teams.router)
 api_router.include_router(invitations.router)
 api_router.include_router(management.router)
 api_router.include_router(projects.router)
+api_router.include_router(assets.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
