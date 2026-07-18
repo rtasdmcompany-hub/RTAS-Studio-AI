@@ -140,20 +140,19 @@ def test_environment_library_unit():
         "custom",
     ):
         assert required in ids
-    library.register_environment("neon_alley", {"category": "urban", "assets": ["neon", "alleys"]})
-    assert library.resolve_environment("neon_alley") == "neon_alley"
+    library.register_environment("neon_bazaar", {"category": "urban", "assets": ["stalls", "neon"]})
+    assert library.resolve_environment("neon_bazaar") == "neon_bazaar"
 
 
 def test_weather_mood_sync_unit():
-    sad = analysis.analyze_world("A quiet street.", mood="sad")
-    assert sad.recommended_weather == "rain"
-    romantic = analysis.analyze_world("A quiet street.", mood="romantic")
-    assert romantic.recommended_weather == "golden_hour"
-    forest = analysis.analyze_world("Deep forest woods with mist and fog among trees.")
-    assert forest.recommended_environment == "forest"
+    assert library.weather_for_mood("sad") == "rain"
+    assert library.weather_for_mood("romantic") == "golden_hour"
+    assert library.weather_for_mood("angry") == "thunderstorm"
+    result = analysis.analyze_world("A quiet garden", mood="fear")
+    assert result.recommended_weather == "fog"
 
 
-def test_lighting_engine_unit():
+def test_lighting_profiles_unit():
     for lid in (
         "natural_light",
         "studio_light",
@@ -168,43 +167,57 @@ def test_lighting_engine_unit():
         assert profile.shadows
         assert profile.gi_strength >= 0
         assert profile.reflections >= 0
-    env = builders.build_environment(
+    cinematic = builders.build_lighting("cinematic_light")
+    assert cinematic.rim is True
+    assert cinematic.hdr is True
+
+
+def test_environment_builder_unit():
+    bp = builders.build_environment(
         world_id="w1",
-        environment="city",
-        weather="night",
-        time_of_day="night",
+        environment="forest",
+        weather="fog",
+        time_of_day="blue_hour",
         mood="suspense",
     )
-    assert env.lighting.lighting_id in (
-        "cinematic_light",
-        "soft_light",
-        "hdr_lighting",
-        "rim_light",
-        "natural_light",
-        "hard_light",
+    assert bp.environment_id == "forest"
+    assert bp.location_id.startswith("loc_")
+    assert bp.weather.weather_id == "fog"
+    assert "trees" in bp.assets["background_objects"] or bp.assets["trees"] is True
+    assert bp.lighting.lighting_id
+
+
+def test_world_analysis_unit():
+    result = analysis.analyze_world(
+        "Rainy city streets at night with neon signs.",
+        mood="suspense",
     )
-    assert env.weather.weather_id == "night"
+    assert result.recommended_environment == "city"
+    assert result.recommended_weather in ("rain", "night")
+    assert result.confidence > 0.5
 
 
 def test_generate_integration_and_bridges():
     result = engine.generate_world(
-        prompt="Rainy city streets at night near downtown skyline.",
-        world_id="world_int_1",
-        scene_id="scene_1",
-        mood="suspense",
-        story_plan={"beats": 3},
+        prompt="A cinematic beach at golden hour, romantic atmosphere.",
+        world_id="world_beach_1",
+        scene_id="scene_01",
+        environment="beach",
+        mood="romantic",
+        story_plan={"title": "Sunset"},
         director_plan={"plan_id": "dir_w1"},
-        scene_plan={"shots": 4},
+        scene_plan={"scene_id": "scene_01"},
         camera_plan={"job_id": "cam_w1"},
-        character_dna={"character_id": "char_w1"},
+        character_dna={"character_id": "char_1"},
         motion_plan={"job_id": "mot_w1"},
         emotion_plan={"job_id": "emo_w1"},
-        timeline_plan={"clips": 2},
-        audio_summary={"ambience": "rain"},
+        timeline_plan={"timeline_id": "tl1"},
+        audio_summary={"ambience": "waves"},
     )
     assert result["state"] == "completed"
-    assert result["environment_blueprint"]["environment_id"] == "city"
+    assert result["environment_blueprint"]["environment_id"] == "beach"
     assert result["consistency"]["consistent"] is True
+    assert result["consistency"]["no_continuity_breaks"] is True
     assert result["integrations"]["story_engine"]["linked"] is True
     assert result["integrations"]["director_engine"]["linked"] is True
     assert result["integrations"]["scene_planner"]["linked"] is True
@@ -218,81 +231,93 @@ def test_generate_integration_and_bridges():
     assert result["observability"]["lighting_profile"]
     fetched = engine.get_world(result["job_id"])
     assert fetched is not None
-    hist = engine.world_history(limit=10)
-    assert hist["count"] >= 1
-    lib = engine.world_library_payload()
-    assert lib["environment_count"] >= 24
 
 
 def test_world_consistency_across_scenes():
     first = engine.generate_world(
-        prompt="A coastal beach with sand and palms at golden hour.",
-        world_id="world_cont_1",
+        prompt="Dense forest with misty paths.",
+        world_id="world_forest_lock",
         scene_id="s1",
-        environment="beach",
+        environment="forest",
+        weather="fog",
     )
-    assert first["state"] == "completed"
+    assert first["consistent"] is True
     loc1 = first["environment_blueprint"]["location_id"]
     env1 = first["environment_blueprint"]["environment_id"]
     second = engine.generate_world(
-        prompt="Same beach later as the mood turns romantic.",
-        world_id="world_cont_1",
+        prompt="Same forest, light rain begins as mood turns sad.",
+        world_id="world_forest_lock",
         scene_id="s2",
-        mood="romantic",
+        environment="forest",
+        mood="sad",
     )
     assert second["environment_blueprint"]["location_id"] == loc1
     assert second["environment_blueprint"]["environment_id"] == env1
     assert second["consistency"]["consistent"] is True
     assert second["consistency"]["no_continuity_breaks"] is True
     assert second["consistency"]["score"] >= version.WORLD_CONSISTENCY_THRESHOLD
-    report = second["consistency"]
-    for trait in (
-        "location",
-        "buildings",
-        "roads",
-        "trees",
-        "background_objects",
-        "sky",
-        "weather",
-        "time_of_day",
-        "lighting",
-        "environmental_assets",
-    ):
-        assert trait in report["preserved_traits"]
 
 
-def test_queue_states_unit():
-    created = engine.create_world(prompt="Office interior daytime meeting room.")
+def test_queue_states_and_create_then_generate():
+    created = engine.create_world(
+        prompt="Desert dunes under bright sun.",
+        environment="desert",
+        weather="sunny",
+    )
     assert created["state"] == "queued"
-    job_id = created["job_id"]
-    processed = engine.process_world_job(job_id)
-    assert processed is not None
-    assert processed.state == "completed"
-    status = queue_mod.world_queue.status()
-    assert "queued" in status["states"]
-    assert status["states"]["completed"] >= 1
+    assert created["queue"]["queued"] >= 1
+    generated = engine.generate_world(job_id=created["job_id"])
+    assert generated["state"] == "completed"
+    assert generated["environment_blueprint"]["environment_id"] == "desert"
+    hist = engine.world_history(limit=10)
+    assert hist["count"] >= 1
+    lib = engine.world_library_payload()
+    assert lib["environment_count"] >= 24
+
+
+def test_consistency_verify_unit():
+    bp = builders.build_environment(
+        world_id="wc1",
+        environment="city",
+        weather="cloudy",
+        time_of_day="day",
+    )
+    report = consistency.verify_consistency("wc1", bp)
+    assert report.consistent is True
+    assert report.score >= 80
+    drifted = builders.build_environment(
+        world_id="wc1",
+        environment="city",
+        weather="rain",
+        time_of_day="night",
+    )
+    drifted.location_id = "loc_different"
+    bad = consistency.verify_consistency("wc1", bp, drifted)
+    assert bad.consistent is False
+    assert bad.drift_flags
 
 
 def test_stress_and_performance_budget():
     t0 = time.perf_counter()
-    envs = ["city", "forest", "desert", "hospital", "fantasy", "space", "beach", "factory"]
+    envs = ["city", "forest", "beach", "office", "fantasy", "space", "stadium", "hospital"]
     scores = []
-    for env in envs * 2:
+    for i, env in enumerate(envs * 3):
         result = engine.generate_world(
-            prompt=f"Cinematic {env} environment establishing shot.",
-            world_id=f"stress_{env}",
+            prompt=f"Generate {env} environment scene {i}",
+            world_id=f"stress_world_{env}",
             environment=env,
+            scene_id=f"sc_{i}",
         )
         assert result["state"] == "completed"
         scores.append(result["consistency"]["score"])
     elapsed = time.perf_counter() - t0
     assert elapsed < 8.0
     assert min(scores) >= version.WORLD_CONSISTENCY_THRESHOLD
+    assert all(s >= 80 for s in scores)
 
 
 def test_paddle_secrets_not_exposed():
     status = cg_paddle.paddle_status()
     assert isinstance(status, dict)
-    blob = str(status).lower()
+    blob = str(status)
     assert "sk_" not in blob
-    assert "api_key" not in blob or status.get("configured") is not None

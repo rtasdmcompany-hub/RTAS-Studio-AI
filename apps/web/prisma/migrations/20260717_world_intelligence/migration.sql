@@ -32,13 +32,11 @@ CREATE INDEX IF NOT EXISTS "EnvironmentJob_sceneId_idx" ON "EnvironmentJob"("sce
 CREATE INDEX IF NOT EXISTS "EnvironmentJob_backendJobId_idx" ON "EnvironmentJob"("backendJobId");
 CREATE INDEX IF NOT EXISTS "EnvironmentJob_status_idx" ON "EnvironmentJob"("status");
 CREATE INDEX IF NOT EXISTS "EnvironmentJob_environmentId_idx" ON "EnvironmentJob"("environmentId");
-CREATE INDEX IF NOT EXISTS "EnvironmentJob_weatherType_idx" ON "EnvironmentJob"("weatherType");
 CREATE INDEX IF NOT EXISTS "EnvironmentJob_createdAt_idx" ON "EnvironmentJob"("createdAt" DESC);
 
 CREATE TABLE IF NOT EXISTS "WorldLibraryEntry" (
   "id" TEXT PRIMARY KEY,
   "worldId" TEXT NOT NULL UNIQUE,
-  "name" TEXT,
   "environmentId" TEXT,
   "locationId" TEXT,
   "fingerprint" TEXT,
@@ -53,36 +51,39 @@ CREATE INDEX IF NOT EXISTS "WorldLibraryEntry_fingerprint_idx" ON "WorldLibraryE
 
 CREATE TABLE IF NOT EXISTS "LocationLibraryEntry" (
   "id" TEXT PRIMARY KEY,
-  "locationId" TEXT NOT NULL UNIQUE,
-  "worldId" TEXT,
+  "environmentJobId" TEXT,
+  "locationId" TEXT NOT NULL,
   "environmentId" TEXT,
-  "name" TEXT,
+  "category" TEXT,
   "assetsJson" JSONB,
   "sky" TEXT,
-  "active" BOOLEAN NOT NULL DEFAULT true,
+  "payloadJson" JSONB,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS "LocationLibraryEntry_worldId_idx" ON "LocationLibraryEntry"("worldId");
+CREATE INDEX IF NOT EXISTS "LocationLibraryEntry_locationId_idx" ON "LocationLibraryEntry"("locationId");
 CREATE INDEX IF NOT EXISTS "LocationLibraryEntry_environmentId_idx" ON "LocationLibraryEntry"("environmentId");
+CREATE INDEX IF NOT EXISTS "LocationLibraryEntry_environmentJobId_idx" ON "LocationLibraryEntry"("environmentJobId");
 
 CREATE TABLE IF NOT EXISTS "WeatherProfileRecord" (
   "id" TEXT PRIMARY KEY,
-  "weatherId" TEXT NOT NULL UNIQUE,
+  "environmentJobId" TEXT,
+  "weatherId" TEXT NOT NULL,
   "moodSync" TEXT,
   "intensity" DOUBLE PRECISION,
   "precipitation" DOUBLE PRECISION,
   "visibility" DOUBLE PRECISION,
   "wind" DOUBLE PRECISION,
   "payloadJson" JSONB,
-  "active" BOOLEAN NOT NULL DEFAULT true,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "WeatherProfileRecord_weatherId_idx" ON "WeatherProfileRecord"("weatherId");
 CREATE INDEX IF NOT EXISTS "WeatherProfileRecord_moodSync_idx" ON "WeatherProfileRecord"("moodSync");
+CREATE INDEX IF NOT EXISTS "WeatherProfileRecord_environmentJobId_idx" ON "WeatherProfileRecord"("environmentJobId");
 
 CREATE TABLE IF NOT EXISTS "LightingProfileRecord" (
   "id" TEXT PRIMARY KEY,
-  "lightingId" TEXT NOT NULL UNIQUE,
+  "environmentJobId" TEXT,
+  "lightingId" TEXT NOT NULL,
   "style" TEXT,
   "softHard" TEXT,
   "rim" BOOLEAN NOT NULL DEFAULT false,
@@ -92,11 +93,11 @@ CREATE TABLE IF NOT EXISTS "LightingProfileRecord" (
   "giStrength" DOUBLE PRECISION,
   "colorTempK" INTEGER,
   "payloadJson" JSONB,
-  "active" BOOLEAN NOT NULL DEFAULT true,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "LightingProfileRecord_lightingId_idx" ON "LightingProfileRecord"("lightingId");
 CREATE INDEX IF NOT EXISTS "LightingProfileRecord_style_idx" ON "LightingProfileRecord"("style");
+CREATE INDEX IF NOT EXISTS "LightingProfileRecord_environmentJobId_idx" ON "LightingProfileRecord"("environmentJobId");
 
 CREATE TABLE IF NOT EXISTS "EnvironmentMetadataRecord" (
   "id" TEXT PRIMARY KEY,
@@ -112,10 +113,10 @@ CREATE TABLE IF NOT EXISTS "EnvironmentMetadataRecord" (
   "metadata" JSONB,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS "EnvironmentMetadataRecord_environmentJobId_idx" ON "EnvironmentMetadataRecord"("environmentJobId");
 CREATE INDEX IF NOT EXISTS "EnvironmentMetadataRecord_worldId_idx" ON "EnvironmentMetadataRecord"("worldId");
 CREATE INDEX IF NOT EXISTS "EnvironmentMetadataRecord_sceneId_idx" ON "EnvironmentMetadataRecord"("sceneId");
 CREATE INDEX IF NOT EXISTS "EnvironmentMetadataRecord_weatherType_idx" ON "EnvironmentMetadataRecord"("weatherType");
+CREATE INDEX IF NOT EXISTS "EnvironmentMetadataRecord_environmentJobId_idx" ON "EnvironmentMetadataRecord"("environmentJobId");
 
 CREATE TABLE IF NOT EXISTS "WorldHistoryRecord" (
   "id" TEXT PRIMARY KEY,
@@ -132,12 +133,3 @@ CREATE TABLE IF NOT EXISTS "WorldHistoryRecord" (
 CREATE INDEX IF NOT EXISTS "WorldHistoryRecord_worldId_createdAt_idx" ON "WorldHistoryRecord"("worldId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "WorldHistoryRecord_sceneId_idx" ON "WorldHistoryRecord"("sceneId");
 CREATE INDEX IF NOT EXISTS "WorldHistoryRecord_environmentJobId_idx" ON "WorldHistoryRecord"("environmentJobId");
-CREATE INDEX IF NOT EXISTS "WorldHistoryRecord_fingerprint_idx" ON "WorldHistoryRecord"("fingerprint");
-
-DO $$ BEGIN
-  ALTER TABLE "WorldHistoryRecord"
-    ADD CONSTRAINT "WorldHistoryRecord_environmentJobId_fkey"
-    FOREIGN KEY ("environmentJobId") REFERENCES "EnvironmentJob"("id")
-    ON DELETE CASCADE ON UPDATE CASCADE;
-EXCEPTION WHEN duplicate_object THEN NULL;
-END $$;

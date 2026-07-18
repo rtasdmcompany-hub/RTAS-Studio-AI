@@ -295,7 +295,3 @@ def create_dict(**kwargs: Any) -> dict[str, Any]:
 
 def generate_dict(**kwargs: Any) -> dict[str, Any]:
     return generate_world(**kwargs)
-
-
-# re-export for tests
-__all_clear_memory = clear_memory

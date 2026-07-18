@@ -143,6 +143,25 @@ def get_lighting_spec(lighting_id: str) -> dict[str, Any]:
     return dict(_LIGHTING_STYLES.get(key, _LIGHTING_STYLES["natural_light"]))
 
 
+_MOOD_TO_WEATHER = {
+    "sad": "rain",
+    "romantic": "golden_hour",
+    "fear": "fog",
+    "suspense": "night",
+    "angry": "thunderstorm",
+    "happy": "sunny",
+    "calm": "blue_hour",
+    "motivational": "sunrise",
+    "cinematic": "golden_hour",
+}
+
+
+def weather_for_mood(mood: str | None) -> str:
+    """Synchronize weather with scene mood."""
+    key = (mood or "calm").strip().lower()
+    return resolve_weather(_MOOD_TO_WEATHER.get(key, "sunny"))
+
+
 _MOOD_WEATHER_SYNC = {
     "sad": "rain",
     "romantic": "golden_hour",

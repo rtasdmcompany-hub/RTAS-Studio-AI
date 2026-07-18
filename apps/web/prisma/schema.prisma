@@ -2488,54 +2488,55 @@ model EmotionMetadataRecord {
 // ---------------------------------------------------------------------------
 
 model EnvironmentJob {
-  id               String    @id @default(uuid())
-  userId           String?
-  backendJobId     String?   @unique
-  worldId          String?
-  sceneId          String?
-  status           String    @default("queued")
-  environmentId    String?
-  weatherType      String?
-  lightingProfile  String?
-  timeOfDay        String?
-  consistencyScore Float?
-  consistent       Boolean   @default(false)
-  productionReady  Boolean   @default(true)
-  retryCount       Int       @default(0)
-  processingTimeMs Float?
-  queueTimeMs      Float?
-  version          Int       @default(1)
-  analysisJson     Json?
-  environmentJson  Json?
-  consistencyJson  Json?
-  integrationsJson Json?
-  metadata         Json?
-  error            String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                 String    @id @default(uuid())
+  userId             String?
+  backendJobId       String?   @unique
+  worldId            String?
+  sceneId            String?
+  status             String    @default("queued")
+  environmentId      String?
+  weatherType        String?
+  lightingProfile    String?
+  timeOfDay          String?
+  consistencyScore   Float?
+  consistent         Boolean   @default(false)
+  productionReady    Boolean   @default(true)
+  retryCount         Int       @default(0)
+  processingTimeMs   Float?
+  queueTimeMs        Float?
+  version            Int       @default(1)
+  analysisJson       Json?
+  environmentJson    Json?
+  consistencyJson    Json?
+  integrationsJson   Json?
+  metadata           Json?
+  error              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  history WorldHistoryRecord[]
+  locations   LocationLibraryEntry[]
+  weather     WeatherProfileRecord[]
+  lighting    LightingProfileRecord[]
+  history     WorldHistoryRecord[]
 
   @@index([worldId])
   @@index([sceneId])
   @@index([backendJobId])
   @@index([status])
   @@index([environmentId])
-  @@index([weatherType])
   @@index([createdAt(sort: Desc)])
 }
 
 model WorldLibraryEntry {
-  id            String    @id @default(uuid())
-  worldId       String    @unique
-  name          String?
-  environmentId String?
-  locationId    String?
-  fingerprint   String?
-  payloadJson   Json?
-  active        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  worldId        String    @unique
+  environmentId  String?
+  locationId     String?
+  fingerprint    String?
+  payloadJson    Json?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([environmentId])
   @@index([locationId])
@@ -2543,53 +2544,59 @@ model WorldLibraryEntry {
 }
 
 model LocationLibraryEntry {
-  id            String    @id @default(uuid())
-  locationId    String    @unique
-  worldId       String?
-  environmentId String?
-  name          String?
-  assetsJson    Json?
-  sky           String?
-  active        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
+  id               String    @id @default(uuid())
+  environmentJobId String?
+  environmentJob   EnvironmentJob? @relation(fields: [environmentJobId], references: [id], onDelete: Cascade)
+  locationId       String
+  environmentId    String?
+  category         String?
+  assetsJson       Json?
+  sky              String?
+  payloadJson      Json?
+  createdAt        DateTime  @default(now())
 
-  @@index([worldId])
+  @@index([locationId])
   @@index([environmentId])
+  @@index([environmentJobId])
 }
 
 model WeatherProfileRecord {
-  id           String    @id @default(uuid())
-  weatherId    String    @unique
-  moodSync     String?
-  intensity    Float?
-  precipitation Float?
-  visibility   Float?
-  wind         Float?
-  payloadJson  Json?
-  active       Boolean   @default(true)
-  createdAt    DateTime  @default(now())
+  id               String    @id @default(uuid())
+  environmentJobId String?
+  environmentJob   EnvironmentJob? @relation(fields: [environmentJobId], references: [id], onDelete: Cascade)
+  weatherId        String
+  moodSync         String?
+  intensity        Float?
+  precipitation    Float?
+  visibility       Float?
+  wind             Float?
+  payloadJson      Json?
+  createdAt        DateTime  @default(now())
 
   @@index([weatherId])
   @@index([moodSync])
+  @@index([environmentJobId])
 }
 
 model LightingProfileRecord {
-  id           String    @id @default(uuid())
-  lightingId   String    @unique
-  style        String?
-  softHard     String?
-  rim          Boolean   @default(false)
-  hdr          Boolean   @default(true)
-  shadows      String?
-  reflections  Float?
-  giStrength   Float?
-  colorTempK   Int?
-  payloadJson  Json?
-  active       Boolean   @default(true)
-  createdAt    DateTime  @default(now())
+  id               String    @id @default(uuid())
+  environmentJobId String?
+  environmentJob   EnvironmentJob? @relation(fields: [environmentJobId], references: [id], onDelete: Cascade)
+  lightingId       String
+  style            String?
+  softHard         String?
+  rim              Boolean   @default(false)
+  hdr              Boolean   @default(true)
+  shadows          String?
+  reflections      Float?
+  giStrength       Float?
+  colorTempK       Int?
+  payloadJson      Json?
+  createdAt        DateTime  @default(now())
 
   @@index([lightingId])
   @@index([style])
+  @@index([environmentJobId])
 }
 
 model EnvironmentMetadataRecord {
@@ -2606,10 +2613,10 @@ model EnvironmentMetadataRecord {
   metadata         Json?
   createdAt        DateTime  @default(now())
 
-  @@index([environmentJobId])
   @@index([worldId])
   @@index([sceneId])
   @@index([weatherType])
+  @@index([environmentJobId])
 }
 
 model WorldHistoryRecord {
@@ -2628,5 +2635,4 @@ model WorldHistoryRecord {
   @@index([worldId, createdAt(sort: Desc)])
   @@index([sceneId])
   @@index([environmentJobId])
-  @@index([fingerprint])
 }
