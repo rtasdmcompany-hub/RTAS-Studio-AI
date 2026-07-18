@@ -9,6 +9,7 @@ from app.api.routes import (
     audio_engine,
     camera,
     camera_motion,
+    comms,
     context,
     emotion,
     generate,
@@ -82,6 +83,10 @@ api_router.include_router(invitations.router)
 api_router.include_router(management.router)
 api_router.include_router(projects.router)
 api_router.include_router(assets.router)
+api_router.include_router(comms.notifications_router)
+api_router.include_router(comms.activity_router)
+api_router.include_router(comms.comments_router)
+api_router.include_router(comms.announcements_router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

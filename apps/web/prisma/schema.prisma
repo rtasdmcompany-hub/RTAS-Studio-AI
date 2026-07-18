@@ -63,6 +63,17 @@ model User {
   // Phase 7 Sprint 5 — Asset library
   ownedLibraryAssets LibraryAsset[]       @relation("LibraryAssetOwner")
   libraryAssetPermissions LibraryAssetPermission[]
+
+  // Phase 7 Sprint 6 — Notifications, comments & activity
+  collabNotifications        CollabNotification[]         @relation("CollabNotificationRecipient")
+  collabNotificationPrefs    CollabNotificationPreference[]
+  collabCommentsAuthored     CollabComment[]              @relation("CollabCommentAuthor")
+  collabCommentRepliesAuthored CollabCommentReply[]       @relation("CollabCommentReplyAuthor")
+  collabMentionsReceived     CollabMention[]              @relation("CollabMentionTargetUser")
+  collabMentionsCreated      CollabMention[]              @relation("CollabMentionActor")
+  collabActivityEvents       CollabActivityEvent[]        @relation("CollabActivityActor")
+  collabAnnouncementsAuthored CollabAnnouncement[]        @relation("CollabAnnouncementAuthor")
+  collabUserActivityLogs     CollabUserActivityLog[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3403,6 +3414,11 @@ model Organization {
   orgProjectTemplates OrgProjectTemplate[]
   libraryAssets LibraryAsset[]
   libraryCollections LibraryAssetCollection[]
+  collabNotifications CollabNotification[]
+  collabComments CollabComment[]
+  collabActivityEvents CollabActivityEvent[]
+  collabAnnouncements CollabAnnouncement[]
+  collabUserActivityLogs CollabUserActivityLog[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3428,6 +3444,11 @@ model Workspace {
   orgProjects OrgProject[]
   libraryAssets LibraryAsset[]
   libraryCollections LibraryAssetCollection[]
+  collabNotifications CollabNotification[]
+  collabComments CollabComment[]
+  collabActivityEvents CollabActivityEvent[]
+  collabAnnouncements CollabAnnouncement[]
+  collabUserActivityLogs CollabUserActivityLog[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -3962,5 +3983,177 @@ model LibraryAssetCollectionItem {
 
   @@unique([collectionId, assetId])
   @@index([assetId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 6 — Enterprise Notifications, Comments & Activity Engine
+// ---------------------------------------------------------------------------
+
+model CollabNotification {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  recipientId    String
+  recipient      User     @relation("CollabNotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  type           String
+  title          String
+  body           String?
+  resourceType   String?
+  resourceId     String?
+  actorId        String?
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([recipientId, isRead, createdAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([type])
+  @@index([resourceType, resourceId])
+}
+
+model CollabNotificationPreference {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  channelEmail   Boolean  @default(true)
+  channelInApp   Boolean  @default(true)
+  mutedTypesJson Json?
+  digestsEnabled Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+}
+
+model CollabComment {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  authorId       String
+  author         User     @relation("CollabCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  resourceType   String
+  resourceId     String
+  body           String
+  isPinned       Boolean  @default(false)
+  isResolved     Boolean  @default(false)
+  reactionsJson  Json?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  replies  CollabCommentReply[]
+  mentions CollabMention[]
+
+  @@index([organizationId, resourceType, resourceId, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@index([isPinned])
+  @@index([deletedAt])
+}
+
+model CollabCommentReply {
+  id        String   @id @default(uuid())
+  commentId String
+  comment   CollabComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("CollabCommentReplyAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([commentId, createdAt(sort: Asc)])
+  @@index([authorId])
+}
+
+model CollabMention {
+  id             String   @id @default(uuid())
+  commentId      String?
+  comment        CollabComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  organizationId String
+  actorId        String
+  actor          User     @relation("CollabMentionActor", fields: [actorId], references: [id], onDelete: Cascade)
+  subjectType    String
+  subjectId      String
+  targetUserId   String?
+  targetUser     User?    @relation("CollabMentionTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  resourceType   String?
+  resourceId     String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([targetUserId])
+  @@index([subjectType, subjectId])
+  @@index([commentId])
+}
+
+model CollabActivityEvent {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  actorId        String?
+  actor          User?    @relation("CollabActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+  category       String
+  action         String
+  summary        String
+  resourceType   String?
+  resourceId     String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([category, action])
+  @@index([resourceType, resourceId])
+}
+
+model CollabAnnouncement {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  authorId       String
+  author         User     @relation("CollabAnnouncementAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  title          String
+  body           String
+  scope          String   @default("organization")
+  isPinned       Boolean  @default(false)
+  publishedAt    DateTime @default(now())
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, publishedAt(sort: Desc)])
+  @@index([workspaceId])
+  @@index([scope])
+}
+
+model CollabUserActivityLog {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  action         String
+  detail         String?
+  ipHash         String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([action])
 }
 
