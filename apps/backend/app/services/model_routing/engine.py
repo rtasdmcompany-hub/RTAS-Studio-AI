@@ -6,7 +6,8 @@ import hashlib
 import time
 from typing import Any
 
-from app.services.model_routing import analytics
+from app.services.model_routing.analytics import clear as clear_analytics
+from app.services.model_routing.analytics import record_routing, summary as analytics_summary
 from app.services.model_routing.detection import detect_request_type
 from app.services.model_routing.model_registry import get_model_registry, reset_model_registry
 from app.services.model_routing.models import ALL_REQUEST_TYPES, RoutingDecision, RoutingPlan
@@ -149,7 +150,7 @@ def select_route(
         confidence=confidence,
     )
 
-    analytics_id = analytics.record_routing(
+    analytics_id = record_routing(
         request_type=rtype,
         provider=best.provider_id,
         model=best.model_id,
@@ -214,7 +215,7 @@ def list_models() -> dict[str, Any]:
 
 def router_status() -> dict[str, Any]:
     reg = get_model_registry()
-    stats = analytics.summary(limit=200)
+    stats = analytics_summary(limit=200)
     return {
         "engine": ENGINE_NAME,
         "version": ENGINE_VERSION,
@@ -251,4 +252,4 @@ def select_dict(**kwargs: Any) -> dict[str, Any]:
 
 def reset_routing() -> None:
     reset_model_registry()
-    analytics.clear()
+    clear_analytics()
