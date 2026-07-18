@@ -33,6 +33,8 @@ from app.api.routes import (
     voice,
     world,
     director,
+    download,
+    final_release,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -68,3 +70,5 @@ api_router.include_router(camera.router)
 api_router.include_router(emotion.router)
 api_router.include_router(world.router)
 api_router.include_router(director.router)
+api_router.include_router(download.router)
+api_router.include_router(final_release.router)

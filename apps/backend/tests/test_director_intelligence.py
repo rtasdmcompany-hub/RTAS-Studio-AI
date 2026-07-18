@@ -103,7 +103,7 @@ def setup_function():
 def test_version_unit():
     assert version.ENGINE_VERSION == "1.0.0"
     assert version.PHASE == 5
-    assert version.SPRINT == 9
+    assert version.SPRINT == 10
 
 
 def test_format_library_unit():

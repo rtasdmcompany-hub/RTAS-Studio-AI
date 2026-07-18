@@ -23,6 +23,22 @@ async def health_ping():
     }
 
 
+@router.get("/ready")
+async def ready():
+    """Production readiness probe for Phase 5 final release (backend parity with web /api/ready)."""
+    reload_settings()
+    return {
+        "status": "ready",
+        "ok": True,
+        "service": "rtas-studio-ai-api",
+        "version": "1.0.0",
+        "phase": 5,
+        "sprint": 10,
+        "final_release": True,
+        "director_engine": "RTAS Studio AI Director Engine v1.0",
+    }
+
+
 @router.get("/health")
 async def health():
     reload_settings()
