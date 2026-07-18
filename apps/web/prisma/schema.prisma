@@ -3466,6 +3466,13 @@ model Organization {
   billingProfiles           BillingProfile[]
   invoices                  Invoice[]
 
+  // Phase 8 Sprint 2 — Paddle billing integration
+  paddleCustomers           PaddleCustomer[]
+  paddleSubscriptions       PaddleSubscription[]
+  paddleTransactions        PaddleTransaction[]
+  paddleWebhookLogs         PaddleWebhookLog[]
+  billingEvents             BillingEvent[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -4856,5 +4863,110 @@ model Invoice {
   @@index([subscriptionId])
   @@index([status])
   @@map("Invoices")
+}
+
+// =============================================================================
+// Phase 8 Sprint 2 — Paddle Billing Integration
+// =============================================================================
+
+model PaddleCustomer {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paddleCustomerId   String   @unique
+  email              String   @default("")
+  name               String   @default("")
+  countryCode        String   @default("")
+  taxIdentifier      String?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  region             String?
+  postalCode         String?
+  status             String   @default("active")
+  metadataJson       Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([organizationId])
+  @@index([email])
+  @@map("PaddleCustomers")
+}
+
+model PaddleSubscription {
+  id                     String    @id @default(uuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paddleSubscriptionId   String    @unique
+  paddleCustomerId       String
+  planKey                String
+  billingCycle           String    @default("monthly")
+  status                 String    @default("active")
+  priceId                String?
+  productId              String?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  metadataJson           Json?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@unique([organizationId])
+  @@index([status])
+  @@index([planKey])
+  @@map("PaddleSubscriptions")
+}
+
+model PaddleTransaction {
+  id                   String   @id @default(uuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paddleTransactionId  String   @unique
+  paddleSubscriptionId String?
+  paddleCustomerId     String?
+  status               String   @default("completed")
+  amountUsd            Float    @default(0)
+  currency             String   @default("USD")
+  eventType            String   @default("transaction.completed")
+  metadataJson         Json?
+  createdAt            DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([eventType])
+  @@map("PaddleTransactions")
+}
+
+model PaddleWebhookLog {
+  id               String   @id @default(uuid())
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  eventId          String
+  eventType        String
+  signatureValid   Boolean  @default(false)
+  processed        Boolean  @default(false)
+  error            String?
+  payloadJson      Json?
+  createdAt        DateTime @default(now())
+
+  @@index([eventId])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@map("PaddleWebhookLogs")
+}
+
+model BillingEvent {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventType        String
+  source           String   @default("paddle")
+  actorId          String?
+  detail           String   @default("")
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([eventType])
+  @@map("BillingEvents")
 }
 

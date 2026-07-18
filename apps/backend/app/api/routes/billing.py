@@ -1,4 +1,4 @@
-"""Billing & Subscription Foundation APIs — Phase 8 Sprint 1."""
+"""Billing & Subscription APIs — Phase 8 Sprint 1–2."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services import billing as billing_svc
+from app.services import paddle_billing as paddle_svc
 from app.services.enterprise_auth.errors import AccessError
 from app.services.multi_tenant.validation import ValidationError
 
@@ -23,6 +24,10 @@ def _auth(secret: str | None) -> None:
 
 def _svc():
     return billing_svc.get_billing_service()
+
+
+def _paddle():
+    return paddle_svc.get_paddle_billing_service()
 
 
 def _map(exc: Exception) -> HTTPException:
@@ -171,6 +176,109 @@ async def get_usage(
             organization_id=organization_id,
             workspace_id=workspace_id,
             limit=limit,
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+# --- Phase 8 Sprint 2 — Paddle checkout / customer / subscription lifecycle ---
+
+
+class CheckoutRequest(BaseModel):
+    organization_id: str = Field(..., alias="organizationId")
+    plan_key: str = Field("starter", alias="planKey")
+    billing_cycle: str = Field("monthly", alias="billingCycle")
+    email: str | None = None
+    name: str | None = None
+    country_code: str | None = Field(None, alias="countryCode")
+    tax_identifier: str | None = Field(None, alias="taxIdentifier")
+    success_url: str | None = Field(None, alias="successUrl")
+    cancel_url: str | None = Field(None, alias="cancelUrl")
+    address: dict[str, Any] | None = None
+    model_config = {"populate_by_name": True}
+
+
+class SubscriptionActionRequest(BaseModel):
+    organization_id: str = Field(..., alias="organizationId")
+    immediate: bool = False
+    model_config = {"populate_by_name": True}
+
+
+@router.post("/checkout")
+async def create_checkout(
+    body: CheckoutRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _paddle().checkout.create(
+            body.model_dump(by_alias=True), actor_id=actor
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.get("/customer")
+async def get_customer(
+    organization_id: str = Query(..., alias="organizationId"),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _paddle().customers.get(
+            actor_id=actor, organization_id=organization_id
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.get("/subscription/status")
+async def subscription_status(
+    organization_id: str = Query(..., alias="organizationId"),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _paddle().subscriptions.status(
+            actor_id=actor, organization_id=organization_id
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.post("/subscription/cancel")
+async def cancel_subscription(
+    body: SubscriptionActionRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _paddle().subscriptions.cancel(
+            body.model_dump(by_alias=True), actor_id=actor
+        )
+    except Exception as exc:
+        raise _map(exc) from exc
+
+
+@router.post("/subscription/resume")
+async def resume_subscription(
+    body: SubscriptionActionRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _auth(x_rtas_backend_secret)
+    actor = _user(x_rtas_user_id)
+    try:
+        return _paddle().subscriptions.resume(
+            body.model_dump(by_alias=True), actor_id=actor
         )
     except Exception as exc:
         raise _map(exc) from exc

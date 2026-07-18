@@ -106,6 +106,18 @@ class Settings(BaseSettings):
     # Also accepts specialty names: veo | runway | kling | hailuo | pika | luma | svd | cogvideo
     ai_provider_mode: str = "auto"
 
+    # Paddle Billing (Phase 8)
+    paddle_api_key: str | None = Field(
+        default=None, validation_alias=AliasChoices("PADDLE_API_KEY", "PADDLE_SECRET_KEY")
+    )
+    paddle_webhook_secret: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "PADDLE_WEBHOOK_SECRET", "PADDLE_NOTIFICATION_SECRET"
+        ),
+    )
+    paddle_env: str = Field(default="production", validation_alias="PADDLE_ENV")
+
     # Storage
     storage_mode: Literal["local", "s3", "r2"] = "local"
     local_upload_dir: Path = Field(default=BackendRoot / "data" / "uploads")
@@ -138,6 +150,8 @@ class Settings(BaseSettings):
         "cogvideo_api_key",
         "ai_backend_secret",
         "generation_webhook_secret",
+        "paddle_api_key",
+        "paddle_webhook_secret",
         mode="before",
     )
     @classmethod
