@@ -3479,6 +3479,14 @@ model Organization {
   refundRequests            RefundRequest[]
   refundHistoryEntries      RefundHistory[]
 
+  // Phase 8 Sprint 4 — Credit metering & quotas
+  creditUsageEvents         CreditUsage[]
+  usageMetricBuckets        UsageMetric[]
+  usageQuotas               UsageQuota[]
+  aiUsageHistoryEntries     AIUsageHistory[]
+  costCalculations          CostCalculation[]
+  providerCostRates         ProviderCost[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -5079,5 +5087,138 @@ model RefundHistory {
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([refundRequestId, createdAt(sort: Desc)])
   @@map("RefundHistory")
+}
+
+// =============================================================================
+// Phase 8 Sprint 4 — Credit Consumption, Usage Metering & Quota Engine
+// =============================================================================
+
+model CreditUsage {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  userId           String?
+  teamId           String?
+  serviceType      String
+  provider         String   @default("default")
+  credits          Int
+  quantity         Float    @default(1)
+  resourceType     String?
+  resourceId       String?
+  status           String   @default("completed")
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([serviceType])
+  @@index([provider])
+  @@map("CreditUsage")
+}
+
+model UsageMetric {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  userId           String?
+  provider         String?
+  period           String
+  periodKey        String
+  creditsUsed      Int      @default(0)
+  requestCount     Int      @default(0)
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, period, periodKey])
+  @@index([workspaceId, period, periodKey])
+  @@index([userId, period, periodKey])
+  @@index([provider, period, periodKey])
+  @@map("UsageMetrics")
+}
+
+model UsageQuota {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  teamId           String?
+  planKey          String   @default("free_trial")
+  dailyLimit       Int      @default(50)
+  monthlyLimit     Int      @default(100)
+  trialLimit       Int      @default(100)
+  unlimited        Boolean  @default(false)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([teamId])
+  @@index([planKey])
+  @@map("UsageQuotas")
+}
+
+model AIUsageHistory {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  userId           String?
+  serviceType      String
+  provider         String   @default("default")
+  credits          Int
+  costUsd          Float    @default(0)
+  detail           String   @default("")
+  usageEventId     String?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([serviceType])
+  @@index([provider])
+  @@map("AIUsageHistory")
+}
+
+model CostCalculation {
+  id                   String   @id @default(uuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  serviceType          String
+  provider             String   @default("default")
+  credits              Int
+  quantity             Float    @default(1)
+  providerCostUsd      Float    @default(0)
+  gpuCostUsd           Float    @default(0)
+  modelCostUsd         Float    @default(0)
+  retailValueUsd       Float    @default(0)
+  estimatedMarginUsd   Float    @default(0)
+  marginPct            Float    @default(0)
+  metadataJson         Json?
+  createdAt            DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([serviceType])
+  @@index([provider])
+  @@map("CostCalculations")
+}
+
+model ProviderCost {
+  id                 String   @id @default(uuid())
+  organizationId     String?
+  organization       Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  provider           String
+  costPerCreditUsd   Float
+  currency           String   @default("USD")
+  active             Boolean  @default(true)
+  metadataJson       Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([provider])
+  @@index([organizationId])
+  @@index([active])
+  @@map("ProviderCosts")
 }
 

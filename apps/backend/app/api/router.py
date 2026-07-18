@@ -35,6 +35,9 @@ from app.api.routes import (
     paddle,
     paypal,
     wallet,
+    credits,
+    costs,
+    usage,
     motion,
     motion_intelligence,
     multi_ai,
@@ -73,6 +76,9 @@ api_router.include_router(billing.router)
 api_router.include_router(paddle.router)
 api_router.include_router(paypal.router)
 api_router.include_router(wallet.router)
+api_router.include_router(credits.router)
+api_router.include_router(costs.router)
+api_router.include_router(usage.router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)
