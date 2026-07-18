@@ -3124,3 +3124,92 @@ model ExecutionTimeline {
   @@index([workflowId, createdAt(sort: Desc)])
   @@index([stage, createdAt(sort: Desc)])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 Sprint 8 — AI Enterprise Security, Compliance & Audit Engine
+// ---------------------------------------------------------------------------
+
+model EnterpriseAuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  actorId    String
+  role       String?
+  resource   String
+  detail     String?
+  ip         String?
+  success    Boolean  @default(true)
+  metadataJson Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@index([success, createdAt(sort: Desc)])
+}
+
+model SecurityEvent {
+  id         String   @id @default(uuid())
+  eventType  String
+  severity   String
+  actorId    String?
+  message    String
+  metadataJson Json?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType, createdAt(sort: Desc)])
+  @@index([severity, createdAt(sort: Desc)])
+}
+
+model AccessLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  method     String
+  path       String
+  status     Int
+  authorized Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([path, createdAt(sort: Desc)])
+  @@index([authorized, createdAt(sort: Desc)])
+}
+
+model ComplianceReportRecord {
+  id             String   @id @default(uuid())
+  period         String
+  retentionDays  Int      @default(90)
+  consentCount   Int      @default(0)
+  auditCount     Int      @default(0)
+  privacyJson    Json?
+  findingsJson   Json?
+  healthy        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@index([period, createdAt(sort: Desc)])
+  @@index([healthy, createdAt(sort: Desc)])
+}
+
+model ApiActivity {
+  id         String   @id @default(uuid())
+  actorId    String?
+  method     String
+  path       String
+  status     Int
+  latencyMs  Float?
+  metadataJson Json?
+  createdAt  DateTime @default(now())
+
+  @@index([path, createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
+}
+
+model SecurityPolicyRecord {
+  id        String   @id @default(uuid())
+  name      String
+  enabled   Boolean  @default(true)
+  rulesJson Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name])
+  @@index([enabled])
+}
