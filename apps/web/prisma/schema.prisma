@@ -2636,3 +2636,154 @@ model WorldHistoryRecord {
   @@index([sceneId])
   @@index([environmentJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5 Sprint 9 — AI Cinematic Director & Auto Filmmaker Engine
+// ---------------------------------------------------------------------------
+
+model DirectorJob {
+  id               String    @id @default(uuid())
+  userId           String?
+  backendJobId     String?   @unique
+  projectId        String?
+  status           String    @default("queued")
+  formatType       String?
+  genre            String?
+  sceneCount       Int?
+  shotCount        Int?
+  runtimeSec       Float?
+  accuracyScore    Float?
+  productionReady  Boolean   @default(true)
+  retryCount       Int       @default(0)
+  processingTimeMs Float?
+  queueTimeMs      Float?
+  version          Int       @default(1)
+  analysisJson     Json?
+  productionJson   Json?
+  integrationsJson Json?
+  metadata         Json?
+  error            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  productionPlans ProductionPlanRecord[]
+  scenePlans      ScenePlanRecord[]
+  shotPlans       ShotPlanRecord[]
+  history         DirectorHistoryRecord[]
+
+  @@index([projectId])
+  @@index([backendJobId])
+  @@index([status])
+  @@index([formatType])
+  @@index([createdAt(sort: Desc)])
+}
+
+model ProductionPlanRecord {
+  id            String    @id @default(uuid())
+  directorJobId String?
+  directorJob   DirectorJob? @relation(fields: [directorJobId], references: [id], onDelete: Cascade)
+  planId        String
+  projectId     String?
+  formatType    String?
+  runtimeSec    Float?
+  shotCount     Int?
+  accuracyScore Float?
+  payloadJson   Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([planId])
+  @@index([projectId])
+  @@index([directorJobId])
+}
+
+model ScenePlanRecord {
+  id            String    @id @default(uuid())
+  directorJobId String?
+  directorJob   DirectorJob? @relation(fields: [directorJobId], references: [id], onDelete: Cascade)
+  sceneId       String
+  beat          String?
+  orderIndex    Int?
+  environment   String?
+  emotionFlow   String?
+  durationSec   Float?
+  importance    Float?
+  payloadJson   Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([sceneId])
+  @@index([beat])
+  @@index([directorJobId])
+}
+
+model ShotPlanRecord {
+  id            String    @id @default(uuid())
+  directorJobId String?
+  directorJob   DirectorJob? @relation(fields: [directorJobId], references: [id], onDelete: Cascade)
+  shotId        String
+  sceneId       String?
+  orderIndex    Int?
+  cameraAngle   String?
+  durationSec   Float?
+  emotion       String?
+  transition    String?
+  payloadJson   Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([shotId])
+  @@index([sceneId])
+  @@index([cameraAngle])
+  @@index([directorJobId])
+}
+
+model StoryMetadataRecord {
+  id               String    @id @default(uuid())
+  directorJobId    String?
+  projectId        String?
+  genre            String?
+  formatType       String?
+  targetAudience   String?
+  visualComplexity Float?
+  audioComplexity  Float?
+  estimatedRuntime Float?
+  payloadJson      Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([genre])
+  @@index([formatType])
+  @@index([directorJobId])
+}
+
+model RuntimeReportRecord {
+  id            String    @id @default(uuid())
+  directorJobId String?
+  projectId     String?
+  runtimeSec    Float?
+  sceneCount    Int?
+  shotCount     Int?
+  accuracyScore Float?
+  passRate      Float?
+  payloadJson   Json?
+  createdAt     DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([directorJobId])
+  @@index([createdAt(sort: Desc)])
+}
+
+model DirectorHistoryRecord {
+  id            String    @id @default(uuid())
+  directorJobId String?
+  directorJob   DirectorJob? @relation(fields: [directorJobId], references: [id], onDelete: Cascade)
+  projectId     String
+  formatType    String?
+  genre         String?
+  sceneCount    Int?
+  shotCount     Int?
+  runtimeSec    Float?
+  accuracyScore Float?
+  createdAt     DateTime  @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([directorJobId])
+}
