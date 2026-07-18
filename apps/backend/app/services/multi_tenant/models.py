@@ -179,15 +179,19 @@ class TeamMember:
     team_id: str
     user_id: str
     status: str = "active"
+    team_role: str = "member"
     joined_at: datetime = field(default_factory=_utcnow)
+    updated_at: datetime = field(default_factory=_utcnow)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "teamId": self.team_id,
             "userId": self.user_id,
+            "teamRole": self.team_role,
             "status": self.status,
             "joinedAt": _iso(self.joined_at),
+            "updatedAt": _iso(self.updated_at),
         }
 
 

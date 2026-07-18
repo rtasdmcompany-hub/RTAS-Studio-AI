@@ -25,17 +25,18 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 6 Enterprise AI Orchestration Platform."""
+    """Production readiness probe — Phase 7 multi-tenant SaaS platform."""
     reload_settings()
     return {
         "status": "ready",
         "ok": True,
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
-        "phase": 6,
-        "sprint": 10,
+        "phase": 7,
+        "sprint": 3,
         "final_release": True,
-        "platform": "RTAS Studio AI Enterprise AI Orchestration Platform v1.0",
+        "platform": "RTAS Studio AI Enterprise SaaS Platform",
+        "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
         "director_engine": "RTAS Studio AI Director Engine v1.0",
     }
 

@@ -107,6 +107,36 @@ def count_organizations_for_owner(owner_id: str) -> int:
         return sum(1 for o in _organizations.values() if o.owner_id == owner_id)
 
 
+def delete_organization(org_id: str) -> bool:
+    with _lock:
+        org = _organizations.pop(org_id, None)
+        if org is None:
+            return False
+        _slug_org.pop(org.slug, None)
+        # cascade workspaces
+        for wid, ws in list(_workspaces.items()):
+            if ws.organization_id == org_id:
+                _slug_workspace.pop((org_id, ws.slug), None)
+                _workspaces.pop(wid, None)
+        for tid, team in list(_teams.items()):
+            if team.organization_id == org_id:
+                _slug_team.pop((org_id, team.slug), None)
+                for tmid, tm in list(_team_members.items()):
+                    if tm.team_id == tid:
+                        _team_member_key.pop((tm.team_id, tm.user_id), None)
+                        _team_members.pop(tmid, None)
+                _teams.pop(tid, None)
+        for mid, m in list(_members.items()):
+            if m.organization_id == org_id:
+                _member_org_user.pop((org_id, m.user_id), None)
+                _members.pop(mid, None)
+        for iid, inv in list(_invites.items()):
+            if inv.organization_id == org_id:
+                _invite_token.pop(inv.token, None)
+                _invites.pop(iid, None)
+        return True
+
+
 # --- Workspaces ---
 
 def save_workspace(ws: "Workspace") -> "Workspace":
@@ -135,6 +165,15 @@ def list_workspaces(organization_id: str) -> list["Workspace"]:
 def count_workspaces(organization_id: str) -> int:
     with _lock:
         return sum(1 for w in _workspaces.values() if w.organization_id == organization_id)
+
+
+def delete_workspace(workspace_id: str) -> bool:
+    with _lock:
+        ws = _workspaces.pop(workspace_id, None)
+        if ws is None:
+            return False
+        _slug_workspace.pop((ws.organization_id, ws.slug), None)
+        return True
 
 
 # --- Teams ---
@@ -170,6 +209,19 @@ def list_teams(
 def count_teams(organization_id: str) -> int:
     with _lock:
         return sum(1 for t in _teams.values() if t.organization_id == organization_id)
+
+
+def delete_team(team_id: str) -> bool:
+    with _lock:
+        team = _teams.pop(team_id, None)
+        if team is None:
+            return False
+        _slug_team.pop((team.organization_id, team.slug), None)
+        for tmid, tm in list(_team_members.items()):
+            if tm.team_id == team_id:
+                _team_member_key.pop((tm.team_id, tm.user_id), None)
+                _team_members.pop(tmid, None)
+        return True
 
 
 # --- Members ---
@@ -211,6 +263,15 @@ def count_members(organization_id: str) -> int:
         return sum(1 for m in _members.values() if m.organization_id == organization_id)
 
 
+def delete_member(member_id: str) -> bool:
+    with _lock:
+        member = _members.pop(member_id, None)
+        if member is None:
+            return False
+        _member_org_user.pop((member.organization_id, member.user_id), None)
+        return True
+
+
 # --- Team members ---
 
 def save_team_member(tm: "TeamMember") -> "TeamMember":
@@ -229,6 +290,15 @@ def get_team_member(team_id: str, user_id: str) -> "TeamMember | None":
 def list_team_members(team_id: str) -> list["TeamMember"]:
     with _lock:
         return [t for t in _team_members.values() if t.team_id == team_id]
+
+
+def delete_team_member(team_id: str, user_id: str) -> bool:
+    with _lock:
+        tid = _team_member_key.pop((team_id, user_id), None)
+        if tid is None:
+            return False
+        _team_members.pop(tid, None)
+        return True
 
 
 # --- Roles / Permissions ---

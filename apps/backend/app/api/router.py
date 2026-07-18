@@ -14,10 +14,12 @@ from app.api.routes import (
     health,
     image_to_video,
     intelligence,
+    invitations,
     jobs,
     knowledge,
     lip_sync,
     localization,
+    management,
     memory,
     pipeline,
     timeline,
@@ -38,11 +40,13 @@ from app.api.routes import (
     scene_render,
     security,
     system,
+    teams,
     talking_avatar,
     text_to_video,
     upload,
     video_engine,
     voice,
+    workspaces,
     world,
     director,
     download,
@@ -70,6 +74,10 @@ api_router.include_router(system.router)
 api_router.include_router(platform.router)
 api_router.include_router(organizations.router)
 api_router.include_router(access.router)
+api_router.include_router(workspaces.router)
+api_router.include_router(teams.router)
+api_router.include_router(invitations.router)
+api_router.include_router(management.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

@@ -3387,6 +3387,8 @@ model Organization {
   members    OrganizationMember[]
   roles      Role[]
   invites    Invite[]
+  settings   OrganizationSettings?
+  activityLogs TeamActivityLog[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3407,6 +3409,8 @@ model Workspace {
   teams   Team[]
   members OrganizationMember[]
   invites Invite[]
+  settings WorkspaceSettings?
+  activityLogs TeamActivityLog[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -3427,6 +3431,7 @@ model Team {
   updatedAt      DateTime @updatedAt
 
   members TeamMember[]
+  activityLogs TeamActivityLog[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -3462,12 +3467,15 @@ model TeamMember {
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamRole  String   @default("member")
   status    String   @default("active")
   joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([teamId, userId])
   @@index([userId])
   @@index([teamId])
+  @@index([teamRole])
 }
 
 /** Role — Owner, Admin, Manager, Editor, Viewer (+ custom per org). */
@@ -3542,4 +3550,56 @@ model Invite {
   @@index([email, status])
   @@index([token])
   @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 3 — Organization / Workspace / Team Management
+// ---------------------------------------------------------------------------
+
+/** Per-organization settings (billing prefs, defaults, feature flags). */
+model OrganizationSettings {
+  id             String   @id @default(uuid())
+  organizationId String   @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  timezone       String   @default("UTC")
+  locale         String   @default("en")
+  allowInvites   Boolean  @default(true)
+  defaultRole    String   @default("viewer")
+  settingsJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+/** Per-workspace settings. */
+model WorkspaceSettings {
+  id           String   @id @default(uuid())
+  workspaceId  String   @unique
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  visibility   String   @default("private")
+  defaultModel String?
+  settingsJson Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/** Activity / audit trail for teams (and org/workspace scoped events). */
+model TeamActivityLog {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  teamId         String?
+  team           Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  actorId        String
+  action         String
+  detail         String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@index([teamId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([action])
 }

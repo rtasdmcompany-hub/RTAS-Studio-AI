@@ -160,10 +160,14 @@ async def organizations_status(
 async def create_organization(
     body: CreateOrganizationRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
     try:
-        return _svc().create_organization(body.model_dump(by_alias=True))
+        return _om().organizations.create(
+            body.model_dump(by_alias=True),
+            actor_id=x_rtas_user_id or body.owner_id,
+        )
     except Exception as exc:
         raise _map_error(exc) from exc
 
@@ -441,13 +445,175 @@ async def check_permission(
     )
 
 
+class UpdateOrganizationRequest(BaseModel):
+    name: str | None = None
+    slug: str | None = None
+    plan: str | None = None
+    status: str | None = None
+    metadata: dict[str, Any] | None = None
+
+
+class TransferOwnershipRequest(BaseModel):
+    new_owner_id: str = Field(..., alias="newOwnerId", min_length=1)
+    model_config = {"populate_by_name": True}
+
+
+class OrgSettingsRequest(BaseModel):
+    timezone: str | None = None
+    locale: str | None = None
+    allow_invites: bool | None = Field(None, alias="allowInvites")
+    default_role: str | None = Field(None, alias="defaultRole")
+    settings: dict[str, Any] | None = None
+    model_config = {"populate_by_name": True}
+
+
+def _om():
+    from app.services import org_management as om
+
+    return om.get_org_management_service()
+
+
+@router.patch("/{org_id}")
+async def update_organization(
+    org_id: str,
+    body: UpdateOrganizationRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().organizations.update(
+            org_id, body.model_dump(exclude_none=True), actor_id=x_rtas_user_id
+        )
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.delete("/{org_id}")
+async def delete_organization(
+    org_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().organizations.delete(org_id, actor_id=x_rtas_user_id)
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.post("/{org_id}/transfer")
+async def transfer_ownership(
+    org_id: str,
+    body: TransferOwnershipRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().organizations.transfer_ownership(
+            org_id, actor_id=x_rtas_user_id, new_owner_id=body.new_owner_id
+        )
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.get("/{org_id}/settings")
+async def get_org_settings(
+    org_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if x_rtas_user_id:
+        _enforce_tenant_access(
+            organization_id=org_id,
+            user_id=x_rtas_user_id,
+            session_token=None,
+            permission="org.read",
+        )
+    return {"ok": True, "settings": _om().settings.get_org_settings(org_id)}
+
+
+@router.patch("/{org_id}/settings")
+async def update_org_settings(
+    org_id: str,
+    body: OrgSettingsRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().settings.update_org_settings(
+            org_id, body.model_dump(by_alias=True, exclude_none=True), actor_id=x_rtas_user_id
+        )
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.delete("/members/{member_id}")
+async def remove_member(
+    member_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().members.remove(member_id, actor_id=x_rtas_user_id)
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.post("/members/{member_id}/suspend")
+async def suspend_member(
+    member_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().members.suspend(member_id, actor_id=x_rtas_user_id)
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
+@router.post("/members/{member_id}/reactivate")
+async def reactivate_member(
+    member_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    if not x_rtas_user_id:
+        raise HTTPException(status_code=401, detail="X-Rtas-User-Id required")
+    try:
+        return _om().members.reactivate(member_id, actor_id=x_rtas_user_id)
+    except Exception as exc:
+        raise _map_error(exc) from exc
+
+
 @router.get("/{org_id}")
 async def get_organization(
     org_id: str,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
     try:
+        if x_rtas_user_id:
+            return _om().organizations.get(org_id, actor_id=x_rtas_user_id)
         return _svc().get_organization(org_id)
     except Exception as exc:
         raise _map_error(exc) from exc
