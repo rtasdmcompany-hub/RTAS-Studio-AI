@@ -37,6 +37,7 @@ from app.api.routes import (
     organizations,
     physics,
     platform,
+    projects,
     scene_render,
     security,
     system,
@@ -78,6 +79,7 @@ api_router.include_router(workspaces.router)
 api_router.include_router(teams.router)
 api_router.include_router(invitations.router)
 api_router.include_router(management.router)
+api_router.include_router(projects.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

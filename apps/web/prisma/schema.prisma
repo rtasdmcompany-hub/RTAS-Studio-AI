@@ -53,6 +53,12 @@ model User {
   organizationMembers OrganizationMember[]
   teamMembers        TeamMember[]
   invitesSent        Invite[]             @relation("InviteSender")
+
+  // Phase 7 Sprint 4 — Project collaboration
+  ownedOrgProjects   OrgProject[]         @relation("OrgProjectOwner")
+  orgProjectMembers  OrgProjectMember[]
+  orgProjectNotes    OrgProjectNote[]     @relation("OrgProjectNoteAuthor")
+  orgProjectTasksAssigned OrgProjectTask[] @relation("OrgProjectTaskAssignee")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3389,6 +3395,8 @@ model Organization {
   invites    Invite[]
   settings   OrganizationSettings?
   activityLogs TeamActivityLog[]
+  orgProjects OrgProject[]
+  orgProjectTemplates OrgProjectTemplate[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3411,6 +3419,7 @@ model Workspace {
   invites Invite[]
   settings WorkspaceSettings?
   activityLogs TeamActivityLog[]
+  orgProjects OrgProject[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -3603,3 +3612,173 @@ model TeamActivityLog {
   @@index([actorId])
   @@index([action])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 4 — Project Management & Collaboration Engine
+// (OrgProject* — separate from studio generation Project model)
+// ---------------------------------------------------------------------------
+
+/** Enterprise collaborative production project. */
+model OrgProject {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  ownerId        String
+  owner          User     @relation("OrgProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  description    String?
+  status         String   @default("draft")
+  isFavorite     Boolean  @default(false)
+  isShared       Boolean  @default(false)
+  templateId     String?
+  template       OrgProjectTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  metadataJson   Json?
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members  OrgProjectMember[]
+  roles    OrgProjectRole[]
+  activity OrgProjectActivity[]
+  timeline OrgProjectTimeline[]
+  settings OrgProjectSettings?
+  notes    OrgProjectNote[]
+  tasks    OrgProjectTask[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status, createdAt(sort: Desc)])
+  @@index([workspaceId, status])
+  @@index([ownerId])
+  @@index([isFavorite])
+  @@index([deletedAt])
+}
+
+model OrgProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  project   OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleKey   String   @default("contributor")
+  status    String   @default("active")
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@index([projectId, roleKey])
+  @@index([status])
+}
+
+model OrgProjectRole {
+  id          String   @id @default(uuid())
+  projectId   String?
+  project     OrgProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key         String
+  name        String
+  description String?
+  isSystem    Boolean  @default(true)
+  permissions Json?
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, key])
+  @@index([key])
+}
+
+model OrgProjectActivity {
+  id        String   @id @default(uuid())
+  projectId String
+  project   OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId   String
+  action    String
+  detail    String?
+  metadataJson Json?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([action])
+}
+
+model OrgProjectTimeline {
+  id        String   @id @default(uuid())
+  projectId String
+  project   OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId   String
+  eventType String
+  summary   String
+  payloadJson Json?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([eventType])
+}
+
+model OrgProjectTemplate {
+  id             String   @id @default(uuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  key            String
+  name           String
+  description    String?
+  defaultStatus  String   @default("draft")
+  blueprintJson  Json?
+  isSystem       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  projects OrgProject[]
+
+  @@unique([organizationId, key])
+  @@index([isSystem])
+}
+
+model OrgProjectSettings {
+  id           String   @id @default(uuid())
+  projectId    String   @unique
+  project      OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  visibility   String   @default("private")
+  allowComments Boolean @default(true)
+  allowTasks   Boolean  @default(true)
+  settingsJson Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model OrgProjectNote {
+  id        String   @id @default(uuid())
+  projectId String
+  project   OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("OrgProjectNoteAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  isInternal Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([authorId])
+}
+
+model OrgProjectTask {
+  id           String   @id @default(uuid())
+  projectId    String
+  project      OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  status       String   @default("open")
+  assigneeId   String?
+  assignee     User?    @relation("OrgProjectTaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdById  String
+  dueAt        DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId, status])
+  @@index([assigneeId])
+}
+

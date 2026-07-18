@@ -1,0 +1,13 @@
+"""Project Management & Collaboration Engine versioning."""
+
+ENGINE_NAME = "RTAS Project Management & Collaboration Engine"
+ENGINE_VERSION = "1.0.0"
+ENGINE_LABEL = f"{ENGINE_NAME} v{ENGINE_VERSION}"
+PHASE = 7
+SPRINT = 4
+
+MAX_PROJECTS_PER_ORG = 5000
+MAX_MEMBERS_PER_PROJECT = 500
+MAX_ACTIVITY = 20000
+MAX_NOTES = 10000
+MAX_TASKS = 10000

@@ -33,10 +33,11 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 7,
-        "sprint": 3,
+        "sprint": 4,
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform",
         "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
+        "project_engine": "RTAS Project Management & Collaboration Engine v1.0",
         "director_engine": "RTAS Studio AI Director Engine v1.0",
     }
 
