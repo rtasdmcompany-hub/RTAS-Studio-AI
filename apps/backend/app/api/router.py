@@ -34,6 +34,7 @@ from app.api.routes import (
     physics,
     scene_render,
     security,
+    system,
     talking_avatar,
     text_to_video,
     upload,
@@ -62,6 +63,7 @@ api_router.include_router(knowledge.router)
 api_router.include_router(workflow.router)
 api_router.include_router(pipeline.router)
 api_router.include_router(security.router)
+api_router.include_router(system.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
