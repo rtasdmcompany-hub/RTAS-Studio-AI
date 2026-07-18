@@ -22,6 +22,7 @@ from app.api.routes import (
     motion,
     motion_intelligence,
     multi_ai,
+    providers,
     multi_gpu,
     music,
     physics,
@@ -46,6 +47,7 @@ api_router.include_router(generate.router)
 api_router.include_router(jobs.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(multi_ai.router)
+api_router.include_router(providers.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
