@@ -47,6 +47,12 @@ model User {
   exportJobs     ExportJob[]
   audioPipelineJobs AudioPipelineJob[]
   avatarCharacterJobs AvatarCharacterJob[]
+
+  // Phase 7 Sprint 1 — Multi-tenant SaaS
+  ownedOrganizations Organization[] @relation("OrganizationOwner")
+  organizationMembers OrganizationMember[]
+  teamMembers        TeamMember[]
+  invitesSent        Invite[]             @relation("InviteSender")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3357,4 +3363,183 @@ model PlatformStressReport {
 
   @@index([passed, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 1 — Multi-Tenant SaaS Platform Foundation
+// ---------------------------------------------------------------------------
+
+/** Tenant root — a user may own many organizations. */
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  ownerId     String
+  owner       User     @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  plan        String   @default("free")
+  status      String   @default("active")
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspaces Workspace[]
+  teams      Team[]
+  members    OrganizationMember[]
+  roles      Role[]
+  invites    Invite[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@index([status])
+}
+
+/** Workspace under an organization — members collaborate here. */
+model Workspace {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  status         String   @default("active")
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teams   Team[]
+  members OrganizationMember[]
+  invites Invite[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+}
+
+/** Optional team grouping inside an org / workspace. */
+model Team {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  name           String
+  slug           String
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members TeamMember[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([workspaceId])
+}
+
+/** Organization / workspace membership with assigned role. */
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId         String
+  role           Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  status         String   @default("active")
+  joinedAt       DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, roleId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([status])
+}
+
+/** Team membership (user ↔ team). */
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("active")
+  joinedAt  DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@index([teamId])
+}
+
+/** Role — Owner, Admin, Manager, Editor, Viewer (+ custom per org). */
+model Role {
+  id             String   @id @default(uuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  key            String
+  name           String
+  description    String?
+  isSystem       Boolean  @default(true)
+  rank           Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  permissions RolePermission[]
+  members     OrganizationMember[]
+  invites     Invite[]
+
+  @@unique([organizationId, key])
+  @@index([key])
+  @@index([isSystem])
+}
+
+/** Atomic permission keys for RBAC. */
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  name        String
+  description String?
+  category    String   @default("general")
+  createdAt   DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@index([category])
+}
+
+/** Role ↔ Permission join table. */
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+}
+
+/** Pending / accepted invites into org or workspace. */
+model Invite {
+  id             String    @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email          String
+  roleId         String
+  role           Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  token          String    @unique
+  status         String    @default("pending")
+  invitedById    String
+  invitedBy      User      @relation("InviteSender", fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId, status])
+  @@index([email, status])
+  @@index([token])
+  @@index([expiresAt])
 }
