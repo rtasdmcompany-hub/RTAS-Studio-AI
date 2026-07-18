@@ -3505,6 +3505,16 @@ model Organization {
   payoutRequests            PayoutRequest[]
   payoutHistoryEntries      PayoutHistory[]
 
+  // Phase 8 Sprint 7 — License, API access & developer platform
+  licenses                  License[]
+  licenseHistoryEntries     LicenseHistory[]
+  apiKeys                   ApiKey[]
+  personalAccessTokens      PersonalAccessToken[]
+  apiUsageRecords           ApiUsage[]
+  rateLimitStates           RateLimit[]
+  webhooks                  Webhook[]
+  webhookDeliveries         WebhookDelivery[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -5595,5 +5605,190 @@ model PayoutHistory {
   @@index([affiliateId, createdAt(sort: Desc)])
   @@index([organizationId])
   @@map("PayoutHistory")
+}
+
+// =============================================================================
+// Phase 8 Sprint 7 — Enterprise License, API Access & Developer Platform
+// =============================================================================
+
+model License {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  licenseKey       String   @unique
+  tier             String   @default("free")
+  status           String   @default("active")
+  activatedAt      DateTime?
+  expiresAt        DateTime?
+  suspendedAt      DateTime?
+  revokedAt        DateTime?
+  activatedBy      String?
+  seats            Int      @default(1)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  history          LicenseHistory[]
+
+  @@index([organizationId])
+  @@index([tier])
+  @@index([status])
+  @@map("Licenses")
+}
+
+model LicenseHistory {
+  id               String   @id @default(uuid())
+  licenseId        String
+  license          License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  action           String
+  tier             String   @default("")
+  detail           String   @default("")
+  actorId          String?
+  createdAt        DateTime @default(now())
+
+  @@index([licenseId])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([action])
+  @@map("LicenseHistory")
+}
+
+model ApiKey {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  keyType          String   @default("personal")
+  access           String   @default("full_access")
+  name             String   @default("")
+  keyPrefix        String   @default("")
+  keyHash          String   @unique
+  scopesJson       Json?
+  ownerUserId      String?
+  workspaceId      String?
+  active           Boolean  @default(true)
+  lastUsedAt       DateTime?
+  rotatedAt        DateTime?
+  revokedAt        DateTime?
+  expiresAt        DateTime?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  usageRecords     ApiUsage[]
+
+  @@index([organizationId])
+  @@index([ownerUserId])
+  @@index([workspaceId])
+  @@index([keyType])
+  @@index([active])
+  @@map("ApiKeys")
+}
+
+model PersonalAccessToken {
+  id               String   @id @default(uuid())
+  userId           String
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String   @default("")
+  tokenPrefix      String   @default("")
+  tokenHash        String   @unique
+  scopesJson       Json?
+  active           Boolean  @default(true)
+  lastUsedAt       DateTime?
+  revokedAt        DateTime?
+  expiresAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([active])
+  @@map("PersonalAccessTokens")
+}
+
+model ApiUsage {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  apiKeyId         String?
+  apiKey           ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  workspaceId      String?
+  endpoint         String   @default("")
+  method           String   @default("GET")
+  statusCode       Int      @default(200)
+  latencyMs        Float    @default(0)
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([apiKeyId])
+  @@index([endpoint])
+  @@map("ApiUsage")
+}
+
+model RateLimit {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scope            String   @default("organization")
+  scopeId          String
+  tier             String   @default("free")
+  perMinute        Int      @default(0)
+  perHour          Int      @default(0)
+  perDay           Int      @default(0)
+  minuteWindow     String   @default("")
+  minuteCount      Int      @default(0)
+  hourWindow       String   @default("")
+  hourCount        Int      @default(0)
+  dayWindow        String   @default("")
+  dayCount         Int      @default(0)
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+
+  @@unique([scope, scopeId])
+  @@index([organizationId])
+  @@index([tier])
+  @@map("RateLimits")
+}
+
+model Webhook {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url              String
+  eventsJson       Json?
+  secretHash       String   @default("")
+  secretPrefix     String   @default("")
+  active           Boolean  @default(true)
+  createdBy        String?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deliveries       WebhookDelivery[]
+
+  @@index([organizationId])
+  @@index([active])
+  @@map("Webhooks")
+}
+
+model WebhookDelivery {
+  id               String   @id @default(uuid())
+  webhookId        String
+  webhook          Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  eventType        String
+  payloadJson      Json?
+  status           String   @default("pending")
+  attempts         Int      @default(0)
+  lastError        String   @default("")
+  nextRetryAt      DateTime?
+  deliveredAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([webhookId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([status])
+  @@index([eventType])
+  @@map("WebhookDeliveries")
 }
 

@@ -39,6 +39,7 @@ from app.api.routes import (
     costs,
     usage,
     referral_affiliate,
+    license_platform,
     motion,
     motion_intelligence,
     multi_ai,
@@ -82,6 +83,8 @@ api_router.include_router(costs.router)
 api_router.include_router(usage.router)
 api_router.include_router(referral_affiliate.referrals_router)
 api_router.include_router(referral_affiliate.affiliate_router)
+api_router.include_router(license_platform.licenses_router)
+api_router.include_router(license_platform.developer_router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)
