@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Header, HTTPException
+from typing import Literal
+
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.services import cost_intelligence as ci
 from app.services import provider_connectors as pc
 from app.services import provider_orchestration as po
 
@@ -25,6 +28,19 @@ class ProviderTestRequest(BaseModel):
     prompt: str = "RTAS connector health probe"
     capability: str = "text"
     test_all: bool = Field(False, alias="testAll")
+
+    model_config = {"populate_by_name": True}
+
+
+class ProviderOptimizeRequest(BaseModel):
+    mode: Literal["cost", "balanced", "quality", "latency"] = "balanced"
+    capability: str | None = None
+    tokens: int = 1000
+    images: int = 0
+    video_sec: float = Field(0.0, alias="videoSec")
+    audio_sec: float = Field(0.0, alias="audioSec")
+    voice_sec: float = Field(0.0, alias="voiceSec")
+    prefer_provider: str | None = Field(None, alias="preferProvider")
 
     model_config = {"populate_by_name": True}
 
@@ -118,3 +134,70 @@ async def test_provider(
     except Exception as exc:
         raise HTTPException(status_code=500, detail="Provider test failed") from exc
     return {"ok": True, **result}
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 Sprint 5 — Cost Optimization & Provider Intelligence
+# ---------------------------------------------------------------------------
+
+
+@router.get("/analytics")
+async def providers_analytics(
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    engine = ci.get_cost_engine()
+    return engine.analytics()
+
+
+@router.get("/cost")
+async def providers_cost(
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    engine = ci.get_cost_engine()
+    return engine.cost_summary()
+
+
+@router.get("/ranking")
+async def providers_ranking(
+    capability: str | None = Query(None),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    engine = ci.get_cost_engine()
+    return engine.ranking(capability=capability)
+
+
+@router.get("/usage")
+async def providers_usage(
+    project_id: str | None = Query(None, alias="projectId"),
+    team_id: str | None = Query(None, alias="teamId"),
+    period: str | None = Query(None),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    engine = ci.get_cost_engine()
+    return engine.usage(project_id=project_id, team_id=team_id, period=period)
+
+
+@router.post("/optimize")
+async def providers_optimize(
+    body: ProviderOptimizeRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    engine = ci.get_cost_engine()
+    try:
+        return engine.optimize(
+            mode=body.mode,
+            capability=body.capability,
+            tokens=body.tokens,
+            images=body.images,
+            video_sec=body.video_sec,
+            audio_sec=body.audio_sec,
+            voice_sec=body.voice_sec,
+            prefer_provider=body.prefer_provider,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="Provider optimize failed") from exc

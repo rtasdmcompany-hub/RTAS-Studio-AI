@@ -2787,3 +2787,117 @@ model DirectorHistoryRecord {
   @@index([projectId, createdAt(sort: Desc)])
   @@index([directorJobId])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 Sprint 5 — AI Cost Optimization & Provider Intelligence
+// ---------------------------------------------------------------------------
+
+/** Per-provider analytics rollup (requests, tokens, media, cost, reliability). */
+model ProviderAnalytics {
+  id                String   @id @default(uuid())
+  provider          String
+  requests          Int      @default(0)
+  tokens            Int      @default(0)
+  images            Int      @default(0)
+  videos            Int      @default(0)
+  audio             Int      @default(0)
+  voice             Int      @default(0)
+  storageMb         Float    @default(0)
+  gpuTimeSec        Float    @default(0)
+  processingCostUsd Float    @default(0)
+  credits           Float    @default(0)
+  successes         Int      @default(0)
+  failures          Int      @default(0)
+  totalLatencyMs    Float    @default(0)
+  successRate       Float    @default(100)
+  failureRate       Float    @default(0)
+  avgResponseMs     Float    @default(0)
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  payloadJson       Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([provider, periodStart])
+  @@index([provider])
+  @@index([updatedAt(sort: Desc)])
+}
+
+/** Cost reports (daily / monthly / custom). */
+model CostReport {
+  id              String   @id @default(uuid())
+  period          String
+  scopeType       String?
+  scopeId         String?
+  totalCostUsd    Float    @default(0)
+  totalCredits    Float    @default(0)
+  totalRequests   Int      @default(0)
+  avgCostPerReq   Float    @default(0)
+  byProviderJson  Json?
+  performanceJson Json?
+  generatedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  @@index([period, generatedAt(sort: Desc)])
+  @@index([scopeType, scopeId])
+}
+
+/** Usage reports for project / team / org scopes. */
+model UsageReport {
+  id             String   @id @default(uuid())
+  period         String
+  scopeType      String?
+  scopeId        String?
+  totalCostUsd   Float    @default(0)
+  totalCredits   Float    @default(0)
+  totalRequests  Int      @default(0)
+  tokens         Int      @default(0)
+  byProviderJson Json?
+  metadataJson   Json?
+  generatedAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([period, generatedAt(sort: Desc)])
+  @@index([scopeType, scopeId, generatedAt(sort: Desc)])
+}
+
+/** Budget profiles for daily/monthly spend controls. */
+model BudgetProfile {
+  id               String   @id @default(uuid())
+  name             String
+  dailyLimitUsd    Float    @default(50)
+  monthlyLimitUsd  Float    @default(1000)
+  spentDailyUsd    Float    @default(0)
+  spentMonthlyUsd  Float    @default(0)
+  alertThreshold   Float    @default(0.8)
+  projectId        String?
+  teamId           String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([active])
+  @@index([projectId])
+  @@index([teamId])
+}
+
+/** History of automatic provider / cost optimization decisions. */
+model OptimizationHistory {
+  id                 String   @id @default(uuid())
+  mode               String
+  selectedProvider   String
+  selectedModel      String?
+  estimatedCostUsd   Float    @default(0)
+  estimatedLatencyMs Float    @default(0)
+  qualityScore       Float    @default(0)
+  savingsUsd         Float    @default(0)
+  reason             String?
+  rankingJson        Json?
+  alternativesJson   Json?
+  capability         String?
+  createdAt          DateTime @default(now())
+
+  @@index([selectedProvider, createdAt(sort: Desc)])
+  @@index([mode, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
