@@ -3473,6 +3473,12 @@ model Organization {
   paddleWebhookLogs         PaddleWebhookLog[]
   billingEvents             BillingEvent[]
 
+  // Phase 8 Sprint 3 — PayPal payments & credit wallet
+  paypalPayments            PayPalPayment[]
+  paymentHistoryEntries     PaymentHistory[]
+  refundRequests            RefundRequest[]
+  refundHistoryEntries      RefundHistory[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -4752,8 +4758,16 @@ model CreditWallet {
   workspaceId      String?
   balance          Int      @default(0)
   reserved         Int      @default(0)
+  bonusBalance     Int      @default(0)
+  trialBalance     Int      @default(0)
+  promoBalance     Int      @default(0)
   lifetimeGranted  Int      @default(0)
   lifetimeSpent    Int      @default(0)
+  lifetimePurchased Int     @default(0)
+  lifetimeConsumed Int      @default(0)
+  lifetimeRefunded Int      @default(0)
+  lifetimeAwarded  Int      @default(0)
+  expiresAt        DateTime?
   currency         String   @default("credits")
   metadataJson     Json?
   createdAt        DateTime @default(now())
@@ -4774,18 +4788,21 @@ model CreditTransaction {
   amount         Int
   balanceAfter   Int
   txnType        String
+  creditCategory String   @default("purchased")
   reason         String   @default("")
   actorId        String?
   actor          User?    @relation("CreditTransactionActor", fields: [actorId], references: [id], onDelete: SetNull)
   workspaceId    String?
   referenceType  String?
   referenceId    String?
+  expiresAt      DateTime?
   metadataJson   Json?
   createdAt      DateTime @default(now())
 
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([walletId, createdAt(sort: Desc)])
   @@index([actorId])
+  @@index([txnType])
   @@map("CreditTransactions")
 }
 
@@ -4968,5 +4985,99 @@ model BillingEvent {
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([eventType])
   @@map("BillingEvents")
+}
+
+// =============================================================================
+// Phase 8 Sprint 3 — PayPal Payments & Credit Wallet
+// =============================================================================
+
+model PayPalPayment {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paypalOrderId    String   @unique
+  paypalCaptureId  String?
+  status           String   @default("CREATED")
+  intent           String   @default("CAPTURE")
+  amountUsd        Float    @default(0)
+  currency         String   @default("USD")
+  packKey          String?
+  credits          Int      @default(0)
+  bonusCredits     Int      @default(0)
+  payerEmail       String?
+  actorId          String?
+  verified         Boolean  @default(false)
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  paymentHistory   PaymentHistory[]
+  refundRequests   RefundRequest[]
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([paypalCaptureId])
+  @@map("PayPalPayments")
+}
+
+model PaymentHistory {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paymentId        String
+  payment          PayPalPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  provider         String   @default("paypal")
+  action           String
+  status           String   @default("")
+  amountUsd        Float    @default(0)
+  detail           String   @default("")
+  actorId          String?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([paymentId, createdAt(sort: Desc)])
+  @@index([provider, action])
+  @@map("PaymentHistory")
+}
+
+model RefundRequest {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  paymentId        String?
+  payment          PayPalPayment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  walletTxnId      String?
+  status           String   @default("pending")
+  credits          Int      @default(0)
+  amountUsd        Float    @default(0)
+  reason           String   @default("")
+  actorId          String?
+  reviewerId       String?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  history          RefundHistory[]
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([paymentId])
+  @@index([status])
+  @@map("RefundRequests")
+}
+
+model RefundHistory {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  refundRequestId  String
+  refundRequest    RefundRequest @relation(fields: [refundRequestId], references: [id], onDelete: Cascade)
+  action           String
+  status           String
+  detail           String   @default("")
+  actorId          String?
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([refundRequestId, createdAt(sort: Desc)])
+  @@map("RefundHistory")
 }
 

@@ -118,6 +118,20 @@ class Settings(BaseSettings):
     )
     paddle_env: str = Field(default="production", validation_alias="PADDLE_ENV")
 
+    # PayPal Payments (Phase 8 Sprint 3)
+    paypal_client_id: str | None = Field(
+        default=None, validation_alias=AliasChoices("PAYPAL_CLIENT_ID", "PAYPAL_CLIENTID")
+    )
+    paypal_client_secret: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PAYPAL_CLIENT_SECRET", "PAYPAL_SECRET"),
+    )
+    paypal_webhook_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("PAYPAL_WEBHOOK_ID", "PAYPAL_WEBHOOK_SECRET"),
+    )
+    paypal_mode: str = Field(default="sandbox", validation_alias="PAYPAL_MODE")
+
     # Storage
     storage_mode: Literal["local", "s3", "r2"] = "local"
     local_upload_dir: Path = Field(default=BackendRoot / "data" / "uploads")
@@ -152,6 +166,9 @@ class Settings(BaseSettings):
         "generation_webhook_secret",
         "paddle_api_key",
         "paddle_webhook_secret",
+        "paypal_client_id",
+        "paypal_client_secret",
+        "paypal_webhook_id",
         mode="before",
     )
     @classmethod

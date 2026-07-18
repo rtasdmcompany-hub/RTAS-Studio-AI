@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 8 Paddle billing integration."""
+    """Production readiness probe — Phase 8 PayPal credit wallet & payments."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,12 +33,14 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 8,
-        "sprint": 2,
+        "sprint": 3,
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,
         "billing_engine": "RTAS Enterprise Billing & Subscription Foundation v1.0",
         "paddle_billing": "RTAS Paddle Billing Integration v1.0",
+        "payment_processing": "RTAS PayPal Credit Wallet & Payment Processing Engine v1.0",
+        "paypal_engine": "RTAS PayPal Credit Wallet & Payment Processing Engine v1.0",
         "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
         "project_engine": "RTAS Project Management & Collaboration Engine v1.0",
         "asset_engine": "RTAS Enterprise Asset Management & Digital Library Engine v1.0",
