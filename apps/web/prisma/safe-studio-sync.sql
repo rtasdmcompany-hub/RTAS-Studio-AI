@@ -79,7 +79,7 @@ DO $$ BEGIN
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
--- Phase 7 Sprint 1 — Multi-Tenant SaaS Platform Foundation (UP)
+-- Phase 7 Sprint 1 ? Multi-Tenant SaaS Platform Foundation (UP)
 
 CREATE TABLE IF NOT EXISTS "Organization" (
   "id" TEXT PRIMARY KEY,
@@ -203,7 +203,7 @@ CREATE INDEX IF NOT EXISTS "Invite_email_status_idx" ON "Invite"("email", "statu
 CREATE INDEX IF NOT EXISTS "Invite_token_idx" ON "Invite"("token");
 CREATE INDEX IF NOT EXISTS "Invite_expiresAt_idx" ON "Invite"("expiresAt");
 
--- Phase 7 Sprint 3 — Organization, Workspace & Team Management Engine
+-- Phase 7 Sprint 3 ? Organization, Workspace & Team Management Engine
 ALTER TABLE "TeamMember" ADD COLUMN IF NOT EXISTS "teamRole" TEXT NOT NULL DEFAULT 'member';
 ALTER TABLE "TeamMember" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
 CREATE INDEX IF NOT EXISTS "TeamMember_teamRole_idx" ON "TeamMember"("teamRole");
@@ -250,7 +250,7 @@ CREATE INDEX IF NOT EXISTS "TeamActivityLog_teamId_createdAt_idx"
 CREATE INDEX IF NOT EXISTS "TeamActivityLog_actorId_idx" ON "TeamActivityLog"("actorId");
 CREATE INDEX IF NOT EXISTS "TeamActivityLog_action_idx" ON "TeamActivityLog"("action");
 
--- Phase 7 Sprint 4 — Project Management & Collaboration Engine
+-- Phase 7 Sprint 4 ? Project Management & Collaboration Engine
 CREATE TABLE IF NOT EXISTS "OrgProjectTemplate" (
   "id" TEXT PRIMARY KEY,
   "organizationId" TEXT,
@@ -386,7 +386,7 @@ CREATE TABLE IF NOT EXISTS "OrgProjectTask" (
 CREATE INDEX IF NOT EXISTS "OrgProjectTask_projectId_status_idx" ON "OrgProjectTask"("projectId", "status");
 CREATE INDEX IF NOT EXISTS "OrgProjectTask_assigneeId_idx" ON "OrgProjectTask"("assigneeId");
 
--- Phase 7 Sprint 5 — Enterprise Asset Management & Digital Library Engine
+-- Phase 7 Sprint 5 ? Enterprise Asset Management & Digital Library Engine
 CREATE TABLE IF NOT EXISTS "LibraryAsset" (
   "id" TEXT PRIMARY KEY,
   "organizationId" TEXT NOT NULL,
@@ -533,7 +533,7 @@ CREATE TABLE IF NOT EXISTS "LibraryAssetCollectionItem" (
 );
 CREATE INDEX IF NOT EXISTS "LibraryAssetCollectionItem_assetId_idx" ON "LibraryAssetCollectionItem"("assetId");
 
--- Phase 7 Sprint 6 � Enterprise Notifications, Comments & Activity Engine
+-- Phase 7 Sprint 6 ? Enterprise Notifications, Comments & Activity Engine
 CREATE TABLE IF NOT EXISTS "CollabNotification" (
   "id" TEXT PRIMARY KEY,
   "organizationId" TEXT NOT NULL,
@@ -683,7 +683,7 @@ CREATE INDEX IF NOT EXISTS "CollabUserActivityLog_userId_createdAt_idx"
 CREATE INDEX IF NOT EXISTS "CollabUserActivityLog_organizationId_createdAt_idx"
   ON "CollabUserActivityLog"("organizationId", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "CollabUserActivityLog_action_idx" ON "CollabUserActivityLog"("action");
--- Phase 7 Sprint 7 — Enterprise Version Control, Approval & Review Engine (UP)
+-- Phase 7 Sprint 7 ? Enterprise Version Control, Approval & Review Engine (UP)
 
 CREATE TABLE IF NOT EXISTS "OrgProjectVersion" (
   "id" TEXT PRIMARY KEY,
@@ -825,7 +825,7 @@ CREATE INDEX IF NOT EXISTS "OrgProjectRollbackHistory_actorId_idx" ON "OrgProjec
 CREATE INDEX IF NOT EXISTS "OrgProjectRollbackHistory_toVersionId_idx" ON "OrgProjectRollbackHistory"("toVersionId");
 
 
--- Phase 7 Sprint 8 — Enterprise Reporting, Analytics & Business Intelligence Engine (UP)
+-- Phase 7 Sprint 8 ? Enterprise Reporting, Analytics & Business Intelligence Engine (UP)
 
 CREATE TABLE IF NOT EXISTS "AnalyticsRecord" (
   "id" TEXT PRIMARY KEY,
@@ -947,5 +947,109 @@ CREATE TABLE IF NOT EXISTS "ForecastRecord" (
 CREATE INDEX IF NOT EXISTS "ForecastRecord_organizationId_metricKey_createdAt_idx"
   ON "ForecastRecord"("organizationId", "metricKey", "createdAt" DESC);
 CREATE INDEX IF NOT EXISTS "ForecastRecord_workspaceId_idx" ON "ForecastRecord"("workspaceId");
+
+-- Phase 7 Sprint 9 ? Enterprise Administration, System Management & Platform Operations
+CREATE TABLE IF NOT EXISTS "PlatformSetting" (
+  "id" TEXT PRIMARY KEY,
+  "key" TEXT NOT NULL UNIQUE,
+  "category" TEXT NOT NULL DEFAULT 'general',
+  "valueJson" JSONB,
+  "isSecret" BOOLEAN NOT NULL DEFAULT false,
+  "description" TEXT,
+  "updatedById" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "PlatformSetting_category_idx" ON "PlatformSetting"("category");
+
+CREATE TABLE IF NOT EXISTS "SystemConfiguration" (
+  "id" TEXT PRIMARY KEY,
+  "namespace" TEXT NOT NULL UNIQUE,
+  "configJson" JSONB,
+  "environment" TEXT NOT NULL DEFAULT 'production',
+  "isValid" BOOLEAN NOT NULL DEFAULT true,
+  "validatedAt" TIMESTAMP(3),
+  "validationMsg" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "SystemConfiguration_environment_idx" ON "SystemConfiguration"("environment");
+
+CREATE TABLE IF NOT EXISTS "FeatureFlag" (
+  "id" TEXT PRIMARY KEY,
+  "key" TEXT NOT NULL UNIQUE,
+  "enabled" BOOLEAN NOT NULL DEFAULT false,
+  "description" TEXT,
+  "rolloutPercent" INTEGER NOT NULL DEFAULT 100,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "FeatureFlag_enabled_idx" ON "FeatureFlag"("enabled");
+
+CREATE TABLE IF NOT EXISTS "MaintenanceEvent" (
+  "id" TEXT PRIMARY KEY,
+  "status" TEXT NOT NULL DEFAULT 'scheduled',
+  "message" TEXT NOT NULL,
+  "startsAt" TIMESTAMP(3),
+  "endsAt" TIMESTAMP(3),
+  "createdById" TEXT,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "MaintenanceEvent_status_createdAt_idx"
+  ON "MaintenanceEvent"("status", "createdAt" DESC);
+
+CREATE TABLE IF NOT EXISTS "AdminActivity" (
+  "id" TEXT PRIMARY KEY,
+  "actorId" TEXT NOT NULL,
+  "action" TEXT NOT NULL,
+  "detail" TEXT,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "AdminActivity_actorId_createdAt_idx"
+  ON "AdminActivity"("actorId", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "AdminActivity_action_idx" ON "AdminActivity"("action");
+
+CREATE TABLE IF NOT EXISTS "SystemLog" (
+  "id" TEXT PRIMARY KEY,
+  "level" TEXT NOT NULL DEFAULT 'info',
+  "source" TEXT NOT NULL,
+  "message" TEXT NOT NULL,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "SystemLog_level_createdAt_idx" ON "SystemLog"("level", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "SystemLog_source_createdAt_idx" ON "SystemLog"("source", "createdAt" DESC);
+
+CREATE TABLE IF NOT EXISTS "ScheduledTask" (
+  "id" TEXT PRIMARY KEY,
+  "name" TEXT NOT NULL UNIQUE,
+  "cronExpr" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'idle',
+  "lastRunAt" TIMESTAMP(3),
+  "nextRunAt" TIMESTAMP(3),
+  "updatedById" TEXT,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "ScheduledTask_status_idx" ON "ScheduledTask"("status");
+
+CREATE TABLE IF NOT EXISTS "OperationsHistory" (
+  "id" TEXT PRIMARY KEY,
+  "operation" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'success',
+  "actorId" TEXT,
+  "detail" TEXT,
+  "metadataJson" JSONB,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "OperationsHistory_operation_createdAt_idx"
+  ON "OperationsHistory"("operation", "createdAt" DESC);
+CREATE INDEX IF NOT EXISTS "OperationsHistory_actorId_idx" ON "OperationsHistory"("actorId");
+CREATE INDEX IF NOT EXISTS "OperationsHistory_status_idx" ON "OperationsHistory"("status");
 
 

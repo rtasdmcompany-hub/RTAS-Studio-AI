@@ -88,6 +88,13 @@ model User {
 
   // Phase 7 Sprint 8 — Reporting, analytics & BI
   analyticsReportsGenerated   AnalyticsReportHistory[]    @relation("AnalyticsReportGenerator")
+
+  // Phase 7 Sprint 9 — Platform administration & operations
+  platformSettingsUpdated     PlatformSetting[]           @relation("PlatformSettingUpdater")
+  maintenanceEventsCreated    MaintenanceEvent[]          @relation("MaintenanceEventCreator")
+  adminActivities             AdminActivity[]             @relation("AdminActivityActor")
+  operationsHistory           OperationsHistory[]         @relation("OperationsHistoryActor")
+  scheduledTasksUpdated       ScheduledTask[]             @relation("ScheduledTaskUpdater")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -4523,5 +4530,122 @@ model ForecastRecord {
 
   @@index([organizationId, metricKey, createdAt(sort: Desc)])
   @@index([workspaceId])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 9 — Enterprise Administration, System Management & Platform Ops
+// ---------------------------------------------------------------------------
+
+model PlatformSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  category    String   @default("general")
+  valueJson   Json?
+  isSecret    Boolean  @default(false)
+  description String?
+  updatedById String?
+  updatedBy   User?    @relation("PlatformSettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+model SystemConfiguration {
+  id            String   @id @default(uuid())
+  namespace     String   @unique
+  configJson    Json?
+  environment   String   @default("production")
+  isValid       Boolean  @default(true)
+  validatedAt   DateTime?
+  validationMsg String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([environment])
+}
+
+model FeatureFlag {
+  id             String   @id @default(uuid())
+  key            String   @unique
+  enabled        Boolean  @default(false)
+  description    String?
+  rolloutPercent Int      @default(100)
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([enabled])
+}
+
+model MaintenanceEvent {
+  id          String   @id @default(uuid())
+  status      String   @default("scheduled")
+  message     String
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdById String?
+  createdBy   User?    @relation("MaintenanceEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model AdminActivity {
+  id           String   @id @default(uuid())
+  actorId      String
+  actor        User     @relation("AdminActivityActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action       String
+  detail       String?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([action])
+}
+
+model SystemLog {
+  id           String   @id @default(uuid())
+  level        String   @default("info")
+  source       String
+  message      String
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([level, createdAt(sort: Desc)])
+  @@index([source, createdAt(sort: Desc)])
+}
+
+model ScheduledTask {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  cronExpr     String?
+  status       String   @default("idle")
+  lastRunAt    DateTime?
+  nextRunAt    DateTime?
+  updatedById  String?
+  updatedBy    User?    @relation("ScheduledTaskUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+model OperationsHistory {
+  id           String   @id @default(uuid())
+  operation    String
+  status       String   @default("success")
+  actorId      String?
+  actor        User?    @relation("OperationsHistoryActor", fields: [actorId], references: [id], onDelete: SetNull)
+  detail       String?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([operation, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([status])
 }
 
