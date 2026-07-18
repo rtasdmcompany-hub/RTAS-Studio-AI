@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    access,
     admin,
     ai,
     audio,
@@ -68,6 +69,7 @@ api_router.include_router(security.router)
 api_router.include_router(system.router)
 api_router.include_router(platform.router)
 api_router.include_router(organizations.router)
+api_router.include_router(access.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

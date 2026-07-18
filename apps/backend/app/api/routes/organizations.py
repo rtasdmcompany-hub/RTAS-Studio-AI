@@ -9,6 +9,8 @@ from pydantic import BaseModel, Field
 
 from app.core.config import settings
 from app.services import multi_tenant as mt
+from app.services.enterprise_auth.errors import AccessError
+from app.services.enterprise_auth.middleware import require_access
 from app.services.multi_tenant.validation import ValidationError
 
 router = APIRouter(prefix="/organizations", tags=["multi-tenant"])
@@ -27,11 +29,50 @@ def _svc():
 
 
 def _map_error(exc: Exception) -> HTTPException:
+    if isinstance(exc, AccessError):
+        return HTTPException(
+            status_code=exc.status_code,
+            detail={"error": exc.code, "message": exc.message},
+        )
     if isinstance(exc, ValidationError):
         return HTTPException(status_code=400, detail=str(exc))
     if isinstance(exc, LookupError):
         return HTTPException(status_code=404, detail=str(exc))
     return HTTPException(status_code=500, detail="Multi-tenant operation failed")
+
+
+def _enforce_tenant_access(
+    *,
+    organization_id: str | None,
+    user_id: str | None,
+    session_token: str | None,
+    permission: str | None = None,
+    workspace_id: str | None = None,
+    require_context: bool = False,
+) -> None:
+    """Validate organization context when actor/session headers are present."""
+    if not user_id and not session_token:
+        if require_context:
+            raise HTTPException(
+                status_code=401,
+                detail={"error": "unauthorized", "message": "X-Rtas-User-Id or X-Rtas-Session required"},
+            )
+        return
+    if not organization_id and not session_token:
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "forbidden", "message": "organization context is required"},
+        )
+    try:
+        require_access(
+            user_id=user_id,
+            organization_id=organization_id,
+            workspace_id=workspace_id,
+            session_token=session_token,
+            permission=permission,
+        )
+    except AccessError as exc:
+        raise _map_error(exc) from exc
 
 
 class CreateOrganizationRequest(BaseModel):
@@ -157,8 +198,16 @@ async def list_permissions(
 async def create_workspace(
     body: CreateWorkspaceRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=body.organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="workspace.create",
+    )
     try:
         return _svc().create_workspace(body.model_dump(by_alias=True))
     except Exception as exc:
@@ -169,8 +218,16 @@ async def create_workspace(
 async def list_workspaces(
     organization_id: str = Query(..., alias="organizationId"),
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="workspace.read",
+    )
     try:
         return _svc().list_workspaces(organization_id)
     except Exception as exc:
@@ -181,8 +238,17 @@ async def list_workspaces(
 async def create_team(
     body: CreateTeamRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=body.organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="team.create",
+        workspace_id=body.workspace_id,
+    )
     try:
         return _svc().create_team(body.model_dump(by_alias=True))
     except Exception as exc:
@@ -194,8 +260,17 @@ async def list_teams(
     organization_id: str = Query(..., alias="organizationId"),
     workspace_id: str | None = Query(None, alias="workspaceId"),
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="team.read",
+        workspace_id=workspace_id,
+    )
     try:
         return _svc().list_teams(organization_id, workspace_id=workspace_id)
     except Exception as exc:
@@ -206,8 +281,22 @@ async def list_teams(
 async def add_team_member(
     body: AddTeamMemberRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    if x_rtas_user_id or x_rtas_session:
+        from app.services.multi_tenant.repository import get_repository
+
+        team = get_repository().get_team(body.team_id)
+        if team is None:
+            raise HTTPException(status_code=404, detail="team not found")
+        _enforce_tenant_access(
+            organization_id=team.organization_id,
+            user_id=x_rtas_user_id,
+            session_token=x_rtas_session,
+            permission="team.update",
+        )
     try:
         return _svc().add_team_member(team_id=body.team_id, user_id=body.user_id)
     except Exception as exc:
@@ -218,8 +307,17 @@ async def add_team_member(
 async def add_member(
     body: AddMemberRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=body.organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="member.invite",
+        workspace_id=body.workspace_id,
+    )
     try:
         return _svc().add_member(body.model_dump(by_alias=True))
     except Exception as exc:
@@ -231,8 +329,17 @@ async def list_members(
     organization_id: str = Query(..., alias="organizationId"),
     workspace_id: str | None = Query(None, alias="workspaceId"),
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="member.read",
+        workspace_id=workspace_id,
+    )
     try:
         return _svc().list_members(organization_id, workspace_id=workspace_id)
     except Exception as exc:
@@ -244,8 +351,22 @@ async def update_member_role(
     member_id: str,
     body: UpdateMemberRoleRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    if x_rtas_user_id or x_rtas_session:
+        from app.services.multi_tenant.repository import get_repository
+
+        member = get_repository().get_member(member_id)
+        if member is None:
+            raise HTTPException(status_code=404, detail="member not found")
+        _enforce_tenant_access(
+            organization_id=member.organization_id,
+            user_id=x_rtas_user_id,
+            session_token=x_rtas_session,
+            permission="role.assign",
+        )
     try:
         return _svc().update_member_role(member_id, body.role)
     except Exception as exc:
@@ -256,8 +377,18 @@ async def update_member_role(
 async def create_invite(
     body: CreateInviteRequest,
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    actor = x_rtas_user_id or body.invited_by_id
+    _enforce_tenant_access(
+        organization_id=body.organization_id,
+        user_id=actor,
+        session_token=x_rtas_session,
+        permission="member.invite",
+        workspace_id=body.workspace_id,
+    )
     try:
         return _svc().create_invite(body.model_dump(by_alias=True))
     except Exception as exc:
@@ -269,8 +400,16 @@ async def list_invites(
     organization_id: str = Query(..., alias="organizationId"),
     status: str | None = Query(None),
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+    x_rtas_user_id: str | None = Header(None, alias="X-Rtas-User-Id"),
+    x_rtas_session: str | None = Header(None, alias="X-Rtas-Session"),
 ):
     _require_backend_auth(x_rtas_backend_secret)
+    _enforce_tenant_access(
+        organization_id=organization_id,
+        user_id=x_rtas_user_id,
+        session_token=x_rtas_session,
+        permission="member.read",
+    )
     try:
         return _svc().list_invites(organization_id, status=status)
     except Exception as exc:
