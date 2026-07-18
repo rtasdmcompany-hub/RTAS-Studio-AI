@@ -7,14 +7,17 @@ from app.api.routes import (
     audio_engine,
     camera,
     camera_motion,
+    context,
     emotion,
     generate,
     health,
     image_to_video,
     intelligence,
     jobs,
+    knowledge,
     lip_sync,
     localization,
+    memory,
     timeline,
     export,
     audio_pipeline,
@@ -50,6 +53,9 @@ api_router.include_router(intelligence.router)
 api_router.include_router(multi_ai.router)
 api_router.include_router(providers.router)
 api_router.include_router(ai_router.router)
+api_router.include_router(memory.router)
+api_router.include_router(context.router)
+api_router.include_router(knowledge.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)

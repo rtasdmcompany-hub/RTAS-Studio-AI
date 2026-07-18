@@ -2901,3 +2901,124 @@ model OptimizationHistory {
   @@index([mode, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 Sprint 6 — AI Memory, Context & Knowledge Engine
+// ---------------------------------------------------------------------------
+
+model MemoryRecord {
+  id                String    @id @default(uuid())
+  memoryType        String
+  userId            String
+  projectId         String?
+  characterId       String?
+  sceneId           String?
+  assetId           String?
+  title             String
+  contentEncrypted  String
+  tagsJson          Json?
+  metadataJson      Json?
+  importance        Float     @default(0.5)
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([projectId, memoryType])
+  @@index([characterId])
+  @@index([userId, projectId])
+}
+
+model ContextRecord {
+  id                      String   @id @default(uuid())
+  userId                  String
+  projectId               String?
+  previousPromptsJson     Json?
+  previousOutputsJson     Json?
+  storyContinuityJson     Json?
+  characterContinuityJson Json?
+  sceneContinuityJson     Json?
+  cameraContinuityJson    Json?
+  audioContinuityJson     Json?
+  environmentContinuityJson Json?
+  userWorkflowJson        Json?
+  memoryRefsJson          Json?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId, projectId])
+  @@index([updatedAt(sort: Desc)])
+}
+
+model KnowledgeRecord {
+  id           String   @id @default(uuid())
+  kind         String
+  userId       String
+  projectId    String?
+  title        String
+  body         String
+  tokensJson   Json?
+  tagsJson     Json?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, kind])
+  @@index([projectId, kind])
+  @@index([createdAt(sort: Desc)])
+}
+
+model MemoryTimeline {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String?
+  eventType String
+  summary   String
+  refId     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([projectId, createdAt(sort: Desc)])
+}
+
+model ContextHistory {
+  id          String   @id @default(uuid())
+  contextId   String
+  userId      String
+  projectId   String?
+  snapshotJson Json?
+  createdAt   DateTime @default(now())
+
+  @@index([contextId, createdAt(sort: Desc)])
+  @@index([userId, projectId])
+}
+
+model ProjectHistory {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  eventType String
+  summary   String
+  payloadJson Json?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model RetrievalIndex {
+  id         String   @id @default(uuid())
+  sourceType String
+  sourceId   String
+  userId     String
+  projectId  String?
+  title      String
+  tokensJson Json?
+  tagsJson   Json?
+  vectorHint String?
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+
+  @@unique([sourceType, sourceId])
+  @@index([userId, sourceType])
+  @@index([projectId])
+}
