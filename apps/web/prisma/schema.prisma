@@ -3306,3 +3306,55 @@ model PerformanceMetricRecord {
 
   @@index([createdAt(sort: Desc)])
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 Sprint 10 — Enterprise AI Orchestration Platform Final Release
+// ---------------------------------------------------------------------------
+
+model PlatformReleaseRecord {
+  id           String   @id @default(uuid())
+  platform     String
+  version      String
+  phase        Int      @default(6)
+  sprint       Int      @default(10)
+  status       String   @default("RELEASED")
+  qualityScore Float    @default(0)
+  payloadJson  Json?
+  createdAt    DateTime @default(now())
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([version, createdAt(sort: Desc)])
+}
+
+model EnterpriseQualityReport {
+  id              String   @id @default(uuid())
+  overallScore    Float
+  passed          Boolean  @default(false)
+  routingAccuracy Float    @default(0)
+  failoverScore   Float    @default(0)
+  retryScore      Float    @default(0)
+  queueScore      Float    @default(0)
+  memoryScore     Float    @default(0)
+  workflowScore   Float    @default(0)
+  securityScore   Float    @default(0)
+  monitoringScore Float    @default(0)
+  breakdownJson   Json?
+  createdAt       DateTime @default(now())
+
+  @@index([passed, createdAt(sort: Desc)])
+  @@index([overallScore, createdAt(sort: Desc)])
+}
+
+model PlatformStressReport {
+  id             String   @id @default(uuid())
+  totalJobs      Int
+  totalCompleted Int
+  maxFailureRate Float    @default(0)
+  avgJobsPerSec  Float    @default(0)
+  batchesJson    Json?
+  passed         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([passed, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}

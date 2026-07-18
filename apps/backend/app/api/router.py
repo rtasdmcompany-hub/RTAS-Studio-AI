@@ -32,6 +32,7 @@ from app.api.routes import (
     multi_gpu,
     music,
     physics,
+    platform,
     scene_render,
     security,
     system,
@@ -64,6 +65,7 @@ api_router.include_router(workflow.router)
 api_router.include_router(pipeline.router)
 api_router.include_router(security.router)
 api_router.include_router(system.router)
+api_router.include_router(platform.router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
