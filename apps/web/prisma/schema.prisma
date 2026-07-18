@@ -74,6 +74,17 @@ model User {
   collabActivityEvents       CollabActivityEvent[]        @relation("CollabActivityActor")
   collabAnnouncementsAuthored CollabAnnouncement[]        @relation("CollabAnnouncementAuthor")
   collabUserActivityLogs     CollabUserActivityLog[]
+
+  // Phase 7 Sprint 7 — Version control, approval & review
+  orgProjectVersionsCreated   OrgProjectVersion[]         @relation("OrgProjectVersionCreator")
+  orgProjectApprovalsRequested OrgProjectApprovalRequest[] @relation("OrgProjectApprovalRequester")
+  orgProjectApprovalsReviewed OrgProjectApprovalRequest[] @relation("OrgProjectApprovalReviewer")
+  orgProjectApprovalHistory   OrgProjectApprovalHistory[] @relation("OrgProjectApprovalHistoryActor")
+  orgProjectReviewsAssigned   OrgProjectReview[]          @relation("OrgProjectReviewAssignee")
+  orgProjectReviewsCreated    OrgProjectReview[]          @relation("OrgProjectReviewCreator")
+  orgProjectReviewComments    OrgProjectReviewComment[]   @relation("OrgProjectReviewCommentAuthor")
+  orgProjectChangeLogs        OrgProjectChangeLog[]       @relation("OrgProjectChangeActor")
+  orgProjectRollbacks         OrgProjectRollbackHistory[] @relation("OrgProjectRollbackActor")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3419,6 +3430,11 @@ model Organization {
   collabActivityEvents CollabActivityEvent[]
   collabAnnouncements CollabAnnouncement[]
   collabUserActivityLogs CollabUserActivityLog[]
+  orgProjectVersions OrgProjectVersion[]
+  orgProjectApprovals OrgProjectApprovalRequest[]
+  orgProjectReviews OrgProjectReview[]
+  orgProjectChangeLogs OrgProjectChangeLog[]
+  orgProjectRollbacks OrgProjectRollbackHistory[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
@@ -3449,6 +3465,11 @@ model Workspace {
   collabActivityEvents CollabActivityEvent[]
   collabAnnouncements CollabAnnouncement[]
   collabUserActivityLogs CollabUserActivityLog[]
+  orgProjectVersions OrgProjectVersion[]
+  orgProjectApprovals OrgProjectApprovalRequest[]
+  orgProjectReviews OrgProjectReview[]
+  orgProjectChangeLogs OrgProjectChangeLog[]
+  orgProjectRollbacks OrgProjectRollbackHistory[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, createdAt(sort: Desc)])
@@ -3677,6 +3698,11 @@ model OrgProject {
   settings OrgProjectSettings?
   notes    OrgProjectNote[]
   tasks    OrgProjectTask[]
+  versions OrgProjectVersion[]
+  approvals OrgProjectApprovalRequest[]
+  reviews  OrgProjectReview[]
+  changeLogs OrgProjectChangeLog[]
+  rollbacks OrgProjectRollbackHistory[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, createdAt(sort: Desc)])
@@ -4155,5 +4181,191 @@ model CollabUserActivityLog {
   @@index([userId, createdAt(sort: Desc)])
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([action])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 Sprint 7 — Enterprise Version Control, Approval & Review Engine
+// ---------------------------------------------------------------------------
+
+model OrgProjectVersion {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  projectId      String
+  project        OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  label          String?
+  notes          String?
+  status         String   @default("draft")
+  createdById    String
+  createdBy      User     @relation("OrgProjectVersionCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  parentVersionId String?
+  isCurrent      Boolean  @default(false)
+  snapshotJson   Json?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  snapshots VersionSnapshot[]
+  approvals OrgProjectApprovalRequest[]
+  reviews   OrgProjectReview[]
+  rollbacksFrom OrgProjectRollbackHistory[] @relation("RollbackFromVersion")
+  rollbacksTo   OrgProjectRollbackHistory[] @relation("RollbackToVersion")
+
+  @@unique([projectId, versionNumber])
+  @@index([organizationId, projectId, createdAt(sort: Desc)])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([isCurrent])
+}
+
+model VersionSnapshot {
+  id           String   @id @default(uuid())
+  versionId    String
+  version      OrgProjectVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  name         String?
+  payloadJson  Json
+  checksum     String?
+  sizeBytes    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([versionId, createdAt(sort: Desc)])
+}
+
+model OrgProjectApprovalRequest {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  projectId      String
+  project        OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versionId      String?
+  version        OrgProjectVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  requestedById  String
+  requestedBy    User     @relation("OrgProjectApprovalRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+  reviewerId     String?
+  reviewer       User?    @relation("OrgProjectApprovalReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  status         String   @default("pending_review")
+  scope          String   @default("internal")
+  title          String?
+  notes          String?
+  decidedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  history OrgProjectApprovalHistory[]
+  reviews OrgProjectReview[]
+
+  @@index([organizationId, projectId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([reviewerId])
+  @@index([versionId])
+}
+
+model OrgProjectApprovalHistory {
+  id          String   @id @default(uuid())
+  approvalId  String
+  approval    OrgProjectApprovalRequest @relation(fields: [approvalId], references: [id], onDelete: Cascade)
+  actorId     String
+  actor       User     @relation("OrgProjectApprovalHistoryActor", fields: [actorId], references: [id], onDelete: Cascade)
+  fromStatus  String?
+  toStatus    String
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([approvalId, createdAt(sort: Desc)])
+  @@index([actorId])
+}
+
+model OrgProjectReview {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  projectId      String
+  project        OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versionId      String?
+  version        OrgProjectVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  approvalId     String?
+  approval       OrgProjectApprovalRequest? @relation(fields: [approvalId], references: [id], onDelete: SetNull)
+  createdById    String
+  createdBy      User     @relation("OrgProjectReviewCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  assigneeId     String?
+  assignee       User?    @relation("OrgProjectReviewAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reviewType     String   @default("internal")
+  status         String   @default("pending_review")
+  summary        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  comments OrgProjectReviewComment[]
+
+  @@index([organizationId, projectId, createdAt(sort: Desc)])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([reviewType])
+}
+
+model OrgProjectReviewComment {
+  id        String   @id @default(uuid())
+  reviewId  String
+  review    OrgProjectReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("OrgProjectReviewCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reviewId, createdAt(sort: Asc)])
+  @@index([authorId])
+}
+
+model OrgProjectChangeLog {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  projectId      String
+  project        OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId        String?
+  actor          User?    @relation("OrgProjectChangeActor", fields: [actorId], references: [id], onDelete: SetNull)
+  changeType     String
+  summary        String
+  beforeJson     Json?
+  afterJson      Json?
+  metadataJson   Json?
+  versionId      String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, projectId, createdAt(sort: Desc)])
+  @@index([changeType])
+  @@index([actorId])
+}
+
+model OrgProjectRollbackHistory {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workspace      Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  projectId      String
+  project        OrgProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fromVersionId  String?
+  fromVersion    OrgProjectVersion? @relation("RollbackFromVersion", fields: [fromVersionId], references: [id], onDelete: SetNull)
+  toVersionId    String
+  toVersion      OrgProjectVersion @relation("RollbackToVersion", fields: [toVersionId], references: [id], onDelete: Cascade)
+  actorId        String
+  actor          User     @relation("OrgProjectRollbackActor", fields: [actorId], references: [id], onDelete: Cascade)
+  note           String?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, projectId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@index([toVersionId])
 }
 

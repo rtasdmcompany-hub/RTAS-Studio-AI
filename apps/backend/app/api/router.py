@@ -47,6 +47,7 @@ from app.api.routes import (
     talking_avatar,
     text_to_video,
     upload,
+    version_control,
     video_engine,
     voice,
     workspaces,
@@ -87,6 +88,9 @@ api_router.include_router(comms.notifications_router)
 api_router.include_router(comms.activity_router)
 api_router.include_router(comms.comments_router)
 api_router.include_router(comms.announcements_router)
+api_router.include_router(version_control.versions_router)
+api_router.include_router(version_control.reviews_router)
+api_router.include_router(version_control.changelog_router)
 api_router.include_router(text_to_video.router)
 api_router.include_router(image_to_video.router)
 api_router.include_router(talking_avatar.router)
