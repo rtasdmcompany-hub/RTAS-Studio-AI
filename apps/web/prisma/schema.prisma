@@ -95,6 +95,11 @@ model User {
   adminActivities             AdminActivity[]             @relation("AdminActivityActor")
   operationsHistory           OperationsHistory[]         @relation("OperationsHistoryActor")
   scheduledTasksUpdated       ScheduledTask[]             @relation("ScheduledTaskUpdater")
+
+  // Phase 8 Sprint 1 — Billing & subscription foundation
+  userSubscriptions           UserSubscription[]
+  creditTransactions          CreditTransaction[]         @relation("CreditTransactionActor")
+  usageRecords                UsageRecord[]               @relation("UsageRecordUser")
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -3453,6 +3458,14 @@ model Organization {
   performanceStatistics PerformanceStatistic[]
   forecastRecords ForecastRecord[]
 
+  // Phase 8 Sprint 1 — Billing & subscription foundation
+  organizationSubscriptions OrganizationSubscription[]
+  creditWallets             CreditWallet[]
+  creditTransactions        CreditTransaction[]
+  usageRecords              UsageRecord[]
+  billingProfiles           BillingProfile[]
+  invoices                  Invoice[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -4647,5 +4660,201 @@ model OperationsHistory {
   @@index([operation, createdAt(sort: Desc)])
   @@index([actorId])
   @@index([status])
+}
+
+// =============================================================================
+// Phase 8 Sprint 1 — Enterprise Billing & Subscription Foundation
+// =============================================================================
+
+model SubscriptionPlan {
+  id               String   @id @default(uuid())
+  key              String   @unique
+  name             String
+  description      String   @default("")
+  monthlyPriceUsd  Float    @default(0)
+  yearlyPriceUsd   Float    @default(0)
+  creditsMonthly   Int      @default(0)
+  creditsYearly    Int      @default(0)
+  maxWorkspaces    Int      @default(1)
+  maxTeams         Int      @default(1)
+  maxMembers       Int      @default(3)
+  maxProjects      Int      @default(10)
+  aiProviderLimit  Int      @default(1)
+  featuresJson     Json?
+  isPublic         Boolean  @default(true)
+  trialDays        Int      @default(0)
+  status           String   @default("active")
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status, isPublic])
+  @@map("SubscriptionPlans")
+}
+
+model UserSubscription {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planKey                String
+  billingCycle           String    @default("monthly")
+  status                 String    @default("active")
+  organizationId         String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  externalSubscriptionId String?
+  metadataJson           Json?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([organizationId])
+  @@index([planKey])
+  @@map("UserSubscriptions")
+}
+
+model OrganizationSubscription {
+  id                     String    @id @default(uuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  planKey                String
+  billingCycle           String    @default("monthly")
+  status                 String    @default("active")
+  ownerUserId            String?
+  seats                  Int       @default(1)
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  externalSubscriptionId String?
+  metadataJson           Json?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  invoices               Invoice[]
+
+  @@unique([organizationId])
+  @@index([planKey, status])
+  @@index([status])
+  @@map("OrganizationSubscriptions")
+}
+
+model CreditWallet {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  balance          Int      @default(0)
+  reserved         Int      @default(0)
+  lifetimeGranted  Int      @default(0)
+  lifetimeSpent    Int      @default(0)
+  currency         String   @default("credits")
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  transactions     CreditTransaction[]
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@map("CreditWallets")
+}
+
+model CreditTransaction {
+  id             String   @id @default(uuid())
+  walletId       String
+  wallet         CreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  amount         Int
+  balanceAfter   Int
+  txnType        String
+  reason         String   @default("")
+  actorId        String?
+  actor          User?    @relation("CreditTransactionActor", fields: [actorId], references: [id], onDelete: SetNull)
+  workspaceId    String?
+  referenceType  String?
+  referenceId    String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([walletId, createdAt(sort: Desc)])
+  @@index([actorId])
+  @@map("CreditTransactions")
+}
+
+model UsageRecord {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId      String?
+  userId           String?
+  user             User?    @relation("UsageRecordUser", fields: [userId], references: [id], onDelete: SetNull)
+  usageType        String
+  quantity         Float    @default(1)
+  creditsConsumed  Int      @default(0)
+  provider         String?
+  resourceType     String?
+  resourceId       String?
+  metadataJson     Json?
+  recordedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, recordedAt(sort: Desc)])
+  @@index([workspaceId, recordedAt(sort: Desc)])
+  @@index([usageType])
+  @@index([userId])
+  @@map("UsageRecords")
+}
+
+model BillingProfile {
+  id            String   @id @default(uuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  companyName   String   @default("")
+  billingEmail  String   @default("")
+  country       String   @default("")
+  taxId         String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  postalCode    String?
+  metadataJson  Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([organizationId])
+  @@map("BillingProfiles")
+}
+
+model Invoice {
+  id               String    @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId   String?
+  subscription     OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  invoiceNumber    String
+  status           String    @default("draft")
+  currency         String    @default("USD")
+  subtotalUsd      Float     @default(0)
+  taxUsd           Float     @default(0)
+  totalUsd         Float     @default(0)
+  billingCycle     String    @default("monthly")
+  planKey          String?
+  periodStart      DateTime?
+  periodEnd        DateTime?
+  issuedAt         DateTime?
+  dueAt            DateTime?
+  paidAt           DateTime?
+  lineItemsJson    Json?
+  metadataJson     Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([invoiceNumber])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([subscriptionId])
+  @@index([status])
+  @@map("Invoices")
 }
 

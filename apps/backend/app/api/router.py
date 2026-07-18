@@ -31,6 +31,7 @@ from app.api.routes import (
     workflow,
     audio_pipeline,
     avatar,
+    billing,
     motion,
     motion_intelligence,
     multi_ai,
@@ -65,6 +66,7 @@ api_router.include_router(health.router)
 api_router.include_router(admin.router)
 api_router.include_router(platform_ops.router)
 api_router.include_router(enterprise_saas.router)
+api_router.include_router(billing.router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)
