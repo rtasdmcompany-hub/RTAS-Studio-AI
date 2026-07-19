@@ -3553,6 +3553,10 @@ model Organization {
   communityFavorites        Favorite[]
   communityNotifications    Notification[]
 
+  // Phase 9 Sprint 4 — Template store, versioning & asset management
+  templates                 Template[]
+  assetLibraries            AssetLibrary[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6620,5 +6624,96 @@ model Notification {
   @@index([organizationId, recipientUserId, read])
   @@index([recipientUserId, createdAt(sort: Desc)])
   @@map("Notifications")
+}
+
+// --- Phase 9 Sprint 4 — Template Store, Versioning & Asset Management ---
+// Reuses AssetCategory ("AssetCategories"), AssetTag ("AssetTags") and
+// AssetCollection ("AssetCollections") from Phase 9 Sprint 1.
+
+/** Template asset in the enterprise template store. */
+model Template {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUserId    String
+  name           String
+  slug           String
+  templateType   String   @default("custom")
+  description    String   @default("")
+  category       String   @default("other")
+  tagsJson       Json?
+  status         String   @default("active")
+  featured       Boolean  @default(false)
+  currentVersion String   @default("1.0.0")
+  assetUri       String   @default("")
+  libraryId      String?
+  library        AssetLibrary? @relation(fields: [libraryId], references: [id], onDelete: SetNull)
+  downloads      Int      @default(0)
+  ratingTotal    Int      @default(0)
+  ratingCount    Int      @default(0)
+  metadataJson   Json?
+  archivedAt     DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  versions       TemplateVersion[]
+  searchIndex    AssetSearchIndex?
+
+  @@index([organizationId])
+  @@index([ownerUserId])
+  @@index([status])
+  @@index([templateType])
+  @@index([category])
+  @@index([featured])
+  @@index([libraryId])
+  @@map("Templates")
+}
+
+/** Immutable version record with integrity checksum. */
+model TemplateVersion {
+  id         String   @id @default(uuid())
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  version    String
+  changelog  String   @default("")
+  assetUri   String   @default("")
+  checksum   String   @default("")
+  createdBy  String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@unique([templateId, version])
+  @@index([templateId, createdAt(sort: Desc)])
+  @@map("TemplateVersions")
+}
+
+/** Asset library grouping templates inside an organization. */
+model AssetLibrary {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUserId    String
+  name           String
+  slug           String
+  description    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  templates      Template[]
+
+  @@index([organizationId])
+  @@index([ownerUserId])
+  @@map("AssetLibraries")
+}
+
+/** Full-text search index entry for a template. */
+model AssetSearchIndex {
+  id             String   @id @default(uuid())
+  templateId     String   @unique
+  template       Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  organizationId String
+  tokensJson     Json?
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@map("AssetSearchIndex")
 }
 
