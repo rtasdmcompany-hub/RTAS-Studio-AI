@@ -55,6 +55,7 @@ from app.api.routes import (
     phase10_rc_validation,
     disaster_recovery,
     observability,
+    compliance,
     infrastructure,
     motion,
     motion_intelligence,
@@ -109,6 +110,7 @@ api_router.include_router(phase9_final_validation.phase9_router)
 api_router.include_router(phase10_rc_validation.router)
 api_router.include_router(disaster_recovery.router)
 api_router.include_router(observability.router)
+api_router.include_router(compliance.router)
 api_router.include_router(infrastructure.router)
 api_router.include_router(provider_analytics.analytics_router)
 api_router.include_router(provider_analytics.budget_router)

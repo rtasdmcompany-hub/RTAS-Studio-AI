@@ -45,6 +45,9 @@ def privacy_controls() -> dict[str, Any]:
         "pii_redaction_in_logs": True,
         "user_consent_framework": True,
         "right_to_erasure_supported": True,
+        "right_to_access_supported": True,
+        "data_portability_supported": True,
+        "dsr_api": "/api/compliance/dsr",
         "access_isolation": True,
     }
 

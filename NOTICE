@@ -1,0 +1,24 @@
+RTAS STUDIO AI — THIRD-PARTY NOTICES
+Copyright (c) RTAS DIGITAL MARKETING COMPANY / RTAS GROUP OF COMPANIES
+
+This product incorporates or interoperates with third-party open-source
+and commercial components. Representative licenses include:
+
+  - FastAPI — MIT License
+  - Starlette — BSD-3-Clause
+  - Pydantic — MIT License
+  - Uvicorn — BSD-3-Clause
+  - Next.js — MIT License
+  - React — MIT License
+  - Prisma — Apache License 2.0
+  - NextAuth.js — ISC License
+
+AI inference and billing partners (including but not limited to fal.ai,
+RunPod, OpenAI, Anthropic, Google, Paddle, PayPal, Supabase, Upstash,
+Vercel, Resend, and GitHub) are used subject to their respective terms
+of service and data processing agreements. API credentials are stored
+only in environment configuration and are never committed to source control.
+
+This NOTICE file is provided for transparency and compliance inventory.
+It does not grant any license to RTAS Studio AI proprietary source code.
+See the root LICENSE file for proprietary license terms.
