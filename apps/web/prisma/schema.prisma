@@ -3557,6 +3557,12 @@ model Organization {
   templates                 Template[]
   assetLibraries            AssetLibrary[]
 
+  // Phase 9 Sprint 5 — Plugin framework & third-party integrations
+  plugins                   Plugin[]
+  installedPlugins          InstalledPlugin[]
+  integrationConnections    IntegrationConnection[]
+  pluginEvents              PluginEvent[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6715,5 +6721,175 @@ model AssetSearchIndex {
 
   @@index([organizationId])
   @@map("AssetSearchIndex")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 Sprint 5 — Plugin Framework, Extension SDK & Third-Party Integrations
+// ---------------------------------------------------------------------------
+
+/** Registered enterprise plugin in the organization catalog. */
+model Plugin {
+  id                  String   @id @default(uuid())
+  organizationId      String
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ownerUserId         String
+  name                String
+  slug                String
+  pluginType          String   @default("custom")
+  description         String   @default("")
+  status              String   @default("registered")
+  currentVersion      String   @default("1.0.0")
+  manifestJson        Json?
+  signature           String   @default("")
+  publisherKey        String   @default("")
+  minPlatformVersion  String   @default("1.0.0")
+  maxPlatformVersion  String   @default("99.99.99")
+  sandboxReady        Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  versions            PluginVersion[]
+  installations       InstalledPlugin[]
+  permissions         PluginPermission[]
+  events              PluginEvent[]
+
+  @@index([organizationId])
+  @@index([ownerUserId])
+  @@index([pluginType])
+  @@index([status])
+  @@index([slug])
+  @@map("Plugins")
+}
+
+/** Immutable plugin version with signature and compatibility metadata. */
+model PluginVersion {
+  id               String   @id @default(uuid())
+  pluginId         String
+  plugin           Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  version          String
+  changelog        String   @default("")
+  manifestJson     Json?
+  signature        String   @default("")
+  checksum         String   @default("")
+  compatibilityJson Json?
+  createdBy        String   @default("")
+  createdAt        DateTime @default(now())
+
+  @@unique([pluginId, version])
+  @@index([pluginId, createdAt(sort: Desc)])
+  @@map("PluginVersions")
+}
+
+/** Plugin installation scoped to organization and optional workspace. */
+model InstalledPlugin {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  pluginId       String
+  plugin         Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  version        String
+  status         String   @default("installed")
+  installedBy    String   @default("")
+  configId       String?
+  installedAt    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  permissions    PluginPermission[]
+  configuration  PluginConfiguration?
+
+  @@unique([organizationId, pluginId, workspaceId])
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([pluginId])
+  @@index([status])
+  @@map("InstalledPlugins")
+}
+
+/** Permission grant isolated per plugin installation. */
+model PluginPermission {
+  id             String   @id @default(uuid())
+  pluginId       String
+  plugin         Plugin   @relation(fields: [pluginId], references: [id], onDelete: Cascade)
+  installedId    String
+  installation   InstalledPlugin @relation(fields: [installedId], references: [id], onDelete: Cascade)
+  permissionKey  String
+  scope          String   @default("organization")
+  granted        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@index([pluginId])
+  @@index([installedId])
+  @@index([permissionKey])
+  @@map("PluginPermissions")
+}
+
+/** Runtime configuration for an installed plugin (secrets by ref only). */
+model PluginConfiguration {
+  id          String   @id @default(uuid())
+  installedId String   @unique
+  installation InstalledPlugin @relation(fields: [installedId], references: [id], onDelete: Cascade)
+  configJson  Json?
+  secretsRef  String   @default("")
+  updatedAt   DateTime @updatedAt
+
+  @@map("PluginConfigurations")
+}
+
+/** Third-party integration connection (Drive, Slack, Zapier, webhooks, etc.). */
+model IntegrationConnection {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  provider       String
+  status         String   @default("connected")
+  displayName    String   @default("")
+  credentialsRef String   @default("")
+  metadataJson   Json?
+  connectedBy    String   @default("")
+  connectedAt    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  logs           IntegrationLog[]
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([provider])
+  @@index([status])
+  @@map("IntegrationConnections")
+}
+
+/** Audit / activity log for an integration connection. */
+model IntegrationLog {
+  id           String   @id @default(uuid())
+  connectionId String
+  connection   IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  eventType    String
+  message      String   @default("")
+  success      Boolean  @default(true)
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  @@index([connectionId, createdAt(sort: Desc)])
+  @@index([eventType])
+  @@map("IntegrationLogs")
+}
+
+/** Plugin event bus record (lifecycle, config, integration channels). */
+model PluginEvent {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pluginId       String?
+  plugin         Plugin?  @relation(fields: [pluginId], references: [id], onDelete: SetNull)
+  eventType      String
+  channel        String   @default("plugin.lifecycle")
+  payloadJson    Json?
+  actorUserId    String   @default("")
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([pluginId])
+  @@index([channel])
+  @@index([eventType])
+  @@map("PluginEvents")
 }
 

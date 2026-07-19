@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 9 AI marketplace ecosystem foundation."""
+    """Production readiness probe — Phase 9 plugin framework & integrations."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,7 +33,7 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 9,
-        "sprint": 4,
+        "sprint": 5,
         "phase8_complete": True,
         "enterprise_billing_commerce_verified": True,
         "marketplace_ecosystem": "RTAS Enterprise AI Marketplace Ecosystem Foundation v1.0",
@@ -43,6 +43,9 @@ async def ready():
         "social_engine": "RTAS Enterprise Community Platform & Social Collaboration Engine v1.0",
         "template_store": "RTAS Enterprise Template Store, Versioning & Asset Management Engine v1.0",
         "asset_management": "RTAS Enterprise Template Store, Versioning & Asset Management Engine v1.0",
+        "plugin_framework": "RTAS Enterprise Plugin Framework, Extension SDK & Third-Party Integration Engine v1.0",
+        "extension_sdk": "RTAS Enterprise Plugin Framework, Extension SDK & Third-Party Integration Engine v1.0",
+        "integration_engine": "RTAS Enterprise Plugin Framework, Extension SDK & Third-Party Integration Engine v1.0",
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,
