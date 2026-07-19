@@ -49,6 +49,7 @@ from app.api.routes import (
     plugin_framework,
     public_api_platform,
     agent_orchestration,
+    enterprise_automation,
     motion,
     motion_intelligence,
     multi_ai,
@@ -104,7 +105,11 @@ api_router.include_router(creator_platform.publisher_router)
 api_router.include_router(community_platform.community_router)
 api_router.include_router(template_store.templates_router)
 api_router.include_router(plugin_framework.plugins_router)
+# Sprint 8 Integration Hub registers /connect + /status before Sprint 5 list/disconnect.
+api_router.include_router(enterprise_automation.integrations_hub_router)
 api_router.include_router(plugin_framework.integrations_router)
+api_router.include_router(enterprise_automation.automation_router)
+api_router.include_router(enterprise_automation.events_router)
 api_router.include_router(public_api_platform.developers_router)
 api_router.include_router(public_api_platform.oauth_router)
 api_router.include_router(public_api_platform.api_keys_router)

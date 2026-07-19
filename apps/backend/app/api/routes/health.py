@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 9 AI agents & workflow orchestration."""
+    """Production readiness probe — Phase 9 enterprise automation & event platform."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,7 +33,7 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 9,
-        "sprint": 7,
+        "sprint": 8,
         "phase8_complete": True,
         "enterprise_billing_commerce_verified": True,
         "marketplace_ecosystem": "RTAS Enterprise AI Marketplace Ecosystem Foundation v1.0",
@@ -52,6 +52,9 @@ async def ready():
         "ai_agents": "RTAS Enterprise AI Agents, Automation Workflows & Orchestration Engine v1.0",
         "workflow_automation": "RTAS Enterprise AI Agents, Automation Workflows & Orchestration Engine v1.0",
         "agent_orchestration": "RTAS Enterprise AI Agents, Automation Workflows & Orchestration Engine v1.0",
+        "enterprise_automation": "RTAS Enterprise Automation, Integrations & Event-Driven Platform v1.0",
+        "event_bus": "RTAS Enterprise Automation, Integrations & Event-Driven Platform v1.0",
+        "integration_hub": "RTAS Enterprise Automation, Integrations & Event-Driven Platform v1.0",
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,

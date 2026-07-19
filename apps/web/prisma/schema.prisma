@@ -3580,6 +3580,16 @@ model Organization {
   executionHistories        ExecutionHistory[]
   agentEvents               AgentEvent[]
 
+  // Phase 9 Sprint 8 — Enterprise automation & event-driven platform
+  automationRules           AutomationRule[]
+  automationExecutions      AutomationExecution[]
+  eventBusEntries           EventBusEntry[]
+  eventLogs                 EventLog[]
+  eventSubscriptions        EventSubscription[]
+  automationIntegrations    AutomationIntegrationConnection[]
+  scheduledAutomations      ScheduledAutomation[]
+  automationHistories       AutomationHistory[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -7284,5 +7294,191 @@ model AgentEvent {
   @@index([agentId])
   @@index([eventType])
   @@map("AgentEvents")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 Sprint 8 — Enterprise Automation, Integrations & Event-Driven Platform
+// ---------------------------------------------------------------------------
+
+/** Automation rule definition. */
+model AutomationRule {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  ownerUserId    String
+  name           String
+  slug           String
+  mode           String   @default("event")
+  status         String   @default("active")
+  description    String   @default("")
+  triggerEvent   String   @default("")
+  conditionsJson Json?
+  actionsJson    Json?
+  integrationId  String?
+  priority       Int      @default(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  executions     AutomationExecution[]
+  subscriptions  EventSubscription[]
+  schedules      ScheduledAutomation[]
+  history        AutomationHistory[]
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([triggerEvent])
+  @@map("AutomationRules")
+}
+
+/** Automation execution instance. */
+model AutomationExecution {
+  id             String    @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  ruleId         String
+  rule           AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  eventId        String?
+  status         String    @default("queued")
+  trigger        String    @default("event")
+  resultsJson    Json?
+  error          String    @default("")
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([ruleId])
+  @@index([status])
+  @@map("AutomationExecutions")
+}
+
+/** Event bus message (table EventBus). */
+model EventBusEntry {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  eventType      String
+  category       String
+  payloadJson    Json?
+  actorUserId    String   @default("")
+  signature      String   @default("")
+  status         String   @default("published")
+  createdAt      DateTime @default(now())
+  logs           EventLog[]
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([eventType])
+  @@index([category])
+  @@map("EventBus")
+}
+
+/** Per-event processing log. */
+model EventLog {
+  id             String   @id @default(uuid())
+  eventId        String
+  event          EventBusEntry @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  action         String
+  message        String   @default("")
+  success        Boolean  @default(true)
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([eventId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([action])
+  @@map("EventLogs")
+}
+
+/** Subscription linking an event type to an automation rule. */
+model EventSubscription {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  eventType      String
+  ruleId         String?
+  rule           AutomationRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  target         String   @default("automation")
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+  @@index([eventType])
+  @@index([ruleId])
+  @@map("EventSubscriptions")
+}
+
+/**
+ * Automation-scoped integration connection.
+ * Distinct from Sprint 5 plugin IntegrationConnections table.
+ */
+model AutomationIntegrationConnection {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  provider       String
+  status         String   @default("connected")
+  displayName    String   @default("")
+  credentialsRef String   @default("")
+  webhookSecret  String   @default("")
+  metadataJson   Json?
+  connectedBy    String   @default("")
+  connectedAt    DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([provider])
+  @@index([status])
+  @@map("AutomationIntegrationConnections")
+}
+
+/** Scheduled automation job. */
+model ScheduledAutomation {
+  id             String    @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  ruleId         String
+  rule           AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  kind           String    @default("once")
+  cron           String    @default("")
+  status         String    @default("scheduled")
+  nextRunAt      DateTime?
+  lastRunAt      DateTime?
+  createdBy      String    @default("")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@index([ruleId])
+  @@index([status])
+  @@index([nextRunAt])
+  @@map("ScheduledAutomations")
+}
+
+/** Automation history / audit trail. */
+model AutomationHistory {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  ruleId         String
+  rule           AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  executionId    String?
+  eventType      String
+  message        String   @default("")
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([ruleId])
+  @@index([eventType])
+  @@map("AutomationHistory")
 }
 
