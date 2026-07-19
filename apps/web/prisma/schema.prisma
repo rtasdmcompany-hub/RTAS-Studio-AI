@@ -3563,6 +3563,14 @@ model Organization {
   integrationConnections    IntegrationConnection[]
   pluginEvents              PluginEvent[]
 
+  // Phase 9 Sprint 6 — Public API platform & developer ecosystem
+  developerAccounts         DeveloperAccount[]
+  apiApplications           ApiApplication[]
+  oauthClients              OAuthClient[]
+  apiTokens                 ApiToken[]
+  apiUsageLogs              ApiUsageLog[]
+  webhookSubscriptions      WebhookSubscription[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6891,5 +6899,194 @@ model PluginEvent {
   @@index([channel])
   @@index([eventType])
   @@map("PluginEvents")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 Sprint 6 — Public API Platform, SDK & Developer Ecosystem
+// ---------------------------------------------------------------------------
+
+/** Developer portal account bound to a user + organization. */
+model DeveloperAccount {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  displayName    String
+  email          String   @default("")
+  status         String   @default("active")
+  company        String   @default("")
+  website        String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  applications   ApiApplication[]
+  oauthClients   OAuthClient[]
+  apiTokens      ApiToken[]
+  usageLogs      ApiUsageLog[]
+  webhooks       WebhookSubscription[]
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("DeveloperAccounts")
+}
+
+/** API application registered by a developer. */
+model ApiApplication {
+  id             String   @id @default(uuid())
+  developerId    String
+  developer      DeveloperAccount @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  description    String   @default("")
+  status         String   @default("active")
+  homepageUrl    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  oauthClients   OAuthClient[]
+  apiTokens      ApiToken[]
+  webhooks       WebhookSubscription[]
+
+  @@index([developerId])
+  @@index([organizationId])
+  @@index([slug])
+  @@map("ApiApplications")
+}
+
+/** OAuth 2.0 client credentials with redirect URIs and scopes. */
+model OAuthClient {
+  id               String   @id @default(uuid())
+  developerId      String
+  developer        DeveloperAccount @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  applicationId    String
+  application      ApiApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId         String   @unique
+  clientSecretHash String
+  name             String
+  redirectUrisJson Json?
+  grantTypesJson   Json?
+  scopesJson       Json?
+  status           String   @default("active")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([developerId])
+  @@index([applicationId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("OAuthClients")
+}
+
+/** Hashed API token / key for public API access. */
+model ApiToken {
+  id                 String    @id @default(uuid())
+  developerId        String
+  developer          DeveloperAccount @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applicationId      String?
+  application        ApiApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  workspaceId        String?
+  name               String
+  tokenPrefix        String
+  tokenHash          String    @unique
+  scopesJson         Json?
+  status             String    @default("active")
+  rateLimitPerMinute Int       @default(120)
+  lastUsedAt         DateTime?
+  expiresAt          DateTime?
+  createdAt          DateTime  @default(now())
+  revokedAt          DateTime?
+  usageLogs          ApiUsageLog[]
+
+  @@index([developerId])
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([status])
+  @@map("ApiTokens")
+}
+
+/** Published public API version metadata. */
+model ApiVersion {
+  id               String    @id @default(uuid())
+  version          String    @unique
+  status           String    @default("active")
+  changelog        String    @default("")
+  deprecatedAt     DateTime?
+  sunsetAt         DateTime?
+  compatibilityJson Json?
+  createdAt        DateTime  @default(now())
+
+  @@index([status])
+  @@map("ApiVersions")
+}
+
+/** Per-request usage log for developer analytics. */
+model ApiUsageLog {
+  id             String   @id @default(uuid())
+  developerId    String
+  developer      DeveloperAccount @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tokenId        String?
+  token          ApiToken? @relation(fields: [tokenId], references: [id], onDelete: SetNull)
+  clientId       String?
+  surface        String
+  method         String
+  path           String
+  statusCode     Int      @default(200)
+  latencyMs      Float    @default(0)
+  version        String   @default("v1")
+  workspaceId    String?
+  createdAt      DateTime @default(now())
+
+  @@index([developerId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([surface])
+  @@index([tokenId])
+  @@map("ApiUsageLogs")
+}
+
+/** SDK package release for a target language. */
+model SdkRelease {
+  id          String   @id @default(uuid())
+  language    String
+  version     String
+  packageName String
+  downloadUrl String   @default("")
+  checksum    String   @default("")
+  changelog   String   @default("")
+  status      String   @default("published")
+  createdAt   DateTime @default(now())
+
+  @@unique([language, version])
+  @@index([language])
+  @@index([status])
+  @@map("SdkReleases")
+}
+
+/** Developer webhook subscription for API events. */
+model WebhookSubscription {
+  id             String   @id @default(uuid())
+  developerId    String
+  developer      DeveloperAccount @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  applicationId  String?
+  application    ApiApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  targetUrl      String
+  eventsJson     Json?
+  secretHash     String   @default("")
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([developerId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("WebhookSubscriptions")
 }
 

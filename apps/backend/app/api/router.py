@@ -47,6 +47,7 @@ from app.api.routes import (
     community_platform,
     template_store,
     plugin_framework,
+    public_api_platform,
     motion,
     motion_intelligence,
     multi_ai,
@@ -103,6 +104,12 @@ api_router.include_router(community_platform.community_router)
 api_router.include_router(template_store.templates_router)
 api_router.include_router(plugin_framework.plugins_router)
 api_router.include_router(plugin_framework.integrations_router)
+api_router.include_router(public_api_platform.developers_router)
+api_router.include_router(public_api_platform.oauth_router)
+api_router.include_router(public_api_platform.api_keys_router)
+api_router.include_router(public_api_platform.sdk_router)
+api_router.include_router(public_api_platform.developer_usage_router)
+api_router.include_router(public_api_platform.public_api_router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)
