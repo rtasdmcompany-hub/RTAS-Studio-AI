@@ -25,6 +25,15 @@ const nextConfig = {
     },
   },
   poweredByHeader: false,
+  async redirects() {
+    return [
+      { source: "/login", destination: "/auth/login", permanent: false },
+      { source: "/signin", destination: "/auth/login", permanent: false },
+      { source: "/signup", destination: "/auth/signup", permanent: false },
+      { source: "/register", destination: "/auth/signup", permanent: false },
+      { source: "/auth/signin", destination: "/auth/login", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

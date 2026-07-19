@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services import phase10_compliance as comp_svc
 import app.services.phase10_compliance.dsr_store as dsr_store
@@ -13,9 +14,7 @@ router = APIRouter(prefix="/compliance", tags=["phase10-compliance"])
 
 
 def _auth(secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if expected and (secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=secret)
 
 
 def _svc():

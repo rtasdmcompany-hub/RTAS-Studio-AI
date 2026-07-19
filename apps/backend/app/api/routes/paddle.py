@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Header, HTTPException, Request
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
+from app.core.runtime import is_production
 from app.services import paddle_billing as pb
 from app.services.multi_tenant.validation import ValidationError
 from app.services.paddle_billing.signatures import SignatureError
@@ -13,9 +15,7 @@ router = APIRouter(prefix="/paddle", tags=["paddle-billing"])
 
 
 def _auth(secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if expected and (secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=secret)
 
 
 def _svc():
@@ -47,9 +47,15 @@ async def paddle_webhook(
     Public webhook endpoint — authenticated via Paddle-Signature HMAC.
     Does not require X-Rtas-Backend-Secret.
     """
+    import os
+
     raw = await request.body()
-    # Allow unsigned only when webhook secret is unset (local/dev).
-    allow_unsigned = not bool((settings.paddle_webhook_secret or "").strip())
+    # Fail closed in production: unsigned only in development with explicit opt-in.
+    allow_unsigned = (
+        not is_production()
+        and os.environ.get("ALLOW_UNSIGNED_WEBHOOKS", "").strip() == "1"
+        and not bool((settings.paddle_webhook_secret or "").strip())
+    )
     try:
         return _svc().webhooks.process(
             raw_body=raw,

@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services.voice_generation import (
     ENGINE_LABEL,
@@ -23,13 +24,7 @@ router = APIRouter(prefix="/audio", tags=["audio-voice"])
 
 
 def _require_backend_auth(x_rtas_backend_secret: str | None) -> bool:
-    """Protect endpoints with existing AI_BACKEND_SECRET when configured."""
-    expected = (settings.ai_backend_secret or "").strip()
-    if not expected:
-        # Local/dev without secret: allow (matches other engine routes)
-        return True
-    if (x_rtas_backend_secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=x_rtas_backend_secret)
     return True
 
 

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+﻿from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+import logging
 
 from app.core.backend_auth import require_backend_secret
 from app.core.config import reload_settings, settings
@@ -27,6 +28,8 @@ from app.services.generation_lock import (
 )
 from app.services.trial_abuse import FREE_TRIAL_ABUSE_MESSAGE, is_free_trial_blocked
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/generate", tags=["generation"])
 
 
@@ -46,7 +49,7 @@ async def create_generation(
     _: None = Depends(require_backend_secret),
 ) -> GenerateResponse:
     """
-    Ingest studio payload → AI service layer → delivery URL for frontend player.
+    Ingest studio payload â†’ AI service layer â†’ delivery URL for frontend player.
     """
     try:
         assert_generate_request_allowed(body)
@@ -91,7 +94,7 @@ async def create_generation(
             raise HTTPException(status_code=403, detail=FREE_TRIAL_ABUSE_MESSAGE)
 
     reload_settings()
-    # Preview renders never hit Fal — protects owner wallet and keeps UX smooth.
+    # Preview renders never hit Fal â€” protects owner wallet and keeps UX smooth.
     if (
         settings.fal_configured
         and settings.fal_live_enabled
@@ -106,7 +109,7 @@ async def create_generation(
             assert_fal_live_allowed(body.user_id)
         except ValueError as exc:
             msg = str(exc)
-            print(f"Fal API Error: {msg}", flush=True)
+            logger.error("Fal API Error: %s", msg)
             if "balance" in msg.lower() or "billing" in msg.lower() or "wait" in msg.lower():
                 raise HTTPException(status_code=402, detail=msg) from exc
             raise HTTPException(status_code=503, detail=msg) from exc
@@ -114,7 +117,7 @@ async def create_generation(
     try:
         await acquire_generation_slot()
     except GenerationInProgressError as exc:
-        print(f"Generation conflict: {exc.message}", flush=True)
+        logger.warning("Generation conflict: %s", exc.message)
         raise HTTPException(status_code=409, detail=exc.message) from exc
 
     try:
@@ -133,7 +136,7 @@ async def create_generation(
         )
         raise HTTPException(status_code=403, detail=CONTENT_POLICY_MESSAGE) from exc
     except LiveGenerationError as exc:
-        print(f"Fal API Error: {exc.message}", flush=True)
+        logger.error("Fal API Error: %s", exc.message)
         if exc.error_code == "model_routing":
             raise HTTPException(status_code=422, detail=exc.message) from exc
         if exc.error_code == "billing_required":
@@ -144,7 +147,7 @@ async def create_generation(
             raise HTTPException(status_code=402, detail=exc.message) from exc
         raise HTTPException(status_code=502, detail=exc.message) from exc
     except Exception as exc:
-        print(f"Fal API Error: {exc}", flush=True)
+        logger.error("Fal API Error: %s", exc)
         raise
     finally:
         await release_generation_slot()
@@ -171,7 +174,7 @@ async def create_generation(
 
 
 async def _run_generation_background(body: GenerateRequest) -> None:
-    """Long-running multiclip pipeline — must not block the HTTP response."""
+    """Long-running multiclip pipeline â€” must not block the HTTP response."""
     from app.services.job_progress import PipelineProgressReporter
 
     progress: PipelineProgressReporter | None = None
@@ -187,11 +190,11 @@ async def _run_generation_background(body: GenerateRequest) -> None:
     except LiveGenerationError as exc:
         if progress:
             await progress.failed(exc.message)
-        print(f"Async generation failed: {exc.message}", flush=True)
+        logger.error("Async generation failed: %s", exc.message)
     except Exception as exc:
         if progress:
             await progress.failed(str(exc))
-        print(f"Async generation error: {exc}", flush=True)
+        logger.error("Async generation error: %s", exc)
     finally:
         await release_generation_slot()
 
@@ -261,7 +264,7 @@ async def create_generation_async(
     return GenerateAsyncResponse(
         job_id=job_id,
         status="queued",
-        message="Long render queued — track status via pipeline job grid",
+        message="Long render queued â€” track status via pipeline job grid",
     )
 
 
@@ -276,3 +279,4 @@ async def generate_cost_policy(duration_seconds: int = 30):
     from app.services.model_routing import get_cost_policy_payload
 
     return get_cost_policy_payload(duration_seconds)
+

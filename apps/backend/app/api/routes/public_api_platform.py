@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services import public_api_platform as pap_svc
 from app.services.enterprise_auth.errors import AccessError
@@ -21,9 +22,7 @@ public_api_router = APIRouter(prefix="/public-api", tags=["public-api"])
 
 
 def _auth(secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if expected and (secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=secret)
 
 
 def _svc():

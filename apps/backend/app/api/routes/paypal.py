@@ -7,6 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services import payment_processing as pp
 from app.services.enterprise_auth.errors import AccessError
@@ -17,9 +18,7 @@ router = APIRouter(prefix="/paypal", tags=["paypal-payments"])
 
 
 def _auth(secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if expected and (secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=secret)
 
 
 def _svc():
@@ -104,11 +103,20 @@ async def paypal_webhook(
     paypal_transmission_time: str | None = Header(None, alias="Paypal-Transmission-Time"),
     paypal_transmission_sig: str | None = Header(None, alias="Paypal-Transmission-Sig"),
 ):
+    import os
+
+    from app.core.runtime import is_production
+
     raw = await request.body()
-    allow_unsigned = not bool(
+    has_secret = bool(
         (getattr(settings, "paypal_webhook_id", None) or "").strip()
-        or __import__("os").environ.get("PAYPAL_WEBHOOK_ID", "").strip()
-        or __import__("os").environ.get("PAYPAL_WEBHOOK_SECRET", "").strip()
+        or os.environ.get("PAYPAL_WEBHOOK_ID", "").strip()
+        or os.environ.get("PAYPAL_WEBHOOK_SECRET", "").strip()
+    )
+    allow_unsigned = (
+        not is_production()
+        and os.environ.get("ALLOW_UNSIGNED_WEBHOOKS", "").strip() == "1"
+        and not has_secret
     )
     try:
         return _svc().paypal.webhook(

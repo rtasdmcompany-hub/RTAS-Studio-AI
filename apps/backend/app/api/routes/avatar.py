@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services import appearance as ap
 from app.services import character_generation as cg
@@ -14,11 +15,7 @@ router = APIRouter(prefix="/avatar", tags=["avatar"])
 
 
 def _require_backend_auth(x_rtas_backend_secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if not expected:
-        return
-    if (x_rtas_backend_secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=x_rtas_backend_secret)
 
 
 class AvatarCreateRequest(BaseModel):
