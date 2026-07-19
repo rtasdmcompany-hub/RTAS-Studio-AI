@@ -3571,6 +3571,15 @@ model Organization {
   apiUsageLogs              ApiUsageLog[]
   webhookSubscriptions      WebhookSubscription[]
 
+  // Phase 9 Sprint 7 — AI agents & workflow orchestration
+  aiAgents                  AIAgent[]
+  agentWorkflows            AgentWorkflow[]
+  workflowExecutions        WorkflowExecution[]
+  agentMemories             AgentMemory[]
+  scheduledJobs             ScheduledJob[]
+  executionHistories        ExecutionHistory[]
+  agentEvents               AgentEvent[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -7088,5 +7097,192 @@ model WebhookSubscription {
   @@index([organizationId])
   @@index([status])
   @@map("WebhookSubscriptions")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 Sprint 7 — AI Agents, Automation Workflows & Orchestration
+// ---------------------------------------------------------------------------
+
+/** Enterprise AI agent instance. */
+model AIAgent {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  ownerUserId    String
+  name           String
+  slug           String
+  agentType      String   @default("custom")
+  description    String   @default("")
+  status         String   @default("active")
+  capabilitiesJson Json?
+  configJson     Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  memories       AgentMemory[]
+  events         AgentEvent[]
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([ownerUserId])
+  @@index([agentType])
+  @@index([status])
+  @@map("AIAgents")
+}
+
+/** Agent workflow definition with steps and trigger. */
+model AgentWorkflow {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  ownerUserId    String
+  name           String
+  slug           String
+  description    String   @default("")
+  trigger        String   @default("manual")
+  mode           String   @default("sequential")
+  status         String   @default("active")
+  stepsJson      Json?
+  conditionsJson Json?
+  templateId     String?
+  template       WorkflowTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  executions     WorkflowExecution[]
+  scheduledJobs  ScheduledJob[]
+
+  @@index([organizationId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([templateId])
+  @@map("AgentWorkflows")
+}
+
+/** Reusable workflow template. */
+model WorkflowTemplate {
+  id             String   @id @default(uuid())
+  slug           String   @unique
+  name           String
+  description    String   @default("")
+  mode           String   @default("sequential")
+  agentTypesJson Json?
+  stepsJson      Json?
+  createdAt      DateTime @default(now())
+  workflows      AgentWorkflow[]
+
+  @@map("WorkflowTemplates")
+}
+
+/** Single workflow execution run. */
+model WorkflowExecution {
+  id             String    @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workflowId     String
+  workflow       AgentWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status         String    @default("queued")
+  trigger        String    @default("manual")
+  startedBy      String    @default("")
+  contextJson    Json?
+  resultsJson    Json?
+  error          String    @default("")
+  retries        Int       @default(0)
+  maxRetries     Int       @default(3)
+  priority       String    @default("normal")
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  history        ExecutionHistory[]
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([workflowId])
+  @@index([status])
+  @@map("WorkflowExecutions")
+}
+
+/** Key/value memory entry for an agent. */
+model AgentMemory {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agentId        String
+  agent          AIAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  key            String
+  valueJson      Json?
+  executionId    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([agentId, key])
+  @@index([organizationId])
+  @@index([agentId])
+  @@map("AgentMemory")
+}
+
+/** Scheduled workflow job. */
+model ScheduledJob {
+  id             String    @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  workflowId     String
+  workflow       AgentWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  kind           String    @default("once")
+  cron           String    @default("")
+  priority       String    @default("normal")
+  status         String    @default("scheduled")
+  nextRunAt      DateTime?
+  lastRunAt      DateTime?
+  maxRetries     Int       @default(3)
+  createdBy      String    @default("")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([organizationId])
+  @@index([workflowId])
+  @@index([status])
+  @@index([nextRunAt])
+  @@map("ScheduledJobs")
+}
+
+/** Execution history / audit trail events. */
+model ExecutionHistory {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executionId    String
+  execution      WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  workflowId     String
+  eventType      String
+  message        String   @default("")
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([executionId])
+  @@index([workflowId])
+  @@index([eventType])
+  @@map("ExecutionHistory")
+}
+
+/** Agent lifecycle / task event. */
+model AgentEvent {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agentId        String
+  agent          AIAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  eventType      String
+  payloadJson    Json?
+  actorUserId    String   @default("")
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([agentId])
+  @@index([eventType])
+  @@map("AgentEvents")
 }
 

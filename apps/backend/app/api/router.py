@@ -48,6 +48,7 @@ from app.api.routes import (
     template_store,
     plugin_framework,
     public_api_platform,
+    agent_orchestration,
     motion,
     motion_intelligence,
     multi_ai,
@@ -110,6 +111,8 @@ api_router.include_router(public_api_platform.api_keys_router)
 api_router.include_router(public_api_platform.sdk_router)
 api_router.include_router(public_api_platform.developer_usage_router)
 api_router.include_router(public_api_platform.public_api_router)
+api_router.include_router(agent_orchestration.agents_router)
+api_router.include_router(agent_orchestration.workflows_router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)
