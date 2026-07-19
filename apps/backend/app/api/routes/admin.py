@@ -1,8 +1,9 @@
 """Owner-only maintenance endpoints."""
 
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header
 
-from app.core.config import reload_settings, settings
+from app.core.backend_auth import require_backend_secret
+from app.core.config import reload_settings
 from app.services.fal_guard import get_guard_public_status, reset_guard
 from app.services.fal_verify import verify_fal_key
 
@@ -10,12 +11,9 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 def _require_owner_secret(x_rtas_admin_secret: str | None) -> None:
+    """Admin mutations use the same fail-closed secret policy as backend auth."""
     reload_settings()
-    expected = settings.ai_backend_secret
-    if not expected:
-        return
-    if not x_rtas_admin_secret or x_rtas_admin_secret != expected:
-        raise HTTPException(status_code=403, detail="Admin secret required")
+    require_backend_secret(x_rtas_backend_secret=x_rtas_admin_secret)
 
 
 @router.get("/fal/guard")

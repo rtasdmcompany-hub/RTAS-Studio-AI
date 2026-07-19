@@ -68,6 +68,7 @@ TOKEN_STATUSES: Final[tuple[str, ...]] = ("active", "revoked", "expired")
 DEFAULT_RATE_LIMIT_PER_MINUTE: Final[int] = 120
 TOKEN_PREFIX: Final[str] = "rtas_sk_"
 CLIENT_ID_PREFIX: Final[str] = "rtas_cid_"
+# Deprecated constant — use public_api_hash_secret() (env-backed).
 HASH_SECRET: Final[str] = "rtas-public-api-key-v1"
 
 _SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+$")
@@ -100,8 +101,10 @@ def generate_client_id() -> str:
 
 
 def hash_secret(value: str) -> str:
+    from app.core.signing_secrets import public_api_hash_secret
+
     return hmac.new(
-        HASH_SECRET.encode("utf-8"),
+        public_api_hash_secret().encode("utf-8"),
         (value or "").encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()

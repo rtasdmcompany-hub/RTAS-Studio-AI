@@ -1,5 +1,6 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import reload_settings, settings
 from app.schemas.generation import (
     GenerateAsyncResponse,
@@ -39,7 +40,11 @@ def _client_ip(request: Request) -> str:
 
 
 @router.post("", response_model=GenerateResponse, response_model_by_alias=True)
-async def create_generation(body: GenerateRequest, request: Request) -> GenerateResponse:
+async def create_generation(
+    body: GenerateRequest,
+    request: Request,
+    _: None = Depends(require_backend_secret),
+) -> GenerateResponse:
     """
     Ingest studio payload → AI service layer → delivery URL for frontend player.
     """
@@ -201,6 +206,7 @@ async def create_generation_async(
     body: GenerateRequest,
     request: Request,
     background_tasks: BackgroundTasks,
+    _: None = Depends(require_backend_secret),
 ) -> GenerateAsyncResponse:
     """
     Queue a long render on the GPU worker without blocking the gateway (avoids 504).

@@ -511,10 +511,23 @@
   }
 }
 
+@media (max-width: 900px) {
+  .rtas-hero-showcase__videos .rtas-category-showcase--hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .rtas-hero-showcase__videos .rtas-category-showcase--hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 480px) {
   .rtas-hero-showcase__videos .rtas-category-showcase--hero {
     gap: 0.8rem;
     height: min(80vh, calc(100dvh - 3.5rem));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .rtas-category-showcase--hero .rtas-category-card__label {

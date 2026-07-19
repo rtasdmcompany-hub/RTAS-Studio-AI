@@ -115,7 +115,9 @@ def category_for_event(event_type: str) -> str:
 
 
 def sign_webhook_payload(payload: str, secret: str = "") -> str:
-    key = (secret or WEBHOOK_SIGNING_SECRET).encode("utf-8")
+    from app.core.signing_secrets import automation_webhook_secret
+
+    key = (secret or automation_webhook_secret()).encode("utf-8")
     return hmac.new(key, payload.encode("utf-8"), hashlib.sha256).hexdigest()
 
 

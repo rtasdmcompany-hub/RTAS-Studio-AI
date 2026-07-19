@@ -163,6 +163,17 @@ function AssetVideoCardComponent({
             </>
           ) : null}
 
+          {!failed && !processing && onDelete ? (
+            <Button
+              type="button"
+              variant="asset-danger"
+              onClick={handleDelete}
+              disabled={disabled}
+            >
+              Delete
+            </Button>
+          ) : null}
+
           {canShare ? (
             <Button
               type="button"

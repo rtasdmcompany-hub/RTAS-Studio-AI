@@ -75,6 +75,7 @@ def publish_local_mp4(source: Path, job_id: str) -> tuple[Path, str]:
 
 async def download_mp4_to_outputs(remote_url: str, job_id: str) -> tuple[Path, str]:
     """Download provider CDN MP4 into local outputs for stable playback."""
+    from app.core.runtime import is_production
     from app.services.ssrf_guard import SsrfError, assert_safe_outbound_url
 
     try:
@@ -85,12 +86,17 @@ async def download_mp4_to_outputs(remote_url: str, job_id: str) -> tuple[Path, s
     dest = job_output_path(job_id)
     ensure_dirs()
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=300.0) as client:
+    # Do not follow redirects — prevents redirect-to-internal SSRF after allowlist check.
+    async with httpx.AsyncClient(follow_redirects=False, timeout=300.0) as client:
         response = await client.get(safe_url)
         response.raise_for_status()
         dest.write_bytes(response.content)
 
-    delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{Path(dest).name}"
+    if is_production():
+        # Public /media/outputs mount is disabled in production — return provider URL.
+        delivery_url = safe_url
+    else:
+        delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{Path(dest).name}"
     logger.info("Cached remote MP4 job=%s path=%s", job_id, dest)
     return dest, delivery_url
 

@@ -67,9 +67,15 @@ def _segment_prompt(base: str, index: int, total: int) -> str:
 
 
 async def _download_clip(url: str, dest: Path) -> None:
+    from app.services.ssrf_guard import SsrfError, assert_safe_outbound_url
+
     dest.parent.mkdir(parents=True, exist_ok=True)
-    async with httpx.AsyncClient(follow_redirects=True, timeout=300.0) as client:
-        response = await client.get(url)
+    try:
+        safe_url = assert_safe_outbound_url(url)
+    except SsrfError as exc:
+        raise ValueError(f"Blocked unsafe clip URL: {exc}") from exc
+    async with httpx.AsyncClient(follow_redirects=False, timeout=300.0) as client:
+        response = await client.get(safe_url)
         response.raise_for_status()
         dest.write_bytes(response.content)
 

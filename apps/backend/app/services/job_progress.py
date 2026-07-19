@@ -8,6 +8,8 @@ from typing import Any
 import httpx
 
 from app.core.config import reload_settings, settings
+from app.core.runtime import is_production
+from app.services.ssrf_guard import SsrfError, assert_safe_callback_url
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,19 @@ async def notify_pipeline_status(
 ) -> None:
     """PATCH pipeline status to the SaaS job row (Postgres via Next.js)."""
     if not callback_url:
+        return
+
+    try:
+        safe_url = assert_safe_callback_url(
+            callback_url,
+            allow_localhost=not is_production(),
+        )
+    except SsrfError as exc:
+        logger.warning(
+            "Refusing pipeline callback (SSRF guard) url=%s err=%s",
+            callback_url,
+            exc,
+        )
         return
 
     secret = _webhook_secret()
@@ -100,13 +115,13 @@ async def notify_pipeline_status(
         payload["backendJobId"] = backend_job_id
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.patch(callback_url, json=payload, headers=headers)
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
+            response = await client.patch(safe_url, json=payload, headers=headers)
             response.raise_for_status()
     except Exception as exc:
         logger.warning(
             "Pipeline status webhook failed url=%s status=%s err=%s",
-            callback_url,
+            safe_url,
             status,
             exc,
         )

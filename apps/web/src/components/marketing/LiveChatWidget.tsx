@@ -99,6 +99,7 @@ export function LiveChatWidget() {
     <>
       {open ? (
         <div
+          id="rtas-live-chat-panel"
           className="rtas-live-chat"
           role="dialog"
           aria-label="Live chat support"

@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from app.core.backend_auth import require_backend_secret
 from app.core.config import settings
 from app.services import job_orchestration as jo
 from app.services.ai_service import LiveGenerationError
@@ -14,11 +15,7 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
 def _require_backend_auth(x_rtas_backend_secret: str | None) -> None:
-    expected = (settings.ai_backend_secret or "").strip()
-    if not expected:
-        return
-    if (x_rtas_backend_secret or "").strip() != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    require_backend_secret(x_rtas_backend_secret=x_rtas_backend_secret)
 
 
 class JobCreateRequest(BaseModel):
@@ -171,7 +168,12 @@ async def get_orchestrated_job(
 
 
 @router.get("/{provider}/{external_job_id}/status")
-async def get_provider_job_status(provider: str, external_job_id: str):
+async def get_provider_job_status(
+    provider: str,
+    external_job_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
     try:
         status = await provider_status(provider, external_job_id)
     except LiveGenerationError as exc:
@@ -188,7 +190,12 @@ async def get_provider_job_status(provider: str, external_job_id: str):
 
 
 @router.post("/{provider}/{external_job_id}/cancel")
-async def cancel_provider_job(provider: str, external_job_id: str):
+async def cancel_provider_job(
+    provider: str,
+    external_job_id: str,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
     ok = await provider_cancel(provider, external_job_id)
     if not ok:
         raise HTTPException(

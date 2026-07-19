@@ -78,3 +78,65 @@ def assert_safe_outbound_url(url: str) -> str:
         ):
             raise SsrfError(f"resolved address is not publicly routable: {addr}")
     return raw
+
+
+def _configured_callback_hosts() -> set[str]:
+    import os
+
+    hosts: set[str] = set()
+    for key in (
+        "PUBLIC_BASE_URL",
+        "NEXTAUTH_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "VERCEL_URL",
+        "RTAS_CALLBACK_ALLOW_HOSTS",
+    ):
+        raw = (os.environ.get(key) or "").strip()
+        if not raw:
+            continue
+        if key == "RTAS_CALLBACK_ALLOW_HOSTS":
+            for part in raw.split(","):
+                h = part.strip().lower().removeprefix("https://").removeprefix("http://").split("/")[0]
+                if h:
+                    hosts.add(h)
+            continue
+        if "://" not in raw and key == "VERCEL_URL":
+            hosts.add(raw.lower())
+            continue
+        try:
+            host = (urlparse(raw if "://" in raw else f"https://{raw}").hostname or "").lower()
+        except Exception:
+            host = ""
+        if host:
+            hosts.add(host)
+    # Common Vercel app suffixes for this project
+    hosts.update(
+        {
+            "rtas-studio-ai-web.vercel.app",
+            "rtas-studio-ai-api.vercel.app",
+        }
+    )
+    return hosts
+
+
+def assert_safe_callback_url(url: str, *, allow_localhost: bool = False) -> str:
+    """Allowlist webhook/status callback URLs (Next.js app hosts only)."""
+    raw = (url or "").strip()
+    if not raw:
+        raise SsrfError("empty callback URL")
+    parsed = urlparse(raw)
+    host = (parsed.hostname or "").lower()
+    if allow_localhost and host in {"localhost", "127.0.0.1"}:
+        if parsed.scheme not in {"http", "https"}:
+            raise SsrfError("invalid callback scheme")
+        return raw
+    if parsed.scheme != "https":
+        raise SsrfError("only https callbacks are allowed")
+    if parsed.username or parsed.password:
+        raise SsrfError("credentials in URL are not allowed")
+    allowed = _configured_callback_hosts()
+    if host not in allowed and not any(host.endswith("." + h) for h in allowed):
+        # Also allow *.vercel.app for preview deploys of this project
+        if not (host.endswith(".vercel.app") and "rtas" in host):
+            raise SsrfError(f"callback host not allowed: {host}")
+    return raw

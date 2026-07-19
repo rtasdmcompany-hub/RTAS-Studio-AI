@@ -76,6 +76,7 @@ export function AuthHeaderActions({ variant = "studio" }: { variant?: Variant })
           aria-expanded={open}
           aria-controls={menuId}
           aria-haspopup="menu"
+          aria-label={`Account menu, ${fullName || label}`}
           onClick={() => setOpen((v) => !v)}
         >
           <span className="studio-profile__avatar" aria-hidden>

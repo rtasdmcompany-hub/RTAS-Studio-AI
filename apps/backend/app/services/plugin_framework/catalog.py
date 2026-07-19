@@ -101,9 +101,12 @@ def canonical_manifest(manifest: dict[str, Any]) -> str:
 
 
 def compute_signature(manifest: dict[str, Any], publisher_key: str = "") -> str:
-    payload = f"{canonical_manifest(manifest)}|{publisher_key or SIGNING_SECRET}"
+    from app.core.signing_secrets import plugin_signing_secret
+
+    secret = plugin_signing_secret()
+    payload = f"{canonical_manifest(manifest)}|{publisher_key or secret}"
     return hmac.new(
-        SIGNING_SECRET.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256
+        secret.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256
     ).hexdigest()
 
 

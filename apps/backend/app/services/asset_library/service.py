@@ -42,7 +42,11 @@ from app.services.enterprise_auth.middleware import require_access
 from app.services.multi_tenant.repository import get_repository
 from app.services.multi_tenant.validation import ValidationError, normalize_slug, require_non_empty
 
-_SIGNING_SECRET = b"rtas-asset-library-signing-key-v1"
+
+def _signing_secret() -> bytes:
+    from app.core.signing_secrets import asset_library_signing_secret
+
+    return asset_library_signing_secret()
 
 
 def _now() -> datetime:
@@ -629,7 +633,7 @@ class SignedUrlEngine:
     def sign(self, asset_id: str, *, actor_id: str, ttl_sec: int = SIGNED_URL_TTL_SEC) -> dict[str, Any]:
         expires = int(time.time()) + max(60, ttl_sec)
         payload = f"{asset_id}:{actor_id}:{expires}"
-        sig = hmac.new(_SIGNING_SECRET, payload.encode(), hashlib.sha256).hexdigest()[:32]
+        sig = hmac.new(_signing_secret(), payload.encode(), hashlib.sha256).hexdigest()[:32]
         token = urlsafe_b64encode(f"{payload}:{sig}".encode()).decode().rstrip("=")
         return {
             "url": f"/api/assets/{asset_id}/download?token={token}",
@@ -651,7 +655,7 @@ class SignedUrlEngine:
             if int(expires_s) < int(time.time()):
                 return False
             payload = f"{aid}:{uid}:{expires_s}"
-            expected = hmac.new(_SIGNING_SECRET, payload.encode(), hashlib.sha256).hexdigest()[:32]
+            expected = hmac.new(_signing_secret(), payload.encode(), hashlib.sha256).hexdigest()[:32]
             return hmac.compare_digest(expected, sig)
         except Exception:
             return False

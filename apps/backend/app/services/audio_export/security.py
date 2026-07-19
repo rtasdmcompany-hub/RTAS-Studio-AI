@@ -9,12 +9,12 @@ from typing import Any
 
 from app.services.audio_export.models import DownloadTicket
 
-# Simulation signing secret — never expose real provider credentials.
-_SIGNING_SECRET = b"rtas-export-sim-signing-key-v1"
-
-
 def _sign(payload: str) -> str:
-    return hmac.new(_SIGNING_SECRET, payload.encode(), hashlib.sha256).hexdigest()[:32]
+    from app.core.signing_secrets import export_signing_secret
+
+    return hmac.new(
+        export_signing_secret(), payload.encode(), hashlib.sha256
+    ).hexdigest()[:32]
 
 
 def create_signed_download(

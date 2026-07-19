@@ -95,19 +95,22 @@ app.include_router(api_router)
 # Uploads are NEVER publicly mounted in production (session gateway + backend secret only).
 try:
     ensure_dirs()
-    app.mount(
-        "/media/outputs",
-        StaticFiles(directory=str(settings.local_output_dir)),
-        name="generated_outputs",
-    )
     if not is_production():
+        app.mount(
+            "/media/outputs",
+            StaticFiles(directory=str(settings.local_output_dir)),
+            name="generated_outputs",
+        )
         app.mount(
             "/media/uploads",
             StaticFiles(directory=str(settings.local_upload_dir)),
             name="uploaded_assets",
         )
     else:
-        logger.info("Production: /media/uploads static mount disabled (private assets)")
+        logger.info(
+            "Production: /media/outputs and /media/uploads static mounts disabled "
+            "(serve via authenticated download gateways)"
+        )
 except OSError as exc:
     logger.warning("Skipping local media mounts (non-writable runtime): %s", exc)
 
