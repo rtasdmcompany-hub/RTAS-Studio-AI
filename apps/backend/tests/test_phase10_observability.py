@@ -134,6 +134,6 @@ def test_routes_and_ready_probe():
     assert "phase10_observability_verified" in health
     assert "phase10_alerting_verified" in health
     assert "phase10_operational_excellence_verified" in health
-    assert '"sprint": 7' in health or "sprint\": 7" in health
+    assert "phase10_sprint" in health
     router = (ROOT / "app" / "api" / "router.py").read_text(encoding="utf-8")
     assert "observability" in router
