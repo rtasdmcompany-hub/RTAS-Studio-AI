@@ -42,6 +42,7 @@ from app.api.routes import (
     license_platform,
     provider_analytics,
     marketplace,
+    marketplace_ecosystem,
     motion,
     motion_intelligence,
     multi_ai,
@@ -91,6 +92,7 @@ api_router.include_router(provider_analytics.analytics_router)
 api_router.include_router(provider_analytics.budget_router)
 api_router.include_router(provider_analytics.optimization_router)
 api_router.include_router(marketplace.marketplace_router)
+api_router.include_router(marketplace_ecosystem.ecosystem_router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)

@@ -3531,6 +3531,11 @@ model Organization {
   productReviews            ProductReview[]
   marketplaceAnalytics      MarketplaceAnalytics[]
 
+  // Phase 9 Sprint 1 — AI marketplace ecosystem foundation
+  marketplaceCreators       MarketplaceCreator[]
+  marketplaceAssets         MarketplaceAsset[]
+  assetCollections          AssetCollection[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6136,5 +6141,129 @@ model ProductRating {
   @@index([productId])
   @@index([rating])
   @@map("ProductRatings")
+}
+
+// --- Phase 9 Sprint 1 — AI Marketplace Ecosystem Foundation ---
+
+/** Creator / publisher profile inside the AI marketplace ecosystem. */
+model MarketplaceCreator {
+  id              String   @id @default(uuid())
+  userId          String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  displayName     String
+  handle          String   @unique
+  creatorType     String   @default("creator")
+  bio             String   @default("")
+  website         String   @default("")
+  status          String   @default("active")
+  publishedAssets Int      @default(0)
+  totalVersions   Int      @default(0)
+  metadataJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  assets          MarketplaceAsset[]
+  collections     AssetCollection[]
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("MarketplaceCreators")
+}
+
+/** Digital AI asset registered in the ecosystem (templates, prompts, voices, ...). */
+model MarketplaceAsset {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId       String
+  creator         MarketplaceCreator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  ownerUserId     String
+  name            String
+  slug            String
+  assetType       String   @default("custom")
+  description     String   @default("")
+  category        String   @default("other")
+  tagsJson        Json?
+  status          String   @default("draft")
+  visibility      String   @default("public")
+  currentVersion  String   @default("1.0.0")
+  assetUri        String   @default("")
+  workspaceId     String?
+  metadataJson    Json?
+  publishedAt     DateTime?
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  versions        MarketplaceAssetVersion[]
+
+  @@index([organizationId])
+  @@index([creatorId])
+  @@index([ownerUserId])
+  @@index([status])
+  @@index([assetType])
+  @@index([category])
+  @@index([visibility])
+  @@map("MarketplaceAssets")
+}
+
+/** Immutable version history for an ecosystem asset. */
+model MarketplaceAssetVersion {
+  id          String   @id @default(uuid())
+  assetId     String
+  asset       MarketplaceAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  version     String
+  changelog   String   @default("")
+  assetUri    String   @default("")
+  createdBy   String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@unique([assetId, version])
+  @@index([assetId, createdAt(sort: Desc)])
+  @@map("AssetVersions")
+}
+
+/** Marketplace ecosystem asset category taxonomy. */
+model AssetCategory {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  label       String   @default("")
+  description String   @default("")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([active])
+  @@map("AssetCategories")
+}
+
+/** Marketplace ecosystem asset tag with usage counter. */
+model AssetTag {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([usageCount])
+  @@map("AssetTags")
+}
+
+/** Curated collection of ecosystem assets owned by a creator. */
+model AssetCollection {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId       String
+  creator         MarketplaceCreator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String
+  description     String   @default("")
+  assetIdsJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([creatorId])
+  @@map("AssetCollections")
 }
 
