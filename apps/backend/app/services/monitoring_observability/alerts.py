@@ -29,6 +29,8 @@ ALERT_TYPES = (
     "auth_failure",
     "payment_failure",
     "storage_failure",
+    "backup_failure",
+    "recovery_failure",
 )
 
 

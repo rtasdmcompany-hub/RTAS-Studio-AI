@@ -37,6 +37,28 @@ def restart_failed_workers() -> list[dict[str, Any]]:
             results.append(
                 _record("restart_worker", wid, success=True, detail="worker restarted")
             )
+    # Also rebuild job orchestration worker pool (Phase 10 HA)
+    try:
+        from app.services import job_orchestration as jo
+
+        rec = jo.recover_workers()
+        results.append(
+            _record(
+                "restart_worker",
+                "job_orchestration",
+                success=bool(rec.get("ok")),
+                detail=f"orchestrator recover_workers dispatched={rec.get('dispatched')}",
+            )
+        )
+    except Exception as exc:
+        results.append(
+            _record(
+                "restart_worker",
+                "job_orchestration",
+                success=False,
+                detail=str(exc),
+            )
+        )
     return results
 
 
