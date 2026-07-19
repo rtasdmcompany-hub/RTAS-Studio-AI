@@ -3600,6 +3600,9 @@ model Organization {
   productPerformances       ProductPerformance[]
   financialSummaries        FinancialSummary[]
 
+  // Phase 9 Sprint 10 — Final validation runs
+  phase9ValidationRuns      Phase9ValidationRun[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -7660,5 +7663,22 @@ model FinancialSummary {
 
   @@index([organizationId, period])
   @@map("FinancialSummaries")
+}
+
+/** Phase 9 Sprint 10 — Final integration / regression / load validation runs. */
+model Phase9ValidationRun {
+  id             String   @id @default(uuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  kind           String
+  passed         Boolean  @default(false)
+  score          Float    @default(0)
+  detailsJson    Json?
+  createdAt      DateTime @default(now())
+
+  @@index([kind, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([passed])
+  @@map("Phase9ValidationRuns")
 }
 
