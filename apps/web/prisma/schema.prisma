@@ -3536,6 +3536,12 @@ model Organization {
   marketplaceAssets         MarketplaceAsset[]
   assetCollections          AssetCollection[]
 
+  // Phase 9 Sprint 2 — Creator platform & publisher ecosystem
+  creators                  Creator[]
+  publishedAssets           PublishedAsset[]
+  assetDrafts               AssetDraft[]
+  creatorAnalytics          CreatorAnalytics[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6265,5 +6271,172 @@ model AssetCollection {
   @@index([organizationId])
   @@index([creatorId])
   @@map("AssetCollections")
+}
+
+// --- Phase 9 Sprint 2 — Creator Platform & Publisher Ecosystem ---
+
+/** Creator account with verification state and reputation inputs. */
+model Creator {
+  id                 String   @id @default(uuid())
+  userId             String
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  displayName        String
+  status             String   @default("active")
+  verificationStatus String   @default("unverified")
+  verifiedAt         DateTime?
+  verificationNote   String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  profile            CreatorProfile?
+  creatorBadges      CreatorBadge[]
+  creatorFollowers   CreatorFollower[]
+  publishedAssets    PublishedAsset[]
+  assetDrafts        AssetDraft[]
+  analyticsSnapshots CreatorAnalytics[]
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([verificationStatus])
+  @@index([status])
+  @@map("Creators")
+}
+
+/** Extended creator profile: bio, social links, categories, portfolio. */
+model CreatorProfile {
+  id               String   @id @default(uuid())
+  creatorId        String   @unique
+  creator          Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  bio              String   @default("")
+  avatarUri        String   @default("")
+  socialLinksJson  Json?
+  categoriesJson   Json?
+  portfolioJson    Json?
+  featuredIdsJson  Json?
+  metadataJson     Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("CreatorProfiles")
+}
+
+/** Badge awarded to a creator (verified, milestones, reputation). */
+model CreatorBadge {
+  id          String   @id @default(uuid())
+  creatorId   String
+  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  badgeKey    String
+  label       String   @default("")
+  description String   @default("")
+  awardedAt   DateTime @default(now())
+
+  @@unique([creatorId, badgeKey])
+  @@index([creatorId])
+  @@index([badgeKey])
+  @@map("CreatorBadges")
+}
+
+/** Follower relationship between a user and a creator. */
+model CreatorFollower {
+  id             String   @id @default(uuid())
+  creatorId      String
+  creator        Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  followerUserId String
+  createdAt      DateTime @default(now())
+
+  @@unique([creatorId, followerUserId])
+  @@index([creatorId])
+  @@index([followerUserId])
+  @@map("CreatorFollowers")
+}
+
+/** Published asset in the creator/publisher ecosystem. */
+model PublishedAsset {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId       String
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  ownerUserId     String
+  name            String
+  assetType       String   @default("custom")
+  description     String   @default("")
+  category        String   @default("other")
+  tagsJson        Json?
+  status          String   @default("published")
+  visibility      String   @default("public")
+  currentVersion  String   @default("1.0.0")
+  versionsJson    Json?
+  assetUri        String   @default("")
+  priceCredits    Float    @default(0)
+  publishAt       DateTime?
+  publishedAt     DateTime?
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+  metadataJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([creatorId])
+  @@index([ownerUserId])
+  @@index([status])
+  @@index([assetType])
+  @@index([visibility])
+  @@map("PublishedAssets")
+}
+
+/** Draft (unpublished or scheduled) asset in the publisher workflow. */
+model AssetDraft {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId       String
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  ownerUserId     String
+  name            String
+  assetType       String   @default("custom")
+  description     String   @default("")
+  category        String   @default("other")
+  tagsJson        Json?
+  visibility      String   @default("public")
+  assetUri        String   @default("")
+  priceCredits    Float    @default(0)
+  publishAt       DateTime?
+  metadataJson    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([creatorId])
+  @@index([ownerUserId])
+  @@index([publishAt])
+  @@map("AssetDrafts")
+}
+
+/** Periodic analytics snapshot for a creator. */
+model CreatorAnalytics {
+  id              String   @id @default(uuid())
+  creatorId       String
+  creator         Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  totalAssets     Int      @default(0)
+  publishedAssets Int      @default(0)
+  views           Int      @default(0)
+  downloads       Int      @default(0)
+  purchases       Int      @default(0)
+  revenueCredits  Float    @default(0)
+  followers       Int      @default(0)
+  avgRating       Float    @default(0)
+  ratings         Int      @default(0)
+  reviews         Int      @default(0)
+  engagementScore Float    @default(0)
+  reputation      Float    @default(0)
+  capturedAt      DateTime @default(now())
+
+  @@index([creatorId, capturedAt(sort: Desc)])
+  @@index([organizationId])
+  @@map("CreatorAnalytics")
 }
 
