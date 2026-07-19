@@ -3515,6 +3515,15 @@ model Organization {
   webhooks                  Webhook[]
   webhookDeliveries         WebhookDelivery[]
 
+  // Phase 8 Sprint 8 — Usage analytics, cost optimization & provider billing
+  providerUsageEvents       ProviderUsage[]
+  usageAnalyticsRollups     UsageAnalytics[]
+  costAnalyticsRollups      CostAnalytics[]
+  budgetPolicies            BudgetPolicy[]
+  budgetEvents              BudgetEvent[]
+  profitReports             ProfitReport[]
+  costOptimizationEntries   CostOptimizationHistory[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -5790,5 +5799,157 @@ model WebhookDelivery {
   @@index([status])
   @@index([eventType])
   @@map("WebhookDeliveries")
+}
+
+// =============================================================================
+// Phase 8 Sprint 8 — Usage Analytics, Cost Optimization & AI Provider Billing
+// =============================================================================
+
+model ProviderUsage {
+  id                String   @id @default(uuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider          String
+  model             String   @default("")
+  userId            String?
+  workspaceId       String?
+  status            String   @default("success")
+  latencyMs         Float    @default(0)
+  creditsCharged    Float    @default(0)
+  costBreakdownJson Json?
+  totalCostUsd      Float    @default(0)
+  revenueUsd        Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([provider])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([status])
+  @@map("ProviderUsage")
+}
+
+model UsageAnalytics {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  period           String
+  dimension        String   @default("provider")
+  dimensionValue   String   @default("")
+  requests         Int      @default(0)
+  successful       Int      @default(0)
+  failed           Int      @default(0)
+  costUsd          Float    @default(0)
+  revenueUsd       Float    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([organizationId, period, dimension, dimensionValue])
+  @@index([organizationId, period])
+  @@index([dimension])
+  @@map("UsageAnalytics")
+}
+
+model CostAnalytics {
+  id                      String   @id @default(uuid())
+  organizationId          String
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  period                  String
+  providerCostUsd         Float    @default(0)
+  gpuCostUsd              Float    @default(0)
+  apiCostUsd              Float    @default(0)
+  storageCostUsd          Float    @default(0)
+  bandwidthCostUsd        Float    @default(0)
+  renderingCostUsd        Float    @default(0)
+  totalCostUsd            Float    @default(0)
+  costPerGenerationUsd    Float    @default(0)
+  monthlyOperatingCostUsd Float    @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([organizationId, period])
+  @@index([organizationId])
+  @@map("CostAnalytics")
+}
+
+model BudgetPolicy {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  scope            String   @default("organization")
+  scopeId          String
+  dailyLimitUsd    Float    @default(0)
+  monthlyLimitUsd  Float    @default(0)
+  alertsEnabled    Boolean  @default(true)
+  hardStop         Boolean  @default(false)
+  updatedBy        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  events           BudgetEvent[]
+
+  @@unique([scope, scopeId])
+  @@index([organizationId])
+  @@map("BudgetPolicies")
+}
+
+model BudgetEvent {
+  id               String   @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policyId         String
+  policy           BudgetPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  eventType        String
+  period           String   @default("daily")
+  thresholdPct     Float    @default(0)
+  spentUsd         Float    @default(0)
+  limitUsd         Float    @default(0)
+  detail           String   @default("")
+  createdAt        DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([policyId])
+  @@index([eventType])
+  @@map("BudgetEvents")
+}
+
+model ProfitReport {
+  id                      String   @id @default(uuid())
+  organizationId          String
+  organization            Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  period                  String
+  revenueUsd              Float    @default(0)
+  providerCostUsd         Float    @default(0)
+  infrastructureCostUsd   Float    @default(0)
+  fixedOverheadUsd        Float    @default(0)
+  grossProfitUsd          Float    @default(0)
+  netProfitUsd            Float    @default(0)
+  marginPct               Float    @default(0)
+  generatedBy             String?
+  createdAt               DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([period])
+  @@map("ProfitReports")
+}
+
+model CostOptimizationHistory {
+  id                 String   @id @default(uuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mode               String
+  capability         String   @default("")
+  selectedProvider   String
+  estimatedCostUsd   Float    @default(0)
+  estimatedLatencyMs Float    @default(0)
+  qualityScore       Float    @default(0)
+  savingsUsd         Float    @default(0)
+  reason             String   @default("")
+  rankingJson        Json?
+  createdAt          DateTime @default(now())
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([selectedProvider])
+  @@index([mode])
+  @@map("CostOptimizationHistory")
 }
 
