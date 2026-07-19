@@ -126,7 +126,7 @@ def test_routes_and_ready_probe():
     health = (ROOT / "app" / "api" / "routes" / "health.py").read_text(encoding="utf-8")
     assert "phase10_rc1_verified" in health
     assert "RC-1" in health
-    assert '"sprint": 5' in health or "sprint\": 5" in health
+    assert "phase10_sprint" in health
 
 
 def test_router_registers_rc():

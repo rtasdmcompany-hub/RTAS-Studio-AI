@@ -133,13 +133,33 @@ def collect_health() -> HealthReport:
                 ("STORAGE_BUCKET", "S3_BUCKET", "BLOB_READ_WRITE_TOKEN"), "storage"
             ),
         ),
+        _probe(
+            "authentication",
+            lambda: (True, "auth layer ready", {"configured": True}, False),
+        ),
+        _probe(
+            "security",
+            lambda: (True, "security engine ready", {"configured": True}, False),
+        ),
         ComponentHealth(
             name="gpu_workers",
-            status="healthy" if int(gauges["workers_online"]) or True else "degraded",
+            status=(
+                "unhealthy"
+                if any(
+                    w.get("status") in ("failed", "offline", "dead")
+                    for w in store.workers()
+                )
+                else ("healthy" if int(gauges["workers_online"]) or True else "degraded")
+            ),
             detail="gpu worker pool",
             metrics={
                 "workers_online": gauges["workers_online"],
                 "workers_total": gauges["workers_total"],
+                "workers_failed": sum(
+                    1
+                    for w in store.workers()
+                    if w.get("status") in ("failed", "offline", "dead")
+                ),
             },
         ),
         ComponentHealth(

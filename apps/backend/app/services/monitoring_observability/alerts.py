@@ -31,6 +31,8 @@ ALERT_TYPES = (
     "storage_failure",
     "backup_failure",
     "recovery_failure",
+    "worker_failure",
+    "security_event",
 )
 
 
@@ -92,6 +94,18 @@ def evaluate_components(components: list[ComponentHealth]) -> list[dict[str, Any
         if c.name == "storage" and c.status == "unhealthy":
             raised.append(
                 raise_alert("storage_failure", c.detail, component="storage", level="error")
+            )
+        if c.name == "gpu_workers" and c.status == "unhealthy":
+            raised.append(
+                raise_alert("worker_failure", c.detail, component="gpu_workers", level="error")
+            )
+        if c.name == "authentication" and c.status == "unhealthy":
+            raised.append(
+                raise_alert("auth_failure", c.detail, component="authentication", level="error")
+            )
+        if c.name == "security" and c.status == "unhealthy":
+            raised.append(
+                raise_alert("security_event", c.detail, component="security", level="critical")
             )
     samples = store.request_samples(60)
     if samples:

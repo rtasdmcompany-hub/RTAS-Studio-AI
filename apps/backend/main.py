@@ -21,6 +21,7 @@ from app.api.router import api_router
 from app.core.config import settings
 from app.core.runtime import is_production, openapi_enabled
 from app.middleware.content_moderation import ContentModerationMiddleware
+from app.middleware.correlation import CorrelationIdMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.services.fal_verify import run_startup_verification as run_fal_startup_verification
 from app.services.model_routing import get_routing_policy_summary
@@ -80,6 +81,9 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Baseline security headers on all responses.
 app.add_middleware(SecurityHeadersMiddleware)
+
+# Correlation / request IDs for structured log traceability.
+app.add_middleware(CorrelationIdMiddleware)
 
 # Content safety — must run before any generation route handler.
 app.add_middleware(ContentModerationMiddleware)

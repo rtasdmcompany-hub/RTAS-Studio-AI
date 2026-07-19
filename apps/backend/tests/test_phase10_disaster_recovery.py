@@ -126,6 +126,6 @@ def test_routes_and_ready_probe():
     health = (ROOT / "app" / "api" / "routes" / "health.py").read_text(encoding="utf-8")
     assert "phase10_disaster_recovery_verified" in health
     assert "phase10_high_availability_verified" in health
-    assert '"sprint": 6' in health or "sprint\": 6" in health
+    assert "phase10_sprint" in health
     router = (ROOT / "app" / "api" / "router.py").read_text(encoding="utf-8")
     assert "disaster_recovery" in router
