@@ -88,6 +88,65 @@ class AIProviderManager:
                 raise ValueError(f"No available provider for capability: {capability}")
         return await provider.invoke(prompt, capability=capability)
 
+    async def invoke_with_failover(
+        self,
+        prompt: str,
+        *,
+        capability: Capability = "text",
+        max_attempts: int = 3,
+        force_fail_first: bool = False,
+    ) -> dict[str, Any]:
+        """
+        Invoke with automatic failover across priority-ordered providers.
+        Retries remaining providers on failure; supports timeout/recovery metadata.
+        """
+        candidates = [
+            p
+            for p in sort_by_priority(self.registry.all())
+            if p.supports(str(capability)) and p.is_enabled()
+        ]
+        if not candidates:
+            return {
+                "success": False,
+                "error": f"No available provider for capability: {capability}",
+                "attempts": 0,
+                "failoverLog": ["no_candidates"],
+            }
+
+        failover_log: list[str] = []
+        last_error: str | None = None
+        attempts = 0
+
+        for index, provider in enumerate(candidates[: max(1, max_attempts)]):
+            attempts += 1
+            if force_fail_first and index == 0:
+                failover_log.append(f"fail:{provider.provider_id}:forced")
+                last_error = "forced_failure_for_failover"
+                continue
+            try:
+                result = await provider.invoke(prompt, capability=capability)
+                if result.get("success"):
+                    failover_log.append(f"ok:{provider.provider_id}")
+                    return {
+                        **result,
+                        "success": True,
+                        "attempts": attempts,
+                        "failoverLog": failover_log,
+                        "recovered": index > 0 or force_fail_first,
+                    }
+                last_error = str(result.get("error") or "invoke_failed")
+                failover_log.append(f"fail:{provider.provider_id}:{last_error}")
+            except Exception as exc:
+                last_error = str(exc)
+                failover_log.append(f"error:{provider.provider_id}:{last_error}")
+
+        return {
+            "success": False,
+            "error": last_error or "all_providers_failed",
+            "attempts": attempts,
+            "failoverLog": failover_log,
+        }
+
 
 _manager: AIProviderManager | None = None
 

@@ -52,6 +52,7 @@ from app.api.routes import (
     enterprise_automation,
     marketplace_revenue,
     phase9_final_validation,
+    phase10_rc_validation,
     infrastructure,
     motion,
     motion_intelligence,
@@ -103,6 +104,7 @@ api_router.include_router(marketplace_revenue.analytics_router)
 api_router.include_router(marketplace_revenue.monetization_router)
 # Sprint 10 — Phase 9 final integration & production validation.
 api_router.include_router(phase9_final_validation.phase9_router)
+api_router.include_router(phase10_rc_validation.router)
 api_router.include_router(infrastructure.router)
 api_router.include_router(provider_analytics.analytics_router)
 api_router.include_router(provider_analytics.budget_router)

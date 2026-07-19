@@ -65,6 +65,9 @@ class BaseProviderInterface(ABC):
     def is_configured(self) -> bool:
         return self._configured
 
+    def is_enabled(self) -> bool:
+        return self._enabled
+
     def set_configured(self, configured: bool) -> None:
         self._configured = bool(configured)
         if self._enabled and self._status not in ("busy", "maintenance", "disabled"):

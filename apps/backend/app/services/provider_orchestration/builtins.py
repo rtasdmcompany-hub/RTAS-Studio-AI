@@ -124,7 +124,7 @@ def builtin_provider_factories() -> list[type]:
             "RunPod",
             ("image", "video", "text"),
             50,
-            env_key_hints=("RUNPOD_API_KEY",),
+            env_key_hints=("RUNPOD_API_KEY", "RUNPOD_API_KEY_V2", "COMFYUI_API_URL"),
         ),
         lambda: _StubProvider(
             "simulation",
