@@ -61,7 +61,6 @@ async def ready():
         "usage_analytics": "RTAS Enterprise Usage Analytics, Cost Optimization & AI Provider Billing Engine v1.0",
         "cost_optimization": "RTAS Enterprise Usage Analytics, Cost Optimization & AI Provider Billing Engine v1.0",
         "marketplace_engine": "RTAS Enterprise Marketplace, Template Store & Digital Commerce Engine v1.0",
-        "template_store": "RTAS Enterprise Marketplace, Template Store & Digital Commerce Engine v1.0",
         "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
         "project_engine": "RTAS Project Management & Collaboration Engine v1.0",
         "asset_engine": "RTAS Enterprise Asset Management & Digital Library Engine v1.0",
