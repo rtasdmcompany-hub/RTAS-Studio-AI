@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from app.services.job_orchestration import store
+from app.services.job_orchestration import dead_letter as dlq
 from app.services.job_orchestration.metrics import compute_metrics
 from app.services.job_orchestration.models import (
     TERMINAL_STATES,
@@ -25,6 +26,7 @@ from app.services.job_orchestration.version import (
     ENGINE_LABEL,
     ENGINE_NAME,
     ENGINE_VERSION,
+    MAX_QUEUE_DEPTH,
     MAX_RETRIES,
 )
 
@@ -93,6 +95,12 @@ def create_job(
         raise ValueError("prompt is required")
     if priority not in ("critical", "high", "normal", "low"):
         raise ValueError("priority must be critical|high|normal|low")
+
+    # Horizontal scale safety — refuse unbounded queue growth (backpressure).
+    if queue_manager.queued_count() >= MAX_QUEUE_DEPTH:
+        raise ValueError(
+            f"queue_backpressure: depth>={MAX_QUEUE_DEPTH}; retry after workers drain"
+        )
 
     now = time.time()
     jid = _job_id(text[:80], priority, str(time.time_ns()))
@@ -236,10 +244,20 @@ def _fail_or_retry(job_id: str, error: str, t_proc: float) -> None:
         job.metrics.retry_count = job.retry_count
         job.metrics.success = False
         job.version += 1
-        store.save(job)
-        # Automatic failed job recovery mark
         job.metadata["recovery_available"] = True
+        job.metadata["dead_letter"] = True
         store.save(job)
+        dlq.push(
+            job_id,
+            error=error,
+            payload={
+                "priority": job.priority,
+                "provider": job.provider,
+                "retryCount": job.retry_count,
+                "promptPreview": job.prompt[:80],
+            },
+        )
+        queue_manager.remove(job_id)
 
 
 def pump_scheduler(max_dispatch: int | None = None) -> int:
@@ -302,8 +320,81 @@ def jobs_status() -> dict[str, Any]:
         "label": ENGINE_LABEL,
         "ok": True,
         "max_concurrent": _max_concurrent,
+        "max_queue_depth": MAX_QUEUE_DEPTH,
         "active_workers": len(_running),
+        "queue": queue_manager.statistics(),
+        "dead_letter": dlq.statistics(),
         **metrics,
+    }
+
+
+def recover_workers() -> dict[str, Any]:
+    """
+    Graceful worker-pool recovery after process blips / forced shutdown.
+    Rebuilds the executor, clears stale running markers, and re-pumps the queue.
+    """
+    global _executor, _scheduler_started
+    with _lock:
+        stale = list(_running)
+        _running.clear()
+    if _executor is not None:
+        try:
+            _executor.shutdown(wait=False, cancel_futures=True)
+        except Exception:
+            pass
+        _executor = None
+    _scheduler_started = False
+    _ensure_scheduler()
+    dispatched = pump_scheduler()
+    return {
+        "ok": True,
+        "operation": "recover_workers",
+        "staleCleared": len(stale),
+        "dispatched": dispatched,
+        "maxConcurrent": _max_concurrent,
+        "queue": queue_manager.statistics(),
+        "deadLetter": dlq.statistics(),
+    }
+
+
+def recover_from_dlq(job_id: str) -> dict[str, Any]:
+    """Re-queue a dead-lettered job for another attempt."""
+    entry = dlq.pop(job_id)
+    if not entry:
+        raise ValueError(f"DLQ entry not found: {job_id}")
+    job = store.get(job_id)
+    if not job:
+        raise ValueError(f"Job not found: {job_id}")
+    job.retry_count = 0
+    job.max_retries = max(job.max_retries, 1)
+    job.state = "retrying"
+    job.error = None
+    job.progress = 0.0
+    job.finished_at = None
+    job.started_at = None
+    job.metadata["dlq_recovery"] = True
+    job.metadata["dead_letter"] = False
+    # Allow a clean retry after DLQ (avoid sticky one-shot failure flags)
+    job.metadata.pop("force_fail_once", None)
+    queue_manager.enqueue(job)
+    store.save(job)
+    _ensure_scheduler()
+    pump_scheduler()
+    return {
+        "engine": ENGINE_NAME,
+        "version": ENGINE_VERSION,
+        "operation": "dlq_recover",
+        **job.to_dict(),
+    }
+
+
+def dead_letter_status(limit: int = 50) -> dict[str, Any]:
+    return {
+        "engine": ENGINE_NAME,
+        "version": ENGINE_VERSION,
+        "ok": True,
+        **dlq.statistics(),
+        "entries": dlq.list_entries(limit=limit),
     }
 
 
@@ -383,6 +474,7 @@ def reset_orchestrator() -> None:
     global _scheduler_started, _executor
     queue_manager.clear()
     store.clear()
+    dlq.clear()
     with _lock:
         _running.clear()
     if _executor is not None:

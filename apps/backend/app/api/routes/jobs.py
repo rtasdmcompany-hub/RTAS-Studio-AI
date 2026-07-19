@@ -119,6 +119,38 @@ async def retry_orchestrated_job(
     return {"ok": True, **result}
 
 
+@router.get("/dead-letter")
+async def orchestrated_dead_letter(
+    limit: int = Query(50, ge=1, le=500),
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    return {"ok": True, **jo.dead_letter_status(limit=limit)}
+
+
+@router.post("/dead-letter/recover")
+async def recover_dead_letter_job(
+    body: JobIdRequest,
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    try:
+        result = jo.recover_from_dlq(body.job_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail="DLQ recover failed") from exc
+    return {"ok": True, **result}
+
+
+@router.post("/recover-workers")
+async def recover_job_workers(
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _require_backend_auth(x_rtas_backend_secret)
+    return {"ok": True, **jo.recover_workers()}
+
+
 @router.get("/{job_id}")
 async def get_orchestrated_job(
     job_id: str,

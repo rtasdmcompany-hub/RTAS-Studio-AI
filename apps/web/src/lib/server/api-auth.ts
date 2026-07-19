@@ -133,7 +133,8 @@ export async function checkRateLimitAsync(
     }
     return { ok: true };
   } catch {
-    // Fail open to memory if Redis blips — still apply a local brake.
+    // Fail open to memory if Redis blips — reset client for next reconnect.
+    redisClient = undefined;
     return memoryRateLimit(key, limit, windowMs);
   }
 }

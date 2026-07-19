@@ -65,6 +65,30 @@ function getRedis(): RedisClient | null {
   return redisClient;
 }
 
+/** Reset cached Redis client after transport errors (graceful reconnect). */
+export function resetRedisClient(): void {
+  redisClient = undefined;
+}
+
+async function withRedisRetry<T>(
+  op: (redis: RedisClient) => Promise<T>
+): Promise<{ ok: true; value: T } | { ok: false }> {
+  const redis = getRedis();
+  if (!redis) return { ok: false };
+  try {
+    return { ok: true, value: await op(redis) };
+  } catch {
+    resetRedisClient();
+    const again = getRedis();
+    if (!again) return { ok: false };
+    try {
+      return { ok: true, value: await op(again) };
+    } catch {
+      return { ok: false };
+    }
+  }
+}
+
 function storeKey(name: string): string {
   return `${STORE_PREFIX}${name}`;
 }
@@ -97,10 +121,15 @@ function assertServerlessPersistence(): void {
 
 /** Read a named JSON document (auth-users, profiles, etc.). */
 export async function readJsonDocument<T>(name: string, fallback: T): Promise<T> {
-  const redis = getRedis();
-  if (redis) {
-    const value = await redis.get<T>(storeKey(name));
-    return value ?? fallback;
+  const result = await withRedisRetry(async (redis) => {
+    return redis.get<T>(storeKey(name));
+  });
+  if (result.ok) {
+    return result.value ?? fallback;
+  }
+
+  if (getRedisRestConfig()) {
+    // Redis configured but unreachable after retry — fall through safely.
   }
 
   if (isMemoryStoreAllowed()) {
@@ -118,11 +147,11 @@ export async function readJsonDocument<T>(name: string, fallback: T): Promise<T>
 
 /** Write a named JSON document atomically. */
 export async function writeJsonDocument<T>(name: string, data: T): Promise<void> {
-  const redis = getRedis();
-  if (redis) {
+  const result = await withRedisRetry(async (redis) => {
     await redis.set(storeKey(name), data);
-    return;
-  }
+    return true;
+  });
+  if (result.ok) return;
 
   if (isMemoryStoreAllowed()) {
     memoryDocuments.set(storeKey(name), data);

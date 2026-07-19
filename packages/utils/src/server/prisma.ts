@@ -15,9 +15,8 @@ function createPrismaClient(): PrismaClient {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Reuse the client across warm serverless isolates (dev HMR + production).
+globalForPrisma.prisma = prisma;
 
 /** True when DATABASE_URL is set to a non-empty PostgreSQL connection string. */
 export function isPrismaConfigured(): boolean {
