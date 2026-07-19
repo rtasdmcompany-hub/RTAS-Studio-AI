@@ -63,7 +63,7 @@ def build_video_engine_plan(
     multi_gpu: dict[str, Any] | None = None,
     text_to_video: dict[str, Any] | None = None,
     auto_retry: bool = True,
-    run_stress: bool = True,
+    run_stress: bool = False,
     stress_iterations: int = 3,
     parent_generation_id: str | None = None,
 ) -> VideoEnginePlan:
@@ -270,13 +270,20 @@ def build_video_engine_plan(
         production_ready=production_ready,
     )
     put_plan(plan)
+    stage_ms = {s.name: s.duration_ms for s in stages}
+    bottleneck = max(stages, key=lambda s: s.duration_ms).name if stages else "none"
     logger.info(
-        "video_engine_ready %s job=%s ready=%s quality=%.3f grade=%s",
-        ENGINE_LABEL,
+        "video_engine_perf job_id=%s ready=%s quality=%.3f grade=%s "
+        "total_ms=%.3f bottleneck=%s stage_ms=%s stress_ran=%s alerts=%s",
         plan.job_id,
         production_ready,
         quality.overall,
         quality.grade,
+        performance.total_ms,
+        bottleneck,
+        stage_ms,
+        stress_result.ran,
+        len(monitoring.active_alerts),
     )
     return plan
 

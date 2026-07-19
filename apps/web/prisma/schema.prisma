@@ -169,6 +169,8 @@ model GenerationJob {
   @@index([userId, createdAt(sort: Desc)])
   @@index([projectId])
   @@index([isPublic])
+  @@index([backendJobId])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 enum GenerationJobStatus {
@@ -1516,6 +1518,7 @@ model ExportJob {
   @@index([backendJobId])
   @@index([batchId])
   @@index([parentGenerationId])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 model ExportProfileRecord {

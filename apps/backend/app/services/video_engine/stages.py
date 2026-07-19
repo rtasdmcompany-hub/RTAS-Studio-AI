@@ -44,7 +44,11 @@ def evaluate_stages(
     t2v: dict[str, Any] | None,
     download_ready: bool,
 ) -> list[PipelineStage]:
-    """Derive stage readiness from available pipeline artifacts."""
+    """Derive stage readiness from available pipeline artifacts.
+
+    Each stage records its own wall-clock evaluation time (ms) so bottlenecks
+    are measurable instead of splitting one timer evenly across the pipeline.
+    """
     intel = intelligence or {}
     director = director_plan or {}
     pr = production_render or {}
@@ -53,15 +57,11 @@ def evaluate_stages(
     cam = camera_motion or {}
     mg = multi_gpu or {}
 
-    started = time.perf_counter()
-
-    def elapsed() -> float:
-        return round((time.perf_counter() - started) * 1000, 2)
-
     checks: list[tuple[StageName, bool, float, list[str], list[str], list[str]]] = [
         (
             "prompt",
-            bool((prompt or "").strip()) or _present(intel.get("enhancement") or intel.get("prompt_understanding")),
+            bool((prompt or "").strip())
+            or _present(intel.get("enhancement") or intel.get("prompt_understanding")),
             0.9 if (prompt or "").strip() else 0.2,
             ["raw_prompt"],
             ["enhanced_prompt", "prompt_understanding"],
@@ -119,7 +119,9 @@ def evaluate_stages(
             "export",
             bool((pr.get("validation") or {}).get("passed"))
             or _present(pr.get("export_specs")),
-            0.9 if (pr.get("validation") or {}).get("passed") else (0.55 if pr.get("export_specs") else 0.25),
+            0.9
+            if (pr.get("validation") or {}).get("passed")
+            else (0.55 if pr.get("export_specs") else 0.25),
             ["rendering"],
             ["export_specs", "validation"],
             [],
@@ -136,6 +138,7 @@ def evaluate_stages(
 
     stages: list[PipelineStage] = []
     for i, (name, ok, score, inputs, outputs, errors) in enumerate(checks):
+        stage_started = time.perf_counter()
         status: StageStatus = "passed" if ok else "failed"
         # Soft-fail early stages if later ones exist (partial plans)
         if not ok and name in ("generation", "download") and any(
@@ -149,12 +152,13 @@ def evaluate_stages(
             notes.append(f"{name} incomplete — awaiting artifacts")
             if not errors:
                 errors = [f"missing_{name}_artifacts"]
+        duration_ms = round((time.perf_counter() - stage_started) * 1000, 3)
         stages.append(
             PipelineStage(
                 name=name,
                 order=i,
                 status=status,
-                duration_ms=elapsed() / max(1, len(checks)),
+                duration_ms=duration_ms,
                 score=round(score, 3),
                 inputs=inputs,
                 outputs=outputs,

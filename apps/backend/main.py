@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
@@ -67,6 +68,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Compress JSON plan/report payloads (safe bandwidth/latency win for production).
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Content safety — must run before any generation route handler.
 app.add_middleware(ContentModerationMiddleware)

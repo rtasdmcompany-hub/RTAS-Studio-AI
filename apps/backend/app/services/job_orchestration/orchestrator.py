@@ -146,7 +146,7 @@ def _execute_job(job_id: str) -> None:
         if job.depends_on:
             job.state = "waiting"
             store.save(job)
-            wait_deadline = time.perf_counter() + min(job.timeout_sec, 30.0)
+            wait_deadline = time.perf_counter() + max(0.1, float(job.timeout_sec))
             while time.perf_counter() < wait_deadline:
                 if _dependencies_failed(job):
                     raise RuntimeError("dependency_failed")
