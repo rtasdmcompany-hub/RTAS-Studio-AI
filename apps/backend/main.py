@@ -19,7 +19,9 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.core.runtime import is_production, openapi_enabled
 from app.middleware.content_moderation import ContentModerationMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.services.fal_verify import run_startup_verification as run_fal_startup_verification
 from app.services.model_routing import get_routing_policy_summary
 from app.services.storage import ensure_dirs
@@ -52,12 +54,16 @@ async def lifespan(_app: FastAPI):
     yield
 
 
+_docs = "/docs" if openapi_enabled() else None
+_redoc = "/redoc" if openapi_enabled() else None
+
 app = FastAPI(
     title="RTAS Studio AI API",
     description="Video generation orchestration for RTAS Studio AI",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=_docs,
+    redoc_url=_redoc,
+    openapi_url="/openapi.json" if openapi_enabled() else None,
     lifespan=lifespan,
 )
 
@@ -72,6 +78,9 @@ app.add_middleware(
 # Compress JSON plan/report payloads (safe bandwidth/latency win for production).
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+# Baseline security headers on all responses.
+app.add_middleware(SecurityHeadersMiddleware)
+
 # Content safety — must run before any generation route handler.
 app.add_middleware(ContentModerationMiddleware)
 
@@ -79,6 +88,7 @@ app.include_router(api_router)
 
 # Static mounts require existing directories at import time (before lifespan).
 # On read-only serverless hosts, skip mounts so planner/video-engine APIs still boot.
+# Uploads are NEVER publicly mounted in production (session gateway + backend secret only).
 try:
     ensure_dirs()
     app.mount(
@@ -86,24 +96,30 @@ try:
         StaticFiles(directory=str(settings.local_output_dir)),
         name="generated_outputs",
     )
-    app.mount(
-        "/media/uploads",
-        StaticFiles(directory=str(settings.local_upload_dir)),
-        name="uploaded_assets",
-    )
+    if not is_production():
+        app.mount(
+            "/media/uploads",
+            StaticFiles(directory=str(settings.local_upload_dir)),
+            name="uploaded_assets",
+        )
+    else:
+        logger.info("Production: /media/uploads static mount disabled (private assets)")
 except OSError as exc:
     logger.warning("Skipping local media mounts (non-writable runtime): %s", exc)
 
 
 @app.get("/")
 async def root():
-    return {
+    payload = {
         "name": "RTAS Studio AI API",
-        "docs": "/docs",
         "health": "/api/health",
+        "ready": "/api/ready",
         "generate": "POST /api/generate",
         "media": "/media/outputs",
         "ai_provider_mode": settings.ai_provider_mode,
         "model_routing": get_routing_policy_summary(),
         "content_moderation": {"enabled": True, "target": "POST /api/generate"},
     }
+    if openapi_enabled():
+        payload["docs"] = "/docs"
+    return payload

@@ -7,6 +7,7 @@ import {
   type LemonSqueezyWebhookBody,
 } from "@/lib/payments";
 import { processFalFundingAfterPayment } from "@/lib/payments/fal-funding-service";
+import { claimWebhookEventId } from "@/lib/server/webhook-idempotency";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,26 @@ export async function POST(request: Request) {
   }
 
   const event = parseLemonSqueezyWebhook(body);
+  const payload = "payload" in event ? event.payload : undefined;
+  const paymentId =
+    payload && "paymentId" in payload
+      ? String(payload.paymentId ?? "")
+      : "";
+  const eventKey =
+    (typeof body.data?.id === "string" && body.data.id) ||
+    `${event.type}:${paymentId}`;
+
+  const claimed = await claimWebhookEventId(
+    `lemon:${eventKey}`,
+    "lemon-squeezy"
+  );
+  if (!claimed) {
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      event: event.type,
+    });
+  }
 
   switch (event.type) {
     case "subscription_activated":

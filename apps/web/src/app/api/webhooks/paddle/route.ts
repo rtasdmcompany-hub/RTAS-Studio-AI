@@ -7,6 +7,7 @@ import {
   type PaddleWebhookBody,
 } from "@/lib/payments";
 import { processFalFundingAfterPayment } from "@/lib/payments/fal-funding-service";
+import { claimWebhookEventId } from "@/lib/server/webhook-idempotency";
 
 export const runtime = "nodejs";
 
@@ -26,7 +27,8 @@ export async function POST(request: Request) {
   if (deferPaddle && !hasSecret) {
     return NextResponse.json(
       {
-        error: "Paddle webhook verification deferred until production keys are configured.",
+        error:
+          "Paddle webhook verification deferred until production keys are configured.",
         deferred: true,
         code: "PADDLE_DEFERRED",
       },
@@ -51,6 +53,25 @@ export async function POST(request: Request) {
   }
 
   const event = parsePaddleWebhook(body);
+  const payload = "payload" in event ? event.payload : undefined;
+  const paymentId =
+    payload && "paymentId" in payload
+      ? String(payload.paymentId ?? "")
+      : "";
+  const userId =
+    payload && "userId" in payload ? String(payload.userId ?? "") : "";
+  const eventKey =
+    (typeof body.data?.id === "string" && body.data.id) ||
+    `${event.type}:${paymentId}:${userId}`;
+
+  const claimed = await claimWebhookEventId(`paddle:${eventKey}`, "paddle");
+  if (!claimed) {
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      event: event.type,
+    });
+  }
 
   switch (event.type) {
     case "subscription_activated":

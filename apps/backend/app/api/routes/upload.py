@@ -1,13 +1,15 @@
 """
 POST /api/upload — multipart asset intake for Replicate / local pipelines.
+Requires X-Rtas-Backend-Secret when AI_BACKEND_SECRET is configured (always in prod).
 """
 
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from app.core.backend_auth import require_backend_secret
 from app.services.upload_service import save_upload_batch
 
 logger = logging.getLogger(__name__)
@@ -26,7 +28,10 @@ KNOWN_FILE_FIELDS = [
 
 
 @router.post("")
-async def upload_assets(request: Request):
+async def upload_assets(
+    request: Request,
+    _: None = Depends(require_backend_secret),
+):
     """
     Upload studio assets before generation.
 
@@ -59,7 +64,7 @@ async def upload_assets(request: Request):
 
 
 @router.get("/fields")
-async def upload_field_help():
+async def upload_field_help(_: None = Depends(require_backend_secret)):
     return {
         "allowedFieldIds": KNOWN_FILE_FIELDS,
         "pathPattern": "data/uploads/{jobId}/{fieldId}_{filename}",

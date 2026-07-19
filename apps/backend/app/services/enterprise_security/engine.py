@@ -267,6 +267,9 @@ def reset_engine() -> None:
 
 
 def sign_body(body: str, timestamp: str = "") -> str:
-    secret = secrets.get_secret("AI_BACKEND_SECRET") or secrets.get_secret("RTAS_JWT_SECRET") or "rtas-dev-only-jwt"
+    try:
+        secret = secrets.jwt_signing_secret()
+    except ValueError:
+        secret = "rtas-dev-only-jwt"
     msg = f"{timestamp}.{body}".encode("utf-8")
     return hmac.new(secret.encode("utf-8"), msg, hashlib.sha256).hexdigest()

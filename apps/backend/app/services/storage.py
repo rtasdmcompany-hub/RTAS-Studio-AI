@@ -43,19 +43,21 @@ def ensure_dirs() -> None:
 
 
 def job_upload_dir(job_id: str) -> Path:
-    path = settings.local_upload_dir / job_id
+    safe = job_id.replace("..", "").replace("/", "_").replace("\\", "_")
+    path = settings.local_upload_dir / safe
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
 def resolve_upload_path(job_id: str, field_id: str, filename: str) -> Path:
-    safe_name = filename.replace("..", "").replace("/", "_")
+    safe_name = Path(filename).name.replace("..", "").replace("/", "_").replace("\\", "_")
     return job_upload_dir(job_id) / f"{field_id}_{safe_name}"
 
 
 def job_output_path(job_id: str, suffix: str = ".mp4") -> Path:
     ensure_dirs()
-    return settings.local_output_dir / f"{job_id}{suffix}"
+    safe = job_id.replace("..", "").replace("/", "_").replace("\\", "_")
+    return settings.local_output_dir / f"{safe}{suffix}"
 
 
 def publish_local_mp4(source: Path, job_id: str) -> tuple[Path, str]:
@@ -67,21 +69,28 @@ def publish_local_mp4(source: Path, job_id: str) -> tuple[Path, str]:
         elif not dest.exists():
             raise FileNotFoundError(f"Output MP4 missing: {source}")
 
-    delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{job_id}.mp4"
+    delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{Path(dest).name}"
     return dest, delivery_url
 
 
 async def download_mp4_to_outputs(remote_url: str, job_id: str) -> tuple[Path, str]:
-    """Download Replicate CDN MP4 into local outputs for stable playback."""
+    """Download provider CDN MP4 into local outputs for stable playback."""
+    from app.services.ssrf_guard import SsrfError, assert_safe_outbound_url
+
+    try:
+        safe_url = assert_safe_outbound_url(remote_url)
+    except SsrfError as exc:
+        raise ValueError(f"Blocked unsafe outbound media URL: {exc}") from exc
+
     dest = job_output_path(job_id)
     ensure_dirs()
 
     async with httpx.AsyncClient(follow_redirects=True, timeout=300.0) as client:
-        response = await client.get(remote_url)
+        response = await client.get(safe_url)
         response.raise_for_status()
         dest.write_bytes(response.content)
 
-    delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{job_id}.mp4"
+    delivery_url = f"{settings.public_base_url.rstrip('/')}/media/outputs/{Path(dest).name}"
     logger.info("Cached remote MP4 job=%s path=%s", job_id, dest)
     return dest, delivery_url
 

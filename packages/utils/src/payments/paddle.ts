@@ -42,7 +42,10 @@ export function verifyPaddleSignature(
   const signed = `${ts}:${rawBody}`;
   const expected = crypto.createHmac("sha256", secret).update(signed).digest("hex");
   try {
-    return crypto.timingSafeEqual(Buffer.from(h1), Buffer.from(expected));
+    const a = Buffer.from(h1, "utf8");
+    const b = Buffer.from(expected, "utf8");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }

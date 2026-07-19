@@ -62,8 +62,17 @@ def require_secret(name: str) -> str:
 
 
 def jwt_signing_secret() -> str:
-    """JWT secret from env only; ephemeral fallback marked as non-production."""
-    return get_secret("RTAS_JWT_SECRET") or get_secret("AI_BACKEND_SECRET") or "rtas-dev-only-jwt"
+    """JWT secret from env only. Production refuses the weak development fallback."""
+    from app.core.runtime import is_production
+
+    configured = get_secret("RTAS_JWT_SECRET") or get_secret("AI_BACKEND_SECRET")
+    if configured:
+        return configured
+    if is_production():
+        raise ValueError(
+            "RTAS_JWT_SECRET or AI_BACKEND_SECRET required in production"
+        )
+    return "rtas-dev-only-jwt"
 
 
 def secret_validation_report() -> dict[str, Any]:

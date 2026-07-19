@@ -11,6 +11,16 @@ export function getServerFastApiBase(): string | null {
   return resolved.ok ? resolved.url : null;
 }
 
+/** Service-to-service secret for FastAPI (never expose to the browser). */
+function backendSecretHeaders(): Record<string, string> {
+  const secret =
+    process.env.AI_BACKEND_SECRET?.trim() ||
+    process.env.RTAS_BACKEND_SECRET?.trim() ||
+    "";
+  if (!secret) return {};
+  return { "X-Rtas-Backend-Secret": secret };
+}
+
 function extractApiErrorMessage(
   data: Record<string, unknown>,
   fallback = "Generation failed"
@@ -65,7 +75,10 @@ export async function proxyGenerateToFastApi(
   try {
     res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...backendSecretHeaders(),
+      },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000),
     });
@@ -137,6 +150,9 @@ export async function proxyUploadToFastApi(
   try {
     res = await fetch(url, {
       method: "POST",
+      headers: {
+        ...backendSecretHeaders(),
+      },
       body: formData,
       signal: AbortSignal.timeout(120_000),
     });

@@ -41,7 +41,10 @@ export function verifyLemonSqueezySignature(
 
   const digest = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
   try {
-    return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(digest));
+    const a = Buffer.from(signatureHeader, "utf8");
+    const b = Buffer.from(digest, "utf8");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }
