@@ -3524,6 +3524,13 @@ model Organization {
   profitReports             ProfitReport[]
   costOptimizationEntries   CostOptimizationHistory[]
 
+  // Phase 8 Sprint 9 — Marketplace, template store & digital commerce
+  marketplaceProducts       MarketplaceProduct[]
+  marketplacePurchases      MarketplacePurchase[]
+  productLicenses           ProductLicense[]
+  productReviews            ProductReview[]
+  marketplaceAnalytics      MarketplaceAnalytics[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -5951,5 +5958,183 @@ model CostOptimizationHistory {
   @@index([selectedProvider])
   @@index([mode])
   @@map("CostOptimizationHistory")
+}
+
+// =============================================================================
+// Phase 8 Sprint 9 — Marketplace, Template Store & Digital Commerce
+// =============================================================================
+
+model MarketplaceProduct {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sellerUserId    String
+  name            String
+  productType     String   @default("custom")
+  description     String   @default("")
+  category        String   @default("other")
+  tagsJson        Json?
+  status          String   @default("draft")
+  pricingModel    String   @default("free")
+  priceCredits    Float    @default(0)
+  licenseType     String   @default("personal")
+  featured        Boolean  @default(false)
+  workspaceId     String?
+  currentVersion  String   @default("1.0.0")
+  assetUri        String   @default("")
+  views           Int      @default(0)
+  downloads       Int      @default(0)
+  purchases       Int      @default(0)
+  refunds         Int      @default(0)
+  revenueCredits  Float    @default(0)
+  ratingSum       Int      @default(0)
+  ratingCount     Int      @default(0)
+  metadataJson    Json?
+  publishedAt     DateTime?
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  versions        MarketplaceProductVersion[]
+  productPurchases MarketplacePurchase[]
+  licenses        ProductLicense[]
+  reviews         ProductReview[]
+
+  @@index([organizationId])
+  @@index([sellerUserId])
+  @@index([status])
+  @@index([category])
+  @@index([productType])
+  @@index([featured])
+  @@map("MarketplaceProducts")
+}
+
+model MarketplaceProductVersion {
+  id          String   @id @default(uuid())
+  productId   String
+  product     MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  version     String
+  changelog   String   @default("")
+  assetUri    String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@unique([productId, version])
+  @@index([productId, createdAt(sort: Desc)])
+  @@map("ProductVersions")
+}
+
+model MarketplacePurchase {
+  id              String   @id @default(uuid())
+  productId       String
+  product         MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productName     String   @default("")
+  buyerUserId     String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId     String?
+  priceCredits    Float    @default(0)
+  status          String   @default("completed")
+  licenseId       String?
+  refundedAt      DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([productId])
+  @@index([buyerUserId])
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("Purchases")
+}
+
+model ProductLicense {
+  id              String   @id @default(uuid())
+  productId       String
+  product         MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  purchaseId      String   @default("")
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  holderUserId    String
+  licenseKey      String   @unique
+  licenseType     String   @default("personal")
+  status          String   @default("active")
+  workspaceId     String?
+  revokedAt       DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([productId])
+  @@index([holderUserId])
+  @@index([organizationId])
+  @@index([status])
+  @@map("ProductLicenses")
+}
+
+model ProductReview {
+  id              String   @id @default(uuid())
+  productId       String
+  product         MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviewerUserId  String
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rating          Int
+  title           String   @default("")
+  body            String   @default("")
+  createdAt       DateTime @default(now())
+
+  @@unique([productId, reviewerUserId])
+  @@index([productId, createdAt(sort: Desc)])
+  @@index([organizationId])
+  @@index([rating])
+  @@map("ProductReviews")
+}
+
+model MarketplaceAnalytics {
+  id              String   @id @default(uuid())
+  productId       String
+  eventType       String
+  userId          String?
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  amountCredits   Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([productId, createdAt(sort: Desc)])
+  @@index([eventType])
+  @@index([organizationId])
+  @@map("MarketplaceAnalytics")
+}
+
+model ProductCategory {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  label       String   @default("")
+  description String   @default("")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([active])
+  @@map("ProductCategories")
+}
+
+model ProductTag {
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([usageCount])
+  @@map("ProductTags")
+}
+
+model ProductRating {
+  id          String   @id @default(uuid())
+  productId   String
+  userId      String
+  rating      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([rating])
+  @@map("ProductRatings")
 }
 

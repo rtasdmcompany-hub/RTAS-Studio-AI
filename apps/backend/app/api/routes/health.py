@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 8 usage analytics, cost optimization & provider billing."""
+    """Production readiness probe — Phase 8 marketplace, template store & digital commerce."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,7 +33,7 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 8,
-        "sprint": 8,
+        "sprint": 9,
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,
@@ -51,6 +51,8 @@ async def ready():
         "developer_platform": "RTAS Enterprise License, API Access & Developer Platform Engine v1.0",
         "usage_analytics": "RTAS Enterprise Usage Analytics, Cost Optimization & AI Provider Billing Engine v1.0",
         "cost_optimization": "RTAS Enterprise Usage Analytics, Cost Optimization & AI Provider Billing Engine v1.0",
+        "marketplace_engine": "RTAS Enterprise Marketplace, Template Store & Digital Commerce Engine v1.0",
+        "template_store": "RTAS Enterprise Marketplace, Template Store & Digital Commerce Engine v1.0",
         "management_engine": "RTAS Organization, Workspace & Team Management Engine v1.0",
         "project_engine": "RTAS Project Management & Collaboration Engine v1.0",
         "asset_engine": "RTAS Enterprise Asset Management & Digital Library Engine v1.0",
