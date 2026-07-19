@@ -121,6 +121,11 @@ class ManifestValidateRequest(BaseModel):
 # --- Static plugin routes (before /{plugin_id}) ---
 
 
+@plugins_router.get("")
+async def plugins_root():
+    return _svc().status()
+
+
 @plugins_router.get("/status")
 async def plugin_framework_status():
     return _svc().status()

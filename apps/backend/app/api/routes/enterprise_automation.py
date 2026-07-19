@@ -95,6 +95,11 @@ class IntegrationConnectRequest(BaseModel):
 # --- Automation ---
 
 
+@automation_router.get("")
+async def automation_root():
+    return _svc().status()
+
+
 @automation_router.get("/engine-status")
 async def automation_engine_status():
     return _svc().status()

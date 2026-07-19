@@ -362,6 +362,14 @@ async def marketplace_analytics(
         raise _map(exc) from exc
 
 
+@marketplace_router.get("")
+async def marketplace_root(
+    x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),
+):
+    _auth(x_rtas_backend_secret)
+    return _svc().status()
+
+
 @marketplace_router.get("/status")
 async def engine_status(
     x_rtas_backend_secret: str | None = Header(None, alias="X-Rtas-Backend-Secret"),

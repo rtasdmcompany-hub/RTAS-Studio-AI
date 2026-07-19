@@ -108,6 +108,16 @@ class GatewayDispatchRequest(BaseModel):
 # --- Developers ---
 
 
+@developers_router.get("/status")
+async def developers_status():
+    return _svc().status()
+
+
+@developers_router.get("")
+async def developers_root():
+    return _svc().status()
+
+
 @developers_router.post("/register")
 async def register_developer(
     body: DeveloperRegisterRequest,

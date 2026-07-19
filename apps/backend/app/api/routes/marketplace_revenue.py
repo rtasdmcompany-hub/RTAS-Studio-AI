@@ -89,6 +89,17 @@ async def monetization_engine_status():
     return _svc().status()
 
 
+@analytics_router.get("")
+async def analytics_root():
+    """Unauthenticated analytics surface health probe."""
+    return _svc().status()
+
+
+@analytics_router.get("/status")
+async def analytics_engine_status():
+    return _svc().status()
+
+
 @analytics_router.get("/revenue")
 async def analytics_revenue(
     organization_id: str = Query(..., alias="organizationId"),
