@@ -44,6 +44,7 @@ from app.api.routes import (
     marketplace,
     marketplace_ecosystem,
     creator_platform,
+    community_platform,
     motion,
     motion_intelligence,
     multi_ai,
@@ -96,6 +97,7 @@ api_router.include_router(marketplace.marketplace_router)
 api_router.include_router(marketplace_ecosystem.ecosystem_router)
 api_router.include_router(creator_platform.creator_router)
 api_router.include_router(creator_platform.publisher_router)
+api_router.include_router(community_platform.community_router)
 api_router.include_router(ai.router)
 api_router.include_router(upload.router)
 api_router.include_router(generate.router)

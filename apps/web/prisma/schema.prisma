@@ -3542,6 +3542,17 @@ model Organization {
   assetDrafts               AssetDraft[]
   creatorAnalytics          CreatorAnalytics[]
 
+  // Phase 9 Sprint 3 — Community platform & social collaboration
+  userProfiles              UserProfile[]
+  communityFollowers        Follower[]
+  communityFollowing        Following[]
+  communityReviews          Review[]
+  communityRatings          Rating[]
+  communityComments         Comment[]
+  communityLikes            Like[]
+  communityFavorites        Favorite[]
+  communityNotifications    Notification[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -6438,5 +6449,176 @@ model CreatorAnalytics {
   @@index([creatorId, capturedAt(sort: Desc)])
   @@index([organizationId])
   @@map("CreatorAnalytics")
+}
+
+// --- Phase 9 Sprint 3 — Community Platform & Social Collaboration Engine ---
+
+/** Public community profile for a user inside an organization. */
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  displayName    String
+  handle         String
+  bio            String   @default("")
+  avatarUri      String   @default("")
+  verified       Boolean  @default(false)
+  verifiedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, userId])
+  @@unique([organizationId, handle])
+  @@index([organizationId])
+  @@index([verified])
+  @@map("UserProfiles")
+}
+
+/** Follow edge: a user following a target user (follower view). */
+model Follower {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  followerUserId String
+  targetUserId   String
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, followerUserId, targetUserId])
+  @@index([organizationId, targetUserId])
+  @@index([followerUserId])
+  @@map("Followers")
+}
+
+/** Denormalized following projection for fast "who do I follow" reads. */
+model Following {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  followerUserId String
+  targetUserId   String
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, followerUserId, targetUserId])
+  @@index([organizationId, followerUserId])
+  @@index([targetUserId])
+  @@map("Following")
+}
+
+/** Community review of an asset with a 1-5 rating. */
+model Review {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId        String
+  authorUserId   String
+  rating         Int
+  title          String   @default("")
+  body           String   @default("")
+  status         String   @default("visible")
+  assetCategory  String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, assetId, authorUserId])
+  @@index([organizationId])
+  @@index([assetId])
+  @@index([authorUserId])
+  @@index([status])
+  @@map("Reviews")
+}
+
+/** Standalone 1-5 star rating of an asset. */
+model Rating {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId        String
+  userId         String
+  value          Int
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, assetId, userId])
+  @@index([organizationId])
+  @@index([assetId])
+  @@map("Ratings")
+}
+
+/** Threaded community comment with mentions and moderation state. */
+model Comment {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subjectId      String
+  authorUserId   String
+  body           String
+  parentId       String?
+  mentionsJson   Json?
+  status         String   @default("visible")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([subjectId])
+  @@index([authorUserId])
+  @@index([parentId])
+  @@index([status])
+  @@map("Comments")
+}
+
+/** Like on an asset. */
+model Like {
+  id                String   @id @default(uuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId           String
+  userId            String
+  assetCategory     String   @default("")
+  assetOwnerUserId  String   @default("")
+  createdAt         DateTime @default(now())
+
+  @@unique([organizationId, assetId, userId])
+  @@index([organizationId])
+  @@index([assetId])
+  @@index([assetOwnerUserId])
+  @@map("Likes")
+}
+
+/** Favorite or bookmark of an asset (kind: favorite | bookmark). */
+model Favorite {
+  id                String   @id @default(uuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assetId           String
+  userId            String
+  kind              String   @default("favorite")
+  assetCategory     String   @default("")
+  assetOwnerUserId  String   @default("")
+  createdAt         DateTime @default(now())
+
+  @@unique([organizationId, assetId, userId, kind])
+  @@index([organizationId])
+  @@index([userId, kind])
+  @@index([assetId])
+  @@map("Favorites")
+}
+
+/** Community notification (follow, review, comment, reply, mention, like, featured). */
+model Notification {
+  id              String   @id @default(uuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recipientUserId String
+  type            String
+  actorUserId     String   @default("")
+  subjectId       String   @default("")
+  message         String   @default("")
+  read            Boolean  @default(false)
+  readAt          DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([organizationId, recipientUserId, read])
+  @@index([recipientUserId, createdAt(sort: Desc)])
+  @@map("Notifications")
 }
 
