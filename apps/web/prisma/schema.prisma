@@ -3590,6 +3590,16 @@ model Organization {
   scheduledAutomations      ScheduledAutomation[]
   automationHistories       AutomationHistory[]
 
+  // Phase 9 Sprint 9 — Marketplace analytics, revenue intelligence & monetization
+  revenueReports            RevenueReport[]
+  salesReports              SalesReport[]
+  revenueMarketplaceAnalytics RevenueMarketplaceAnalytics[]
+  creatorRevenues           CreatorRevenue[]
+  revenueForecasts          RevenueForecast[]
+  customerMetrics           CustomerMetric[]
+  productPerformances       ProductPerformance[]
+  financialSummaries        FinancialSummary[]
+
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status])
 }
@@ -7480,5 +7490,175 @@ model AutomationHistory {
   @@index([ruleId])
   @@index([eventType])
   @@map("AutomationHistory")
+}
+
+/** Phase 9 Sprint 9 — Aggregated revenue report (org/workspace/period). */
+model RevenueReport {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  period         String
+  grossRevenue   Float    @default(0)
+  netRevenue     Float    @default(0)
+  refundAmount   Float    @default(0)
+  subscriptionRevenue Float @default(0)
+  marketplaceRevenue  Float @default(0)
+  creditSalesRevenue  Float @default(0)
+  currency       String   @default("USD")
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, period])
+  @@index([workspaceId])
+  @@map("RevenueReports")
+}
+
+/** Phase 9 Sprint 9 — Sales intelligence snapshot. */
+model SalesReport {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  workspaceId    String?
+  period         String   @default("")
+  totalSales     Float    @default(0)
+  salesCount     Int      @default(0)
+  refundCount    Int      @default(0)
+  salesGrowth    Float    @default(0)
+  byEventTypeJson Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([workspaceId])
+  @@map("SalesReports")
+}
+
+/**
+ * Phase 9 Sprint 9 — Aggregate marketplace analytics (distinct from event-level MarketplaceAnalytics).
+ */
+model RevenueMarketplaceAnalytics {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  period         String   @default("")
+  productViews   Float    @default(0)
+  productDownloads Float  @default(0)
+  productPurchases Float  @default(0)
+  conversionRate Float    @default(0)
+  healthScore    Float    @default(0)
+  bestSellersJson Json?
+  trendingJson   Json?
+  categoryJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, period])
+  @@map("RevenueMarketplaceAnalytics")
+}
+
+/** Phase 9 Sprint 9 — Creator revenue ledger aggregate. */
+model CreatorRevenue {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  creatorId      String
+  revenue        Float    @default(0)
+  sales          Int      @default(0)
+  downloads      Int      @default(0)
+  views          Int      @default(0)
+  averageRating  Float    @default(0)
+  reviewCount    Int      @default(0)
+  conversionRate Float    @default(0)
+  revenueGrowth  Float    @default(0)
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, creatorId])
+  @@index([organizationId])
+  @@index([creatorId])
+  @@map("CreatorRevenue")
+}
+
+/** Phase 9 Sprint 9 — Revenue / sales forecast projections. */
+model RevenueForecast {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  horizon        String
+  baseline       Float    @default(0)
+  growthRate     Float    @default(0)
+  projectedJson  Json?
+  salesForecastJson Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, horizon])
+  @@map("RevenueForecasts")
+}
+
+/** Phase 9 Sprint 9 — Customer LTV / churn / ARPU metrics. */
+model CustomerMetric {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customerId     String
+  totalSpend     Float    @default(0)
+  purchases      Int      @default(0)
+  churned        Boolean  @default(false)
+  firstSeenAt    DateTime @default(now())
+  lastSeenAt     DateTime @default(now())
+  lifetimeValue  Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, customerId])
+  @@index([organizationId])
+  @@index([churned])
+  @@map("CustomerMetrics")
+}
+
+/** Phase 9 Sprint 9 — Per-product marketplace performance. */
+model ProductPerformance {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  productId      String
+  category       String   @default("other")
+  views          Float    @default(0)
+  downloads      Float    @default(0)
+  purchases      Float    @default(0)
+  revenue        Float    @default(0)
+  featured       Boolean  @default(false)
+  searchImpressions Float @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, productId])
+  @@index([organizationId])
+  @@index([category])
+  @@map("ProductPerformance")
+}
+
+/** Phase 9 Sprint 9 — Financial summary snapshots. */
+model FinancialSummary {
+  id             String   @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  period         String
+  grossRevenue   Float    @default(0)
+  refundAmount   Float    @default(0)
+  netRevenue     Float    @default(0)
+  subscriptionRevenue Float @default(0)
+  marketplaceRevenue  Float @default(0)
+  creditSalesRevenue  Float @default(0)
+  currency       String   @default("USD")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId, period])
+  @@map("FinancialSummaries")
 }
 

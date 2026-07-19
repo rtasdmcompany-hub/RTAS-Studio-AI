@@ -50,6 +50,7 @@ from app.api.routes import (
     public_api_platform,
     agent_orchestration,
     enterprise_automation,
+    marketplace_revenue,
     motion,
     motion_intelligence,
     multi_ai,
@@ -95,6 +96,9 @@ api_router.include_router(referral_affiliate.referrals_router)
 api_router.include_router(referral_affiliate.affiliate_router)
 api_router.include_router(license_platform.licenses_router)
 api_router.include_router(license_platform.developer_router)
+# Sprint 9 marketplace revenue analytics registers before provider /analytics/revenue.
+api_router.include_router(marketplace_revenue.analytics_router)
+api_router.include_router(marketplace_revenue.monetization_router)
 api_router.include_router(provider_analytics.analytics_router)
 api_router.include_router(provider_analytics.budget_router)
 api_router.include_router(provider_analytics.optimization_router)
