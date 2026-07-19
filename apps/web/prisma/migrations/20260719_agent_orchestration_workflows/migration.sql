@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS "AIAgents_ownerUserId_idx" ON "AIAgents"("ownerUserId
 CREATE INDEX IF NOT EXISTS "AIAgents_agentType_idx" ON "AIAgents"("agentType");
 CREATE INDEX IF NOT EXISTS "AIAgents_status_idx" ON "AIAgents"("status");
 
-CREATE TABLE IF NOT EXISTS "WorkflowTemplates" (
+CREATE TABLE IF NOT EXISTS "AgentWorkflowTemplates" (
   "id" TEXT PRIMARY KEY,
   "slug" TEXT NOT NULL,
   "name" TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS "WorkflowTemplates" (
   "agentTypesJson" JSONB,
   "stepsJson" JSONB,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT "WorkflowTemplates_slug_key" UNIQUE ("slug")
+  CONSTRAINT "AgentWorkflowTemplates_slug_key" UNIQUE ("slug")
 );
 
 CREATE TABLE IF NOT EXISTS "AgentWorkflows" (
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS "AgentWorkflows" (
   CONSTRAINT "AgentWorkflows_organizationId_fkey" FOREIGN KEY ("organizationId")
     REFERENCES "Organization"("id") ON DELETE CASCADE,
   CONSTRAINT "AgentWorkflows_templateId_fkey" FOREIGN KEY ("templateId")
-    REFERENCES "WorkflowTemplates"("id") ON DELETE SET NULL
+    REFERENCES "AgentWorkflowTemplates"("id") ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS "AgentWorkflows_organizationId_idx" ON "AgentWorkflows"("organizationId");
 CREATE INDEX IF NOT EXISTS "AgentWorkflows_workspaceId_idx" ON "AgentWorkflows"("workspaceId");

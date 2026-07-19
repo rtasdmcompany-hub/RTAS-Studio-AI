@@ -7146,7 +7146,7 @@ model AgentWorkflow {
   stepsJson      Json?
   conditionsJson Json?
   templateId     String?
-  template       WorkflowTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  template       AgentWorkflowTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   executions     WorkflowExecution[]
@@ -7159,8 +7159,8 @@ model AgentWorkflow {
   @@map("AgentWorkflows")
 }
 
-/** Reusable workflow template. */
-model WorkflowTemplate {
+/** Reusable agent workflow template. */
+model AgentWorkflowTemplate {
   id             String   @id @default(uuid())
   slug           String   @unique
   name           String
@@ -7171,7 +7171,7 @@ model WorkflowTemplate {
   createdAt      DateTime @default(now())
   workflows      AgentWorkflow[]
 
-  @@map("WorkflowTemplates")
+  @@map("AgentWorkflowTemplates")
 }
 
 /** Single workflow execution run. */
