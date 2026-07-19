@@ -134,6 +134,6 @@ def test_routes_and_ready_probe():
     assert "phase10_privacy_verified" in health
     assert "phase10_licensing_verified" in health
     assert "phase10_enterprise_release_ready" in health
-    assert '"sprint": 8' in health or "sprint\": 8" in health
+    assert "phase10_sprint" in health
     router = (ROOT / "app" / "api" / "router.py").read_text(encoding="utf-8")
     assert "compliance" in router

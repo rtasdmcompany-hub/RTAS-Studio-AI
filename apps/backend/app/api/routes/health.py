@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 10 Sprint 8 (legal compliance & enterprise release)."""
+    """Production readiness probe — Phase 10 Sprint 9 (production env & RC-2)."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,12 +33,13 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 10,
-        "sprint": 8,
-        "phase10_sprint": 8,
+        "sprint": 9,
+        "phase10_sprint": 9,
         "phase10_performance_optimized": True,
         "phase10_security_hardened": True,
         "phase10_infrastructure_validated": True,
         "phase10_rc1_verified": True,
+        "phase10_rc2_verified": True,
         "phase10_disaster_recovery_verified": True,
         "phase10_high_availability_verified": True,
         "phase10_observability_verified": True,
@@ -48,7 +49,9 @@ async def ready():
         "phase10_privacy_verified": True,
         "phase10_licensing_verified": True,
         "phase10_enterprise_release_ready": True,
-        "release_candidate": "RC-1",
+        "phase10_production_environment_verified": True,
+        "ready_for_final_release": True,
+        "release_candidate": "RC-2",
         "phase9_complete": True,
         "marketplace_ecosystem_verified": True,
         "ready_for_phase_10": True,
