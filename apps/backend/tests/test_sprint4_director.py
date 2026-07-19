@@ -9,6 +9,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INTEL = ROOT / "app" / "services" / "intelligence"
 
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+# Pre-import the real intelligence package in correct dependency order so the
+# manual importlib reloads below cannot trigger a partial-init circular import
+# (prompt_intelligence -> prompt_understanding -> intelligence/__init__ -> pipeline).
+import app.services.intelligence  # noqa: E402,F401
+
 
 def _load(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)

@@ -70,7 +70,19 @@ def _load_package(pkg: str, folder: str, modules: tuple[str, ...]):
 
 
 def _bootstrap():
-    if "app.services.enterprise_platform.engine" in sys.modules:
+    # Only skip when every module setup_function depends on is already loaded.
+    # A prior test in the same session may have loaded enterprise_platform.engine
+    # without these dependencies, which previously caused a KeyError at setup.
+    _required = (
+        "app.services.enterprise_platform.engine",
+        "app.services.memory_knowledge",
+        "app.services.workflow_pipeline",
+        "app.services.enterprise_security",
+        "app.services.monitoring_observability",
+        "app.services.cost_intelligence",
+        "app.services.job_orchestration",
+    )
+    if all(name in sys.modules for name in _required):
         return
 
     # Minimal config stub for connectors that may read settings
@@ -296,15 +308,24 @@ stress = sys.modules["app.services.enterprise_platform.stress"]
 engine_mod = sys.modules["app.services.enterprise_platform.engine"]
 jo = sys.modules["app.services.job_orchestration"]
 
+# Capture dependency module references at import time. Other test modules
+# collected later can remove these entries from sys.modules, so we hold direct
+# references to keep setup_function robust regardless of collection order.
+_memory_knowledge = sys.modules["app.services.memory_knowledge"]
+_workflow_pipeline = sys.modules["app.services.workflow_pipeline"]
+_enterprise_security = sys.modules["app.services.enterprise_security"]
+_monitoring_observability = sys.modules["app.services.monitoring_observability"]
+_cost_intelligence = sys.modules["app.services.cost_intelligence"]
+
 
 def setup_function():
     engine_mod.reset_engine()
     jo.reset_orchestrator()
-    sys.modules["app.services.memory_knowledge"].reset_engine()
-    sys.modules["app.services.workflow_pipeline"].reset_engine()
-    sys.modules["app.services.enterprise_security"].reset_engine()
-    sys.modules["app.services.monitoring_observability"].reset_engine()
-    sys.modules["app.services.cost_intelligence"].reset_engine()
+    _memory_knowledge.reset_engine()
+    _workflow_pipeline.reset_engine()
+    _enterprise_security.reset_engine()
+    _monitoring_observability.reset_engine()
+    _cost_intelligence.reset_engine()
 
 
 def test_version_unit():

@@ -25,7 +25,7 @@ async def health_ping():
 
 @router.get("/ready")
 async def ready():
-    """Production readiness probe — Phase 8 marketplace, template store & digital commerce."""
+    """Production readiness probe — Phase 8 final integration, regression & validation."""
     reload_settings()
     return {
         "status": "ready",
@@ -33,7 +33,10 @@ async def ready():
         "service": "rtas-studio-ai-api",
         "version": "1.0.0",
         "phase": 8,
-        "sprint": 9,
+        "sprint": 10,
+        "phase8_complete": True,
+        "enterprise_billing_commerce_verified": True,
+        "ready_for_phase9": True,
         "final_release": True,
         "platform": "RTAS Studio AI Enterprise SaaS Platform v1.0",
         "phase7_complete": True,
