@@ -12,12 +12,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(__dirname, "..");
 const monorepoRoot = join(webRoot, "..", "..");
 const envPath = join(webRoot, ".env.local");
+const TARGET_ENVS = ["production", "preview", "development"];
 
 const KEYS = [
   "DATABASE_URL",
   "DATABASE_URL_DIRECT",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_URL",
+  "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "NEXTAUTH_URL",
   "NEXTAUTH_SECRET",
@@ -35,6 +38,8 @@ const KEYS = [
   "NEXT_PUBLIC_FASTAPI_URL",
   "NEXT_PUBLIC_PAYMENT_PROVIDER",
   "PADDLE_WEBHOOK_SECRET",
+  "PADDLE_API_KEY",
+  "RUNPOD_API_KEY",
   "NEXT_PUBLIC_PADDLE_CLIENT_TOKEN",
   "NEXT_PUBLIC_PADDLE_CHECKOUT_URL",
   "NEXT_PUBLIC_PADDLE_TESTER_CHECKOUT_URL",
@@ -50,6 +55,7 @@ const KEYS = [
   "RTAS_ADMIN_SECRET",
   "RTAS_GENERATION_WEBHOOK_SECRET",
   "AI_BACKEND_SECRET",
+  "GITHUB_TOKEN",
   "KV_REST_API_URL",
   "KV_REST_API_TOKEN",
   "UPSTASH_REDIS_REST_URL",
@@ -91,7 +97,13 @@ if (!token) {
 
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 const env = { ...process.env, VERCEL_TOKEN: token };
-const cwd = existsSync(join(monorepoRoot, "vercel.json")) ? monorepoRoot : webRoot;
+// Target whichever linked Vercel project matches where the script is run from.
+// (web uses `apps/web/.vercel`, api uses `apps/backend/.vercel`)
+const cwd = existsSync(join(process.cwd(), ".vercel", "project.json"))
+  ? process.cwd()
+  : existsSync(join(monorepoRoot, "vercel.json"))
+    ? monorepoRoot
+    : webRoot;
 
 let ok = 0;
 let fail = 0;
@@ -99,43 +111,47 @@ let skipped = 0;
 
 for (const key of KEYS) {
   const value = vars.get(key)?.trim();
-  if (!value) {
+  // Your local env may contain placeholder markers to avoid exposing secrets in the repo.
+  // Never overwrite the real Vercel secret store with placeholder strings.
+  if (!value || value === "[SENSITIVE]") {
     skipped += 1;
     console.log(`[vercel-env-sync] skip ${key} (empty)`);
     continue;
   }
 
-  const add = spawnSync(
-    npx,
-    [
-      "-y",
-      "vercel@39",
-      "env",
-      "add",
-      key,
-      "production",
-      "--force",
-      "--yes",
-      "--token",
-      token,
-    ],
-    {
-      cwd,
-      env,
-      input: `${value}\n`,
-      stdio: ["pipe", "pipe", "pipe"],
-      encoding: "utf8",
-      shell: process.platform === "win32",
-    }
-  );
+  for (const target of TARGET_ENVS) {
+    const add = spawnSync(
+      npx,
+      [
+        "-y",
+        "vercel@56.3.2",
+        "env",
+        "add",
+        key,
+        target,
+        "--force",
+        "--yes",
+        "-t",
+        token,
+      ],
+      {
+        cwd,
+        env,
+        input: `${value}\n`,
+        stdio: ["pipe", "pipe", "pipe"],
+        encoding: "utf8",
+        shell: process.platform === "win32",
+      }
+    );
 
-  if (add.status === 0) {
-    console.log(`[vercel-env-sync] set ${key}`);
-    ok += 1;
-  } else {
-    const err = (add.stderr || add.stdout || "").trim().slice(0, 200);
-    console.error(`[vercel-env-sync] failed ${key}: ${err}`);
-    fail += 1;
+    if (add.status === 0) {
+      console.log(`[vercel-env-sync] set ${key} (${target})`);
+      ok += 1;
+    } else {
+      const err = (add.stderr || add.stdout || "").trim().slice(0, 200);
+      console.error(`[vercel-env-sync] failed ${key} (${target}): ${err}`);
+      fail += 1;
+    }
   }
 }
 

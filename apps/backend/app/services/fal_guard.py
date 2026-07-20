@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -25,7 +26,14 @@ from app.core.errors import (
 
 logger = logging.getLogger(__name__)
 
-_GUARD_PATH = BackendRoot / "data" / "fal-guard.json"
+_DEFAULT_GUARD_PATH = BackendRoot / "data" / "fal-guard.json"
+_TMP_GUARD_PATH = Path(os.environ.get("TMPDIR", "/tmp")) / "fal-guard.json"
+# Vercel serverless deployments mount the code directory read-only, so persist
+# guard state in a writable temp directory.
+_GUARD_PATH = Path(
+    os.environ.get("FAL_GUARD_PATH")
+    or (_TMP_GUARD_PATH if os.environ.get("VERCEL") else _DEFAULT_GUARD_PATH)
+)
 _OWNER_BLOCK_MESSAGE = (
     "RTAS cloud video is paused to protect your Fal.ai balance. "
     "Add credit at https://fal.ai/dashboard/billing, then reset the guard "
@@ -88,11 +96,16 @@ def _load() -> FalGuardState:
 
 
 def _save() -> None:
-    _GUARD_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _GUARD_PATH.write_text(
-        json.dumps(asdict(_state), indent=2),
-        encoding="utf-8",
-    )
+    try:
+        _GUARD_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _GUARD_PATH.write_text(
+            json.dumps(asdict(_state), indent=2),
+            encoding="utf-8",
+        )
+    except Exception as exc:
+        # Persistence is a defense-in-depth feature; never fail provider readiness
+        # due to a serverless filesystem restriction.
+        logger.warning("Fal guard persistence failed (%s) — continuing in-memory", exc)
 
 
 def get_guard_state() -> FalGuardState:
@@ -187,8 +200,11 @@ def classify_and_record_fal_failure(message: str, status_code: int | None = None
 def reset_guard() -> dict[str, Any]:
     global _state
     _state = FalGuardState()
-    if _GUARD_PATH.is_file():
-        _GUARD_PATH.unlink(missing_ok=True)
+    try:
+        if _GUARD_PATH.is_file():
+            _GUARD_PATH.unlink(missing_ok=True)
+    except Exception as exc:
+        logger.warning("Fal guard reset persistence failed (%s)", exc)
     logger.info("Fal guard reset — live Fal calls allowed again after owner action")
     return get_guard_public_status()
 
