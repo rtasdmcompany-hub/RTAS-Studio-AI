@@ -3753,6 +3753,21 @@ a.btn-download:hover {
   margin-top: var(--ds-space-1);
 }
 
+.auth-forgot-link {
+  text-align: right;
+  margin-top: calc(var(--ds-space-1) * -1);
+  font-size: var(--ds-text-sm);
+}
+
+.auth-forgot-link a {
+  color: var(--accent2);
+  font-weight: 500;
+}
+
+.auth-forgot-link a:hover {
+  text-decoration: underline;
+}
+
 .auth-switch {
   text-align: center;
   margin-top: var(--ds-space-5);

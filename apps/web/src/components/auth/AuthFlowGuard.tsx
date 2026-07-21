@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { AuthSkeleton, StudioSkeleton } from "@/components/ui/skeletons";
 
-type Mode = "signup" | "login" | "check-email";
+type Mode = "signup" | "login" | "check-email" | "forgot-password" | "reset-password";
 
 function resolveCallbackPath(raw: string | null): string {
   if (raw && raw.startsWith("/") && !raw.startsWith("//")) return raw;
@@ -24,8 +24,13 @@ export function AuthFlowGuard({
   const searchParams = useSearchParams();
   const callbackPath = resolveCallbackPath(searchParams.get("callbackUrl"));
 
+  const redirectIfAuthenticated =
+    mode === "login" ||
+    mode === "forgot-password" ||
+    mode === "reset-password";
+
   const shouldLeaveLogin =
-    mode === "login" &&
+    redirectIfAuthenticated &&
     status === "authenticated" &&
     session?.user?.emailVerified !== false;
 
@@ -44,7 +49,7 @@ export function AuthFlowGuard({
     }
   }, [callbackPath, mode, shouldLeaveLogin, status]);
 
-  if (mode === "login" && status === "loading") {
+  if (redirectIfAuthenticated && status === "loading") {
     return <AuthSkeleton />;
   }
 

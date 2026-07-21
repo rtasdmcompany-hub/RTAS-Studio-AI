@@ -291,6 +291,28 @@ export async function verifyCredentials(
   return user;
 }
 
+export async function updateCredentialsPasswordHash(
+  userId: string,
+  passwordHash: string
+): Promise<boolean> {
+  if (await ensurePrismaReady()) {
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
+    if (!existing) return false;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+    return true;
+  }
+
+  const map = await readAllJson();
+  const user = map[userId];
+  if (!user) return false;
+  map[userId] = { ...user, passwordHash };
+  await writeAllJson(map);
+  return true;
+}
+
 export async function upsertOAuthUser(input: {
   id: string;
   email: string;

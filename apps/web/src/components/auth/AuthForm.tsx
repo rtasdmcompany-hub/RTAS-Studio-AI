@@ -46,6 +46,8 @@ export function AuthForm({ mode }: Props) {
   const verified = searchParams.get("verified") === "1";
   const verifiedEmail = searchParams.get("email");
   const passwordLinked = searchParams.get("passwordLinked") === "1";
+  const passwordReset = searchParams.get("passwordReset") === "1";
+  const resetEmail = searchParams.get("email");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -72,8 +74,14 @@ export function AuthForm({ mode }: Props) {
       );
     } else if (passwordLinked) {
       setSuccess("Password saved. Sign in with your email and password.");
+    } else if (passwordReset) {
+      setSuccess(
+        resetEmail
+          ? `Password updated for ${resetEmail}. Sign in with your new password.`
+          : "Password updated. Sign in with your new password."
+      );
     }
-  }, [verified, verifiedEmail, passwordLinked]);
+  }, [verified, verifiedEmail, passwordLinked, passwordReset, resetEmail]);
 
   useEffect(() => {
     void fetch("/api/auth/config")
@@ -323,6 +331,12 @@ export function AuthForm({ mode }: Props) {
             required
           />
         </Field>
+
+        {!isSignup && (
+          <p className="auth-forgot-link">
+            <Link href="/auth/forgot-password">Forgot password?</Link>
+          </p>
+        )}
 
         <Button type="submit" variant="primary" className="auth-submit" disabled={busy} loading={busy} loadingLabel={statusMessage ?? (isSignup ? "Creating account…" : "Signing in…")}>
           {isSignup ? "Create account" : "Sign in"}
