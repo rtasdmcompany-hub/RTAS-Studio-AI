@@ -27,6 +27,12 @@ const nextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.rtasstudio.com" }],
+        destination: "https://rtasstudio.com/:path*",
+        permanent: true,
+      },
       { source: "/login", destination: "/auth/login", permanent: false },
       { source: "/signin", destination: "/auth/login", permanent: false },
       { source: "/signup", destination: "/auth/signup", permanent: false },

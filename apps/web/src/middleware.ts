@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { getNextAuthSecret } from "@/lib/env";
 
 const PROTECTED_PREFIXES = ["/studio", "/profile"] as const;
+const CANONICAL_HOST = "rtasstudio.com";
 
 function isProtectedPath(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -12,6 +13,18 @@ function isProtectedPath(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
+  const host = request.headers.get("host") ?? "";
+
+  if (
+    host === `www.${CANONICAL_HOST}` &&
+    process.env.NODE_ENV === "production"
+  ) {
+    const url = request.nextUrl.clone();
+    url.host = CANONICAL_HOST;
+    url.protocol = "https";
+    return NextResponse.redirect(url, 301);
+  }
+
   if (!isProtectedPath(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -32,5 +45,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/studio", "/studio/:path*", "/profile", "/profile/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|svg|webp|ico|txt|xml)).*)"],
 };
