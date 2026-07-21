@@ -39,6 +39,7 @@ openssl rand -base64 32
 - Production requires real `NEXTAUTH_SECRET`.
 - Session-protected routes: `/studio`, `/profile` (middleware).
 - Email verification flows via Resend/SMTP.
+- Password reset: HMAC-signed tokens (1-hour TTL), rate-limited request/reset APIs, Google-only accounts rejected with clear messaging.
 
 OAuth console must list **only** intended origins/redirects (see [INFRASTRUCTURE.md](./INFRASTRUCTURE.md)).
 
