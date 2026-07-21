@@ -219,12 +219,14 @@ ok("Payment plan detection + credit assignment");
 }
 
 {
-  const generateSrc = readFileSync(
-    join(webRoot, "src/app/api/generate/route.ts"),
+  const orchestratorSrc = readFileSync(
+    join(webRoot, "src/lib/server/generation-orchestrator.ts"),
     "utf8"
   );
-  assert.match(generateSrc, /isFreeTrialBlocked/);
-  assert.match(generateSrc, /Never trust client billing flags/);
+  assert.match(orchestratorSrc, /isFreeTrialBlocked/);
+  assert.match(orchestratorSrc, /accountTrialUsed/);
+  assert.match(orchestratorSrc, /useFreeTrial = false/);
+  assert.match(orchestratorSrc, /previewOnly = false/);
   ok("Generate API enforces trial/preview server-side");
 }
 
