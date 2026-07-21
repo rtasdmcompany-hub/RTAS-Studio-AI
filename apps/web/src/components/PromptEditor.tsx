@@ -24,7 +24,7 @@ const DEFAULT_SUGGESTIONS = [
   "slow camera push-in",
   "shallow depth of field",
   "golden hour",
-  "identity lock",
+  "identity preservation",
 ];
 
 export function PromptEditor({

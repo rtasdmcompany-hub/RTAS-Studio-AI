@@ -22,7 +22,7 @@ const WORKFLOW_STEPS = [
     id: "compose",
     step: "01",
     title: "Compose",
-    body: "Choose mode and category, add lyrics, audio, and face lock — only the fields you need.",
+    body: "Choose mode and category, add lyrics, audio, and Identity Preservation — only the fields you need.",
   },
   {
     id: "render",
@@ -48,8 +48,8 @@ const VALUE_GRID = [
     body: "Upload audio, sync lyrics, and direct cinematic motion built for musicians and storytellers.",
   },
   {
-    title: "Identity lock.",
-    body: "Real-face mode with identity shield keeps likeness consistent across shots — a core RTAS advantage.",
+    title: "Identity Preservation.",
+    body: "Authorized Identity Consistency keeps likeness consistent across shots — a core RTAS advantage.",
   },
   {
     title: "Credits you can explain.",

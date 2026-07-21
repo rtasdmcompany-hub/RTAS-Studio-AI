@@ -1438,7 +1438,7 @@
   max-height: 4.5rem;
 }
 
-/* Face photo + consent — consent must stay visible */
+/* Identity reference photo + Identity consent — consent must stay visible */
 .shashka-wizard-step--face-consent .category-wizard-group {
   display: flex;
   flex-direction: column;

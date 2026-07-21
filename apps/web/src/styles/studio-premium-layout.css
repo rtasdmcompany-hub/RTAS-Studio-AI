@@ -33,6 +33,25 @@
   margin-bottom: 0.35rem;
 }
 
+.studio-aup-notice {
+  margin: 0 0 0.55rem;
+  max-width: 40rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 450;
+}
+
+.studio-aup-notice__link {
+  color: rgba(196, 181, 253, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.studio-aup-notice__link:hover {
+  color: rgba(221, 214, 254, 1);
+}
+
 .create-panel-unified__bar h2 {
   margin: 0;
   font-size: clamp(1.15rem, 2.2vw, 1.45rem);

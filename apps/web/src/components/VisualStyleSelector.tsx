@@ -4,7 +4,7 @@ import type { VisualStyle } from "@rtas/shared";
 import { FacialConsistencyShield } from "@/components/cinematic/FacialConsistencyShield";
 
 const STYLES: { id: VisualStyle; label: string }[] = [
-  { id: "real", label: "Real face" },
+  { id: "real", label: "Identity Preservation" },
   { id: "avatar", label: "Avatar" },
   { id: "cartoon", label: "Cartoon" },
 ];

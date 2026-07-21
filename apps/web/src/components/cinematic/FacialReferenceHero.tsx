@@ -10,7 +10,7 @@ type Props = {
 
 const BEST_PRACTICES = [
   "Use a sharp, front-facing portrait with even light",
-  "Keep the face centered — chin to forehead visible",
+  "Keep the subject centered — chin to forehead visible",
   "Avoid sunglasses, masks, heavy makeup filters, or group shots",
 ];
 
@@ -33,37 +33,38 @@ export function FacialReferenceHero({ faceFile, visible }: Props) {
 
   return (
     <div className="shashka-face-hero-block">
-      <div className="shashka-face-hero" aria-label="Facial reference lock">
+      <div className="shashka-face-hero" aria-label="Identity reference preview">
         <div className="shashka-face-hero__halo" aria-hidden />
         <div className="shashka-face-hero__ring" aria-hidden />
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={previewUrl}
-            alt="Face reference for identity lock"
+            alt="Identity reference photo for Identity Preservation"
             className="shashka-face-hero__photo"
           />
         ) : (
           <div className="shashka-face-hero__placeholder">
-            <span>Your face</span>
-            <small>Upload to activate lock</small>
+            <span>Your likeness</span>
+            <small>Upload identity reference photo</small>
           </div>
         )}
-        <span className="shashka-face-hero__tag">Identity Lock™</span>
+        <span className="shashka-face-hero__tag">Identity Preservation</span>
       </div>
 
       {hasReference ? (
         <p className="shashka-face-hero__warn" role="status">
-          Preview only — confirm this is the likeness you want locked for the full
+          Preview only — confirm this is the likeness you want preserved for the full
           render. Re-upload if the crop, angle, or lighting looks off.
         </p>
       ) : (
         <p className="shashka-face-hero__warn shashka-face-hero__warn--pending" role="status">
-          No reference yet. Identity lock needs a clear face photo before generate.
+          No reference yet. Identity Preservation needs a clear identity reference photo
+          before generate.
         </p>
       )}
 
-      <ul className="shashka-face-hero__tips" aria-label="Face reference best practices">
+      <ul className="shashka-face-hero__tips" aria-label="Identity reference best practices">
         {BEST_PRACTICES.map((tip) => (
           <li key={tip}>{tip}</li>
         ))}

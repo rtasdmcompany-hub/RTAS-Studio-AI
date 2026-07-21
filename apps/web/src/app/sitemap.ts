@@ -27,6 +27,8 @@ const INDEXABLE_PATHS: Array<{
   { path: "/status", changeFrequency: "daily", priority: 0.5 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.4 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.4 },
+  { path: "/trust-safety", changeFrequency: "yearly", priority: 0.45 },
+  { path: "/ai-policy", changeFrequency: "yearly", priority: 0.45 },
   { path: "/refund", changeFrequency: "yearly", priority: 0.4 },
   { path: "/cookies", changeFrequency: "yearly", priority: 0.35 },
   { path: "/feedback", changeFrequency: "yearly", priority: 0.3 },

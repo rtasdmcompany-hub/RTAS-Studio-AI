@@ -28,7 +28,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "3. Service Description & AI Processing",
-    body: `${PRODUCT_NAME} provides AI-assisted video generation from text, lyrics, images, voice, and related inputs, including identity-preservation ("Identity-Lock") workflows. Output quality, latency, and availability depend on your subscription tier, fair-use limits, and third-party model providers. We may modify features, models, or capacity with reasonable notice where practicable.`,
+    body: `${PRODUCT_NAME} provides AI-assisted video generation from text, lyrics, images, voice, and related inputs, including Authorized Identity Preservation ("Identity Consistency") workflows for user-owned or authorized likenesses only. The Service is marketed for text-to-video, image-to-video, marketing videos, commercials, social content, music videos, animation, original AI characters, talking avatars with lip sync on authorized media, and related editing tools. Output quality, latency, and availability depend on your subscription tier, fair-use limits, and third-party model providers. We may modify features, models, or capacity with reasonable notice where practicable.`,
   },
   {
     title: "4. Subscription Plans, Credits & Billing Cycles",
@@ -36,7 +36,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
     bullets: [
       "Creator Starter: evaluation-tier output (including watermarked exports where applicable).",
       "Pro Studio Tier: 1080p HD masters, clean exports, and commercial download licensing.",
-      "Production Enterprise: 4K cinematic masters with priority+ Identity-Lock queuing.",
+      "Production Enterprise: 4K cinematic masters with priority+ Identity Preservation queuing.",
     ],
   },
   {
@@ -56,15 +56,20 @@ export const TERMS_SECTIONS: LegalSection[] = [
     body: `You retain ownership of lawful uploads. You grant ${COMPANY_NAME} a limited, worldwide license to host, process, transmit, and transform uploads solely to operate, secure, and improve the Service. You represent that your inputs and published outputs do not infringe third-party rights, violate publicity or privacy laws, or breach platform policies. You agree to indemnify ${COMPANY_NAME} and ${GROUP_NAME} affiliates against claims arising from your content or misuse, to the extent permitted by law.`,
   },
   {
-    title: "9. AI Output Disclaimer & Identity-Lock Limitations",
-    body: `Generative AI may produce inaccurate, offensive, or unintended resemblance to third-party works or persons. Identity-Lock and face-preservation tooling improve consistency but do not guarantee perfect likeness or legal clearance for commercial likeness use. You are solely responsible for reviewing, clearing, and approving all outputs before publication or monetization.`,
+    title: "9. AI Output Disclaimer & Identity Preservation Limitations",
+    body: `Generative AI may produce inaccurate, offensive, or unintended resemblance to third-party works or persons. Authorized Identity Preservation / User Identity Consistency tooling improves consistency across scenes for likenesses you own or are authorized to use; it does not constitute face swapping, celebrity cloning, or a deepfake product, and it does not guarantee perfect likeness or legal clearance for commercial likeness use. You are solely responsible for reviewing, clearing, and approving all outputs before publication or monetization. See also our Trust & Safety page (/trust-safety) and AI Usage Policy (/ai-policy).`,
   },
   {
     title: "10. Prohibited Uses & Acceptable Use Policy",
-    body: `You may not use the Service for illegal activity, non-consensual deepfakes, harassment, hate speech, exploitation of minors, malware distribution, sanctions evasion, or infringement of intellectual property or personality rights. We may suspend or terminate accounts, preserve evidence, and cooperate with law enforcement or regulatory authorities where required.`,
+    body: `You may not use the Service for illegal activity, harassment, hate speech, exploitation of minors, malware distribution, sanctions evasion, or infringement of intellectual property or personality rights. In particular, the following are strictly prohibited. We may suspend or terminate accounts, preserve evidence, and cooperate with law enforcement, regulators, or our Merchant of Record where required.`,
     bullets: [
+      "Face swapping, face replacement, or any workflow that maps one person's face onto another.",
+      "Celebrity cloning, celebrity generators, or impersonation of public figures.",
+      "Identity theft, identity fraud, or deceptive synthetic media of real people without authorization.",
+      "Deepfake generation intended to mislead, defraud, harass, or harm.",
+      "Voice cloning of real people without their permission.",
+      "Fraud, scams, political manipulation, or illegal content.",
       "No generation of sexual content involving minors or non-consenting individuals.",
-      "No impersonation intended to defraud, deceive, or harm identifiable persons.",
       "No automated scraping or API abuse beyond documented rate limits.",
     ],
   },

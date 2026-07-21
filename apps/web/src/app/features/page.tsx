@@ -8,6 +8,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { StructuredData } from "@/components/seo/StructuredData";
 import {
   FEATURE_CAPABILITIES,
   FEATURES_HERO_EYEBROW,
@@ -15,20 +16,27 @@ import {
   FEATURES_HERO_SUPPORT,
   WORKFLOW_COMPARISON,
 } from "@/lib/feature-comparison";
+import { buildPageMetadata } from "@/lib/site-metadata";
+import { breadcrumbSchema } from "@/lib/structured-data";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Features",
-  description: `Compare ${PRODUCT_NAME} capabilities across Creator Starter, Pro Studio, and Production Enterprise — identity lock, credits, resolution, and commercial downloads.`,
-  openGraph: {
-    title: `Features · ${PRODUCT_NAME}`,
-    description:
-      "Side-by-side plan comparison for compose, identity lock, render, and publish.",
-  },
-};
+  description: `Compare ${PRODUCT_NAME} capabilities across Creator Starter, Pro Studio, and Production Enterprise — text-to-video, commercials, Identity Preservation, credits, and commercial downloads.`,
+  path: "/features",
+  openGraphTitle: `Features · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Side-by-side plan comparison for compose, Identity Preservation, render, and publish.",
+});
 
 export default function FeaturesPage() {
   return (
     <MarketingLayout>
+      <StructuredData
+        data={breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Features", path: "/features" },
+        ])}
+      />
       <InnerPageContainer>
         <InnerPageSection className="rtas-features-hero text-center">
           <p className="rtas-eyebrow">{FEATURES_HERO_EYEBROW}</p>

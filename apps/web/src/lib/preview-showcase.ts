@@ -42,7 +42,7 @@ export const SHOWCASE_HERO_HEADLINE =
   "Direct Videos That Drop Beats & Lock Identities.";
 
 export const SHOWCASE_HERO_TAGLINE =
-  "The premium AI music-video studio for rappers and creators — cinematic urban renders, neon concert energy, and identity-locked faces synced to your beat.";
+  "The premium AI music-video studio for rappers and creators — cinematic urban renders, neon concert energy, and Identity Preservation synced to your beat.";
 
 export const SHOWCASE_BADGE_TITLE = "Cyber Rap Preview";
 

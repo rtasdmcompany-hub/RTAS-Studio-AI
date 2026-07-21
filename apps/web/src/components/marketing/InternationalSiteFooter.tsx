@@ -55,7 +55,7 @@ export function InternationalSiteFooter({ className = "" }: Props) {
         <div className="studio-world-footer__brand">
           <p className="studio-world-footer__product">{PRODUCT_NAME}</p>
           <p className="studio-world-footer__tagline">
-            International AI video studio — identity-locked cinema for creators, brands, and teams.
+            International AI video studio — Identity Preservation cinema for creators, brands, and teams.
           </p>
           <a className="studio-world-footer__contact" href={`mailto:${SITE_SUPPORT_EMAIL}`}>
             {SITE_SUPPORT_EMAIL}

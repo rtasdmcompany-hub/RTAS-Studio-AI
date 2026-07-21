@@ -298,20 +298,21 @@ export const PROMPT_MODE_FIELDS: CategoryField[] = [
 export const REAL_FACE_FIELDS: CategoryField[] = [
   {
     id: "faceReference",
-    label: "Face Photo",
-    shortLabel: "Face",
+    label: "Identity reference photo",
+    shortLabel: "Identity photo",
     type: "file",
     accept: "image/*",
     required: true,
-    helpText: "Clear front-facing photo for identity lock",
+    helpText: "Clear front-facing identity reference photo for Identity Preservation",
   },
   {
     id: "faceConsent",
-    label: "Face consent — type YES",
+    label: "Identity consent — type YES",
     shortLabel: "Type YES",
     type: "text",
     required: true,
     placeholder: "YES",
-    helpText: "Type YES to confirm you have rights to use this face.",
+    helpText:
+      "Type YES to confirm you own or are authorized to use this identity reference.",
   },
 ];

@@ -35,7 +35,7 @@ const PROMPT_SUGGESTIONS: Record<string, string[]> = {
     "slow camera push-in",
     "shallow depth of field",
     "golden hour",
-    "identity lock",
+    "identity preservation",
   ],
   directionPrompt: [
     "tracking shot",

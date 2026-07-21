@@ -49,7 +49,7 @@ export const PRICING_AUDIENCE_GUIDE = [
     id: "standard",
     planHint: "Pro Studio",
     title: "Shipping weekly content",
-    body: `$${STANDARD_PRICE_USD}/mo · ${STANDARD_CREDITS}s (~33 min). Clean 1080p, commercial downloads, priority identity-lock queue.`,
+    body: `$${STANDARD_PRICE_USD}/mo · ${STANDARD_CREDITS}s (~33 min). Clean 1080p, commercial downloads, priority Identity Preservation queue.`,
   },
   {
     id: "premium",

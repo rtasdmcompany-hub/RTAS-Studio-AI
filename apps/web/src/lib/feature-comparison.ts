@@ -1,6 +1,6 @@
 /**
  * Feature comparison — plan matrix + workflow contrast.
- * Keep claims honest; never invent competitor product names or fake scores.
+ * Public marketing must stay Paddle AUP compliant (no face-swap / deepfake claims).
  */
 
 export type PlanCell = "yes" | "no" | "partial" | string;
@@ -14,26 +14,97 @@ export type FeatureMatrixRow = {
   enterprise: PlanCell;
 };
 
+/** Public capability cards — compliant product positioning only */
 export const FEATURE_CAPABILITIES = [
   {
-    id: "compose",
-    title: "Compose",
-    body: "Lyrics, audio, scenes, and identity references in one guided workspace.",
+    id: "text-to-video",
+    title: "Text to Video",
+    body: "Turn scripts and prompts into cinematic clips in one studio.",
+  },
+  {
+    id: "image-to-video",
+    title: "Image to Video",
+    body: "Animate stills into motion for ads, social, and storyboards.",
+  },
+  {
+    id: "ai-video",
+    title: "AI Video Generation",
+    body: "Cloud GPU pipeline with live progress from draft to master.",
+  },
+  {
+    id: "commercials",
+    title: "Product Commercials",
+    body: "Ship brand spots and product showcases without a multi-tool stack.",
+  },
+  {
+    id: "marketing",
+    title: "Marketing Videos",
+    body: "Campaign cuts sized for launch pages, email, and paid social.",
+  },
+  {
+    id: "social",
+    title: "Social Media Content",
+    body: "Vertical and square-ready exports for feeds and stories.",
+  },
+  {
+    id: "music",
+    title: "Music Videos",
+    body: "Sync lyrics and audio into performance-ready video.",
+  },
+  {
+    id: "animation",
+    title: "AI Animation",
+    body: "Stylized motion and animated sequences from your prompts.",
+  },
+  {
+    id: "anime",
+    title: "Anime",
+    body: "Anime-inspired looks for stories and characters you create.",
+  },
+  {
+    id: "3d",
+    title: "3D Characters",
+    body: "Dimensional character looks for original worlds and scenes.",
+  },
+  {
+    id: "original-ai",
+    title: "Original AI Characters",
+    body: "Design and reuse original characters across multi-scene projects.",
+  },
+  {
+    id: "avatar",
+    title: "Talking Avatar",
+    body: "Presenters and avatars for explainers you are authorized to publish.",
+  },
+  {
+    id: "lipsync",
+    title: "Lip Sync (User-owned Content)",
+    body: "Align mouth motion to audio you own or are licensed to use.",
+  },
+  {
+    id: "upscale",
+    title: "Video Upscaling",
+    body: "Enhance resolution toward HD and cinematic 4K on paid tiers.",
+  },
+  {
+    id: "bg-remove",
+    title: "Background Removal",
+    body: "Isolate subjects for composites and clean product plates.",
+  },
+  {
+    id: "enhance",
+    title: "Image Enhancement",
+    body: "Sharpen and polish stills before animation or export.",
+  },
+  {
+    id: "edit",
+    title: "AI Editing",
+    body: "Guided edits in-studio — compose, refine, and publish in one place.",
   },
   {
     id: "identity",
-    title: "Identity lock",
-    body: "Real-face mode keeps likeness consistent across multi-scene projects.",
-  },
-  {
-    id: "render",
-    title: "Cloud render",
-    body: "GPU pipeline with live progress — from evaluation HD to cinematic 4K.",
-  },
-  {
-    id: "publish",
-    title: "Library & share",
-    body: "Store masters, share publicly, and download when your plan unlocks commercial rights.",
+    title: "Identity Preservation",
+    body: "Authorized Identity Consistency keeps a likeness you own or control consistent across scenes.",
   },
 ] as const;
 
@@ -57,7 +128,7 @@ export const FEATURE_MATRIX: FeatureMatrixRow[] = [
   {
     id: "identity-lock",
     category: "Studio",
-    feature: "Identity-lock / real-face continuity",
+    feature: "Authorized Identity Preservation",
     starter: "Standard queue",
     pro: "Priority queue",
     enterprise: "Priority+",
@@ -134,7 +205,7 @@ export const WORKFLOW_COMPARISON = [
     title: "Typical multi-tool stack",
     points: [
       "Separate apps for lyrics, image gen, video, and editing",
-      "Face consistency breaks between tools",
+      "Identity consistency breaks between tools",
       "Manual exports and re-uploads at every step",
       "Opaque token pricing across vendors",
     ],
@@ -144,7 +215,7 @@ export const WORKFLOW_COMPARISON = [
     title: "RTAS Studio AI",
     points: [
       "One studio for compose, render, and publish",
-      "Identity lock across scenes",
+      "Authorized Identity Preservation across scenes",
       "No handoffs — drafts stay in your library",
       "Transparent credits: 1 credit = 1 second",
     ],
@@ -152,6 +223,7 @@ export const WORKFLOW_COMPARISON = [
 ] as const;
 
 export const FEATURES_HERO_EYEBROW = "Product capabilities";
-export const FEATURES_HERO_HEADLINE = "Everything you need to ship identity-locked video.";
+export const FEATURES_HERO_HEADLINE =
+  "Everything you need to ship original AI video.";
 export const FEATURES_HERO_SUPPORT =
-  "Compare plans side by side — then open Studio or choose pricing with full clarity.";
+  "Text to video, commercials, music videos, animation, and authorized identity consistency — compare plans, then open Studio.";

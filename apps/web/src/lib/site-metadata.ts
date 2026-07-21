@@ -4,16 +4,16 @@ import { SITE_URL, canonicalUrl } from "@/lib/site-url";
 
 /** Default document title for global search indexing. */
 export const SITE_METADATA_TITLE =
-  "RTAS Studio AI — International AI Video Studio | Identity-Locked Music Videos";
+  "RTAS Studio AI — International AI Video Studio | Music Videos & Commercials";
 
 /** Default meta description aligned with international positioning. */
 export const SITE_METADATA_DESCRIPTION =
-  "Compose, render, and publish cinematic AI videos with identity lock. Transparent credits (1 credit = 1 second), global checkout, and a single studio for artists, brands, and agencies.";
+  "Compose, render, and publish cinematic AI videos with Authorized Identity Preservation for content you own. Transparent credits (1 credit = 1 second), global checkout, and a single studio for artists, brands, and agencies.";
 
 export const SITE_METADATA_KEYWORDS = [
   "AI video studio",
   "AI music video",
-  "identity lock video",
+  "identity preservation video",
   "cinematic AI video",
   "text to video",
   "RTAS Studio AI",

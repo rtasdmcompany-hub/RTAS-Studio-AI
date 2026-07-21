@@ -41,16 +41,16 @@ const STYLE_CARDS: {
 }[] = [
   {
     id: "real",
-    title: "Real face",
-    body: "Photoreal likeness with identity lock across every shot.",
+    title: "Identity Preservation",
+    body: "Photoreal likeness with Authorized Identity Consistency across every shot.",
     facts: {
       outputStyle: "Photoreal human",
       quality: "Cinematic HD+",
-      identity: "Maximum — face reference required",
+      identity: "Maximum — identity reference photo required",
       useCases: "Music videos, spokespeople, ads",
     },
     image: "/styles/style-real-face.jpg",
-    imageAlt: "Photoreal human portrait preview for Real face style",
+    imageAlt: "Photoreal human portrait preview for Identity Preservation style",
   },
   {
     id: "avatar",
@@ -127,7 +127,7 @@ const PROJECT_CARDS: {
     id: "music-video",
     title: "Music Video",
     tag: "Music",
-    body: "Lyric-synced performance with identity lock",
+    body: "Lyric-synced performance with Identity Preservation",
     mode: "prompt",
     category: "song",
     suggestedStyle: "real",

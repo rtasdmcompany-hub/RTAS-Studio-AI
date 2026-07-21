@@ -19,15 +19,16 @@ import {
   AI_SHOWCASE_PROOF_POINTS,
 } from "@/lib/ai-showcase";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "AI Showcase",
-  description: `Watch ${PRODUCT_NAME} category previews — rap, solo, commercial, cartoon, and faith-forward cinema with identity-locked output.`,
-  openGraph: {
-    title: `AI Showcase · ${PRODUCT_NAME}`,
-    description:
-      "Identity-locked AI video across music, brand, stylized, and cultural categories.",
-  },
-};
+  description: `Watch ${PRODUCT_NAME} category previews — rap, solo, commercial, cartoon, and faith-forward cinema with Identity Preservation output.`,
+  path: "/showcase",
+  openGraphTitle: `AI Showcase · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Identity Preservation AI video across music, brand, stylized, and cultural categories.",
+});
 
 export default function ShowcasePage() {
   const heroItem = AI_SHOWCASE_ITEMS[0];

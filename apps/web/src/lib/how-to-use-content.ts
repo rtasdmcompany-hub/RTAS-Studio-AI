@@ -47,7 +47,7 @@ export const UNIVERSAL_STEPS = [
     tagVariant: "gold" as const,
     title: "Step 4: Launch Render & Quality Preview",
     detail:
-      "Trigger Generate video to start GPU-backed rendering with live progress telemetry. Review the full master on the Preview screen before export — verify motion, identity lock, and lyric sync.",
+      "Trigger Generate video to start GPU-backed rendering with live progress telemetry. Review the full master on the Preview screen before export — verify motion, Identity Preservation, and lyric sync.",
   },
   {
     num: "05",
@@ -71,7 +71,7 @@ export const STUDIO_FLOW = [
   {
     label: "Visual identity",
     options:
-      "Real — 100% Consistent Real-Face Mode · Avatar · Cartoon stylization",
+      "Real — Identity Preservation · Avatar · Cartoon stylization",
   },
   {
     label: "Wizard & render",
@@ -89,7 +89,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     valueTags: [
       "Audio-Driven Cinematic Engine",
       "Lyric-Synced Motion Timelines",
-      "100% Consistent Real-Face Mode",
+      "Identity Preservation",
     ],
     bestFor: [
       "Rap and hip-hop performance clips",
@@ -138,8 +138,8 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
       alt: "Respectful mosque and faith-based video example",
     },
     summary:
-      "Produce respectful mosque and faith content with tone-controlled direction prompts and optional Real-Face Mode for speakers and community leaders.",
-    valueTags: ["Tone-Controlled Direction", "Real-Face Mode", "Faith Scripts"],
+      "Produce respectful mosque and faith content with tone-controlled direction prompts and optional Identity Preservation for speakers and community leaders.",
+    valueTags: ["Tone-Controlled Direction", "Identity Preservation", "Faith Scripts"],
     bestFor: [
       "Prayer and worship visuals",
       "Holiday and festival campaigns",
@@ -204,9 +204,9 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     title: "Podcast Clip",
     media: { type: "video", src: "/showcase/solo.mp4", alt: "Podcast talking-head example" },
     summary:
-      "Convert long-form audio into studio-grade talking-head clips with 100% Consistent Real-Face Mode and Identity Shielding for host recognition across episodes.",
+      "Convert long-form audio into studio-grade talking-head clips with Identity Preservation and Identity Shielding for host recognition across episodes.",
     valueTags: [
-      "Real-Face Mode",
+      "Identity Preservation",
       "Identity Shielding",
       "Talking-Head Studio Pipeline",
     ],
@@ -217,7 +217,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     ],
     recommended: {
       mode: "Prompt mode with structured talking points",
-      visualStyle: "Real (face lock) or Avatar spokesperson",
+      visualStyle: "Identity Preservation or Avatar spokesperson",
       length: "15–60 second highlight clip",
     },
     steps: [
@@ -231,7 +231,7 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
       { title: "Configure set design", detail: "Studio desk, dark room, or minimal branded backdrop." },
     ],
     tips: [
-      "Real style requires a clear front-face photo and YES consent for Identity Shielding.",
+      "Real style requires a clear identity reference photo and YES consent for Identity Preservation.",
       "Upload cover art for branded lower-thirds and episode continuity.",
     ],
   },
@@ -265,11 +265,11 @@ export const CATEGORY_GUIDES: HowToCategoryGuide[] = [
     title: "Story / Short Film",
     media: { type: "video", src: "/showcase/solo.mp4", alt: "Cinematic story example" },
     summary:
-      "Direct narrative micro-films with plot-driven prompts, cinematic direction controls, and optional Real-Face Mode for character continuity across scenes.",
+      "Direct narrative micro-films with plot-driven prompts, cinematic direction controls, and optional Identity Preservation for character continuity across scenes.",
     valueTags: [
       "Cinematic Direction Controls",
       "Plot-Driven Segmentation",
-      "Real-Face Mode",
+      "Identity Preservation",
     ],
     bestFor: ["Micro-drama", "Comedy skits", "Thriller and teaser trailers"],
     recommended: {

@@ -7,15 +7,16 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Documentation",
   description: `Official product documentation for ${PRODUCT_NAME} — getting started, studio workflow, credits, API overview, and glossary.`,
-  openGraph: {
-    title: `Documentation · ${PRODUCT_NAME}`,
-    description:
-      "Compose, render, and publish with clear credits — plus an overview of public health and share APIs.",
-  },
-};
+  path: "/docs",
+  openGraphTitle: `Documentation · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Compose, render, and publish with clear credits — plus an overview of public health and share APIs.",
+});
 
 const GETTING_STARTED = [
   {
@@ -26,7 +27,7 @@ const GETTING_STARTED = [
   {
     step: "2",
     title: "Open Studio",
-    body: "Choose mode, category, and visual style. Complete the guided wizard — prompt or image input, face lock when required, and a clear credit cost before you generate.",
+    body: "Choose mode, category, and visual style. Complete the guided wizard — prompt or image input, Identity Preservation when required, and a clear credit cost before you generate.",
   },
   {
     step: "3",
@@ -43,13 +44,13 @@ const GETTING_STARTED = [
 const SECTIONS = [
   {
     title: "Studio workflow",
-    body: "Choose mode, category, and visual style, then complete the guided wizard. Prompt or image input, face lock when required, and clear credit cost before you generate.",
+    body: "Choose mode, category, and visual style, then complete the guided wizard. Prompt or image input, Identity Preservation when required, and clear credit cost before you generate.",
     href: "/how-to-use",
     cta: "Open How to use",
   },
   {
-    title: "Identity lock",
-    body: "Real face mode needs a clear reference photo and consent. Avatar and Cartoon keep continuity without a live likeness lock. Use Style step previews to pick the right look.",
+    title: "Identity Preservation",
+    body: "Identity Preservation needs a clear identity reference photo and Identity consent. Avatar and Cartoon keep continuity without a live likeness lock. Use Style step previews to pick the right look.",
     href: "/studio",
     cta: "Open Studio",
   },
@@ -97,9 +98,9 @@ const GLOSSARY = [
       "Billing unit for generation. Approximately one credit equals one second of finished video output.",
   },
   {
-    term: "Identity lock",
+    term: "Identity Preservation",
     definition:
-      "Workflow that preserves a likeness (real face) or character continuity (avatar/cartoon) across a render.",
+      "Authorized Identity Consistency workflow that preserves a likeness or character continuity (avatar/cartoon) across a render.",
   },
   {
     term: "Master",

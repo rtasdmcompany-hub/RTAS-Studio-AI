@@ -118,6 +118,7 @@ import { WizardRoadmap } from "@/components/studio/WizardRoadmap";
 import { StudioCreateExperience } from "@/components/studio/StudioCreateExperience";
 import { DraftManager } from "@/components/studio/DraftManager";
 import { StudioSkeleton } from "@/components/ui/skeletons";
+import Link from "next/link";
 import {
   PREVIEW_PLACEHOLDER_VIDEO,
   runGenerationSimulation,
@@ -1333,9 +1334,9 @@ export function StudioClient() {
           );
         } else if (msg.toLowerCase().includes("face") || msg.toLowerCase().includes("facereference")) {
           showGenerationFailure(
-            "Real face setup required",
+            "Identity Preservation setup required",
             msg,
-            "Upload Face Photo, type YES in Face Consent, then generate again."
+            "Upload an identity reference photo, type YES in Identity consent, then generate again."
           );
         } else {
           const notice = noticeForOwnerOrCustomer(
@@ -1914,7 +1915,7 @@ export function StudioClient() {
         return;
       }
       if (!visualStyle) {
-        setFormNotice("Please choose a visual style — Real face, Avatar, or Cartoon.");
+        setFormNotice("Please choose a visual style — Identity Preservation, Avatar, or Cartoon.");
         return;
       }
       if (!form.text[VIDEO_TITLE_FIELD_ID]?.trim()) {
@@ -2651,6 +2652,17 @@ export function StudioClient() {
                     </Button>
                   </div>
                 </div>
+                <p className="studio-aup-notice" role="note">
+                  RTAS Studio AI may only be used with content you own or are authorized to
+                  use.{" "}
+                  <Link href="/trust-safety" className="studio-aup-notice__link">
+                    Trust &amp; Safety
+                  </Link>
+                  {" · "}
+                  <Link href="/ai-policy" className="studio-aup-notice__link">
+                    AI Usage Policy
+                  </Link>
+                </p>
                 {showDraftBanner && pendingDraft ? (
                   <DraftRestoreBanner
                     draft={pendingDraft}
@@ -2659,7 +2671,7 @@ export function StudioClient() {
                   />
                 ) : null}
                 <p className="create-panel-unified__tagline">
-                  Premium AI studio — compose, render, and publish with identity lock.
+                  Premium AI studio — compose, render, and publish with Identity Preservation.
                 </p>
                 <div className="studio-wizard-progress-wrap">
                   <div

@@ -4,7 +4,7 @@
 
 - Prompt-to-Video and Image-to-Video in one Studio
 - Category wizard with cinematic presets
-- Real-face, avatar, and stylized visual modes
+- Identity Preservation, avatar, and stylized visual modes
 - Credit-metered generation (1 credit = 1 second)
 - Dashboard: credits, queue, library, notifications
 - Merchant of Record checkout (Paddle / Lemon Squeezy)

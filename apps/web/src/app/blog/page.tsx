@@ -7,22 +7,23 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "Blog",
   description: `Product stories, pricing guides, and workflow tips from ${PRODUCT_NAME} for international creators and teams.`,
-  openGraph: {
-    title: `Blog · ${PRODUCT_NAME}`,
-    description:
-      "Guides on studio workflow, credits, commercial licensing, features, and shipping AI video.",
-  },
-};
+  path: "/blog",
+  openGraphTitle: `Blog · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Guides on studio workflow, credits, commercial licensing, features, and shipping AI video.",
+});
 
 const POSTS = [
   {
     title: "Studio workflow: compose → render → publish",
     category: "Product",
     readTime: "6 min read",
-    body: "A practical walkthrough of the guided Studio path: choose mode and category, lock identity when you need a real face, confirm credit cost before generate, then preview and archive the master. This piece explains how identity lock, credits, and commercial downloads fit into one workspace for music videos, ads, and stories — without bouncing between disconnected tools.",
+    body: "A practical walkthrough of the guided Studio path: choose mode and category, enable Identity Preservation when you need Authorized Identity Consistency on content you own, confirm credit cost before generate, then preview and archive the master. This piece explains how Identity Preservation, credits, and commercial downloads fit into one workspace for music videos, ads, and stories — without bouncing between disconnected tools.",
     href: "/how-to-use",
     cta: "Open How to use",
   },
@@ -43,10 +44,10 @@ const POSTS = [
     cta: "Read changelog",
   },
   {
-    title: "Identity lock without the guesswork",
+    title: "Identity Preservation without the guesswork",
     category: "Features",
     readTime: "7 min read",
-    body: "Real-face mode needs a clear reference and consent; Avatar and Cartoon keep continuity without a live likeness lock. We cover Style-step previews, when to switch modes mid-project, and how server-side credit guards keep generation honest. Pair this with the features matrix if you are choosing a plan for client work.",
+    body: "Identity Preservation needs a clear identity reference photo and consent; Avatar and Cartoon keep continuity without a live likeness lock. We cover Style-step previews, when to switch modes mid-project, and how server-side credit guards keep generation honest. Pair this with the features matrix if you are choosing a plan for client work.",
     href: "/features",
     cta: "Explore features",
   },

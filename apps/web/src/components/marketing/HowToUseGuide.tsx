@@ -161,7 +161,7 @@ export function HowToUseGuide() {
         <div className="rtas-howto-callout">
           <strong className="text-zinc-100">Identity Shielding tip:</strong> To appear on screen
           yourself, upload a clear front-facing photo and confirm consent with{" "}
-          <code>YES</code> — this activates 100% Consistent Real-Face Mode across scenes.
+          <code>YES</code> — this activates Authorized Identity Consistency across scenes.
         </div>
       </InnerPageSection>
 

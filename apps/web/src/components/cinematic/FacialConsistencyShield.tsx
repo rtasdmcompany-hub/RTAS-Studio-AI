@@ -2,7 +2,7 @@
 
 type Props = {
   className?: string;
-  /** Premium golden glow on the final identity-lock step */
+  /** Premium golden glow on the final Identity Preservation step */
   premium?: boolean;
   showTagline?: boolean;
   /** Face match confidence 0–100. Defaults from hasReference when omitted. */
@@ -17,7 +17,7 @@ type Props = {
 
 const BEST_PRACTICES = [
   "Front-facing, eyes open, even lighting",
-  "One clear face — avoid group photos",
+  "One clear identity reference — avoid group photos",
   "No sunglasses, masks, or heavy filters",
 ];
 
@@ -41,12 +41,12 @@ function resolveStrengthLabel(identityStrength: number | undefined): string {
       ? identityStrength
       : 0.85;
   const pct = clampPercent(raw <= 1 ? raw * 100 : raw);
-  if (pct >= 90) return `Identity strength ${pct}% · Locked`;
+  if (pct >= 90) return `Identity strength ${pct}% · Preserved`;
   if (pct >= 70) return `Identity strength ${pct}% · Strong`;
   return `Identity strength ${pct}% · Moderate`;
 }
 
-/** Holographic USP badge — guaranteed facial consistency. */
+/** Holographic USP badge — Authorized Identity Consistency. */
 export function FacialConsistencyShield({
   className = "",
   premium = false,
@@ -66,7 +66,7 @@ export function FacialConsistencyShield({
       <div
         className={`shashka-face-shield${premium ? " shashka-face-shield--premium" : ""} ${className}`.trim()}
         role="status"
-        aria-label={`${matchPct}% face match. ${strengthLabel}. ${confidenceLabel}.`}
+        aria-label={`${matchPct}% identity match. ${strengthLabel}. ${confidenceLabel}.`}
       >
         <div className="shashka-face-shield__glow" aria-hidden />
         <svg
@@ -92,10 +92,10 @@ export function FacialConsistencyShield({
         </svg>
         <div className="shashka-face-shield__copy">
           <span className="shashka-face-shield__percent">{matchPct}%</span>
-          <span className="shashka-face-shield__label">Genuine Facial Consistency</span>
+          <span className="shashka-face-shield__label">Authorized Identity Consistency</span>
           <span className="shashka-face-shield__metrics">
             <span className="shashka-face-shield__metric">
-              Face match {matchPct}%
+              Identity match {matchPct}%
             </span>
             <span className="shashka-face-shield__metric-sep" aria-hidden>
               ·
@@ -104,7 +104,7 @@ export function FacialConsistencyShield({
           </span>
           {hasReference === false ? (
             <span className="shashka-face-shield__status">
-              Upload a reference to maximize lock
+              Upload an identity reference photo to maximize consistency
             </span>
           ) : (
             <span className="shashka-face-shield__status">{confidenceLabel}</span>
@@ -113,11 +113,11 @@ export function FacialConsistencyShield({
       </div>
       {showTagline ? (
         <p className="shashka-face-shield-tagline">
-          Guaranteed genuine facial consistency across every shot
+          Authorized Identity Consistency across every shot
         </p>
       ) : null}
       {tipsVisible ? (
-        <ul className="shashka-face-shield__tips" aria-label="Identity lock best practices">
+        <ul className="shashka-face-shield__tips" aria-label="Identity Preservation best practices">
           {BEST_PRACTICES.map((tip) => (
             <li key={tip}>{tip}</li>
           ))}

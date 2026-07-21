@@ -25,7 +25,7 @@ const TRUST = [
   },
   {
     title: "Identity-aware generation",
-    body: "Real-face, avatar, and stylized modes with server-side credit guards so billing cannot be bypassed and likeness workflows stay intentional.",
+    body: "Identity Preservation, avatar, and stylized modes with server-side credit guards so billing cannot be bypassed and likeness workflows stay intentional.",
   },
   {
     title: "Enterprise-ready operations",
@@ -44,7 +44,7 @@ const VALUES = [
   },
   {
     title: "Creator continuity",
-    body: "Identity lock, style previews, and a library archive help artists and brands stay consistent across every render.",
+    body: "Identity Preservation, style previews, and a library archive help artists and brands stay consistent across every render.",
   },
   {
     title: "International by default",
@@ -112,7 +112,7 @@ export default function AboutPage() {
             {COMPANY_NAME} built {PRODUCT_NAME} as a proprietary software division under{" "}
             {GROUP_NAME}. The product grew from a practical need: creative teams were
             stitching together prompts, editors, and billing tools that did not speak to
-            each other. We designed a guided studio — mode, category, style, face lock when
+            each other. We designed a guided studio — mode, category, style, Identity Preservation when
             required, credit cost before generate — then a cloud render pipeline and library
             so every master stays findable.
           </p>

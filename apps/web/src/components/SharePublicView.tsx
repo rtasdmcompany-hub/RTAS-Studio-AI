@@ -45,7 +45,7 @@ export function SharePublicView({ share }: Props) {
         <section className="share-page__cta">
           <h2>Create your own AI video with {PRODUCT_NAME}</h2>
           <p>
-            Turn prompts and images into cinematic videos — face lock, music sync, and
+            Turn prompts and images into cinematic videos — Identity Preservation, music sync, and
             studio-grade exports in minutes.
           </p>
           <Link href="/studio" className="share-page__cta-btn rtas-ui-focus-ring">

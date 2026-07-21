@@ -73,7 +73,7 @@ export function getWizardStepGroups(
   /* Guided editor flow: Character → Product → Voice → Prompt → Advanced */
   if (visualStyle === "real") {
     addGroup("face-upload", "Upload character", ["faceReference", "faceConsent"]);
-    addGroup("face-lock", "Identity lock", [], { allowEmpty: true });
+    addGroup("face-lock", "Identity Preservation", [], { allowEmpty: true });
   }
 
   addGroup("images", "Upload product", [
@@ -283,7 +283,7 @@ export function collectRequiredFieldErrors(
     const consent = state.text.faceConsent?.trim().toUpperCase();
     if (consent !== "YES") {
       const consentMessage = consent
-        ? 'Type exactly "YES" to confirm you have rights to use this face.'
+        ? 'Type exactly "YES" to confirm you own or are authorized to use this identity reference.'
         : "Type YES in the consent box above, then click Generate again.";
       const existing = errors.find((e) => e.fieldId === "faceConsent");
       if (existing) existing.message = consentMessage;
@@ -299,8 +299,8 @@ const FIELD_LABEL_OVERRIDES: Record<string, string> = {
   videoTitle: "Video Title",
   directionPrompt: "Directional Prompt",
   mainPrompt: "Visual Scene Description",
-  faceConsent: "Face consent — type YES",
-  faceReference: "Face Photo",
+  faceConsent: "Identity consent — type YES",
+  faceReference: "Identity reference photo",
   sourceImage: "Source Image",
   duration: "Video Length",
 };

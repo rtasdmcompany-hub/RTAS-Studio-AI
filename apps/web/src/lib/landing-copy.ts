@@ -6,16 +6,16 @@
 export const LANDING_BRAND = "RTAS STUDIO AI";
 
 export const LANDING_HERO_HEADLINE =
-  "Cinematic AI videos with identity lock — from beat to publish.";
+  "Cinematic AI videos with identity consistency — from beat to publish.";
 
 export const LANDING_HERO_SUPPORT =
-  "The international studio for music videos, ads, and stories. Compose once, render with face consistency, publish with commercial-ready exports.";
+  "The international studio for music videos, ads, and stories. Compose once, render with Authorized Identity Preservation on content you own, publish with commercial-ready exports.";
 
 export const LANDING_AUDIENCES = [
   {
     id: "artists",
     title: "Artists & rappers",
-    body: "Sync lyrics and audio into identity-locked performance videos.",
+    body: "Sync lyrics and audio into identity-consistent performance videos.",
   },
   {
     id: "brands",
@@ -37,8 +37,8 @@ export const LANDING_OUTCOMES = [
   },
   {
     id: "identity",
-    label: "Identity lock",
-    detail: "Real-face mode keeps likeness consistent shot after shot.",
+    label: "Identity Preservation",
+    detail: "Authorized Identity Consistency keeps a likeness you own consistent shot after shot.",
   },
   {
     id: "pipeline",

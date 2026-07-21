@@ -15,7 +15,7 @@ export const AI_SHOWCASE_ITEMS: ShowcaseItem[] = [
   {
     id: "rap",
     title: "Rap & urban music video",
-    blurb: "Lyric-synced performance energy with identity-locked faces on the beat.",
+    blurb: "Lyric-synced performance energy with Identity Preservation on the beat.",
     src: "/showcase/rap.mp4",
     audience: "Artists & rappers",
   },
@@ -51,14 +51,14 @@ export const AI_SHOWCASE_ITEMS: ShowcaseItem[] = [
 
 export const AI_SHOWCASE_HERO_EYEBROW = "AI Showcase";
 export const AI_SHOWCASE_HERO_HEADLINE =
-  "See identity-locked video across the styles you ship.";
+  "See Identity Preservation video across the styles you ship.";
 export const AI_SHOWCASE_HERO_SUPPORT =
   "Real category loops from the RTAS Studio AI pipeline — mute autoplay previews. Open Studio to create your own.";
 
 export const AI_SHOWCASE_PROOF_POINTS = [
   {
     id: "identity",
-    title: "Identity lock",
+    title: "Identity Preservation",
     body: "Likeness stays consistent shot after shot — the core differentiator vs fragmented tools.",
   },
   {

@@ -149,7 +149,10 @@ export async function orchestrateGeneration(
       const hasFaceFile = Boolean(files?.faceReference);
       if (!hasFaceFile || consent !== "YES") {
         return NextResponse.json(
-          { error: "Real face mode requires Face Photo upload and consent (YES)" },
+          {
+            error:
+              "Identity Preservation requires an identity reference photo and consent (YES) for content you own or are authorized to use",
+          },
           { status: 400 }
         );
       }

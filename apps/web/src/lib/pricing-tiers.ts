@@ -46,7 +46,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       { label: "Resolution", value: "720p HD evaluation", included: true },
       { label: "Watermark", value: "Evaluation watermark on exports", included: false },
-      { label: "Identity-Lock queue", value: "Standard processing", included: true },
+      { label: "Identity Preservation queue", value: "Standard processing", included: true },
       { label: "Commercial download", value: "Preview license only", included: false },
     ],
     ctaLabel: `Start for $${TESTER_PRICE_USD}`,
@@ -63,12 +63,12 @@ export const PRICING_TIERS: PricingTier[] = [
     highlights: [
       "Clean 1080p masters — no watermark",
       "Commercial rights on paid downloads",
-      "Priority identity-lock queuing",
+      "Priority Identity Preservation queuing",
     ],
     features: [
       { label: "Resolution", value: "1080p HD master", included: true },
       { label: "Watermark", value: "Clean — no watermark", included: true },
-      { label: "Identity-Lock queue", value: "Priority queuing", included: true },
+      { label: "Identity Preservation queue", value: "Priority queuing", included: true },
       { label: "Commercial download", value: "Licensed commercial use", included: true },
     ],
     ctaLabel: `Go Pro — $${STANDARD_PRICE_USD}/mo`,
@@ -89,7 +89,7 @@ export const PRICING_TIERS: PricingTier[] = [
     features: [
       { label: "Resolution", value: "4K cinematic master", included: true },
       { label: "Watermark", value: "Clean — no watermark", included: true },
-      { label: "Identity-Lock queue", value: "Priority+ enterprise queue", included: true },
+      { label: "Identity Preservation queue", value: "Priority+ enterprise queue", included: true },
       { label: "Commercial download", value: "Full commercial license", included: true },
     ],
     ctaLabel: `Go Enterprise — $${PREMIUM_PRICE_USD}/mo`,

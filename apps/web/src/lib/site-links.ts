@@ -62,6 +62,8 @@ export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
 export const SITE_LEGAL_LINKS: SiteNavLink[] = [
   { id: "privacy", label: "Privacy", href: "/privacy" },
   { id: "terms", label: "Terms", href: "/terms" },
+  { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },
+  { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
   { id: "refund", label: "Refund Policy", href: "/refund" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
 ];
@@ -72,6 +74,8 @@ export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "contact-support", label: "Contact", href: "/help/contact" },
   { id: "privacy", label: "Privacy", href: "/privacy" },
   { id: "terms", label: "Terms", href: "/terms" },
+  { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },
+  { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
   { id: "refund", label: "Refund Policy", href: "/refund" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
   { id: "status", label: "System status", href: "/status" },

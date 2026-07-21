@@ -71,12 +71,12 @@ const FAQ_RULES: FaqRule[] = [
   {
     id: "premium",
     keywords: ["4k", "premium", "difference", "hd", "quality", "which plan"],
-    reply: `**Standard** is best for regular HD social & brand content (${STANDARD_CREDITS}s/month).\n\n**Premium 4K** adds cinematic 4K output, stronger identity-lock for faces, and the richest scenes — ideal for music videos and brand films (${PREMIUM_CREDITS}s/month).`,
+    reply: `**Standard** is best for regular HD social & brand content (${STANDARD_CREDITS}s/month).\n\n**Premium 4K** adds cinematic 4K output, stronger Identity Preservation for authorized likenesses, and the richest scenes — ideal for music videos and brand films (${PREMIUM_CREDITS}s/month).`,
   },
   {
     id: "face",
-    keywords: ["face", "identity", "lock", "photo", "upload", "real face"],
-    reply: `For real-face videos, upload a clear front-facing photo in the studio wizard. RTAS uses identity-lock so your face stays consistent across scenes. Choose **Real face** under Visual style, or Avatar/Cartoon for other looks.`,
+    keywords: ["face", "identity", "lock", "photo", "upload", "identity preservation", "identity consistency"],
+    reply: `For Identity Preservation videos, upload a clear identity reference photo in the studio wizard. RTAS uses Authorized Identity Consistency so likeness stays consistent across scenes. Choose **Identity Preservation** under Visual style, or Avatar/Cartoon for other looks.`,
   },
   {
     id: "account",
