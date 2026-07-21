@@ -15,6 +15,7 @@ import {
   upsertOAuthUser,
   verifyCredentials,
 } from "@/lib/server/auth-users";
+import { logLoginActivity } from "@/lib/server/audit-log";
 
 function toEmailVerifiedFlag(value: boolean | Date | null | undefined): boolean {
   if (value instanceof Date) return true;
@@ -159,4 +160,15 @@ export const authOptions: NextAuthOptions = {
 
   secret: getNextAuthSecret(),
   debug: process.env.NODE_ENV === "development",
+
+  events: {
+    async signIn({ user, account }) {
+      await logLoginActivity({
+        userId: user.id,
+        email: user.email ?? undefined,
+        provider: account?.provider ?? "unknown",
+        success: true,
+      });
+    },
+  },
 };

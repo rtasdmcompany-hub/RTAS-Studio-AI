@@ -33,6 +33,8 @@ export const SITE_METADATA_ICONS: NonNullable<Metadata["icons"]> = {
   apple: [{ url: BRAND_FAVICON_PATH, type: "image/png" }],
 };
 
+export const SITE_MANIFEST = "/site.webmanifest";
+
 const sharedOpenGraph: Metadata["openGraph"] = {
   type: "website",
   locale: "en_US",
@@ -63,6 +65,7 @@ export const rootMetadata: Metadata = {
   description: SITE_METADATA_DESCRIPTION,
   keywords: [...SITE_METADATA_KEYWORDS],
   icons: SITE_METADATA_ICONS,
+  manifest: SITE_MANIFEST,
   alternates: {
     canonical: "/",
   },

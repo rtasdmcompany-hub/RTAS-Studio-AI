@@ -7,15 +7,17 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/site-metadata";
+import { LiveStatusProbes } from "@/components/status/LiveStatusProbes";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "System status",
   description: `Operational status for ${PRODUCT_NAME} — web app, generation API, auth, billing, and live health probes.`,
-  openGraph: {
-    title: `System status · ${PRODUCT_NAME}`,
-    description:
-      "Service cards, live /api/health and /api/ready links, and incident history for this deployment.",
-  },
-};
+  path: "/status",
+  openGraphTitle: `System status · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Live health for web, GPU worker, auth, billing webhooks, and third-party integrations.",
+});
 
 const SERVICES = [
   {
@@ -131,11 +133,11 @@ export default function StatusPage() {
           </ul>
         </InnerPageSection>
 
+        <InnerPageSection>
+          <LiveStatusProbes />
+        </InnerPageSection>
+
         <InnerPageSection className="text-center">
-          <p className="text-sm text-ds-text-muted">
-            Account or billing issues? Visit Help Center — status pages are for service
-            health only.
-          </p>
           <div className="mt-4 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/help" variant="ghost">
               Help Center
