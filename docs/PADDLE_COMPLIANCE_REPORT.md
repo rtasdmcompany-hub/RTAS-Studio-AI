@@ -134,3 +134,5 @@ Suggested reply excerpt:
 - **Canonical site:** https://rtasstudio.com  
 - **Trust & Safety:** https://rtasstudio.com/trust-safety  
 - **AI Usage Policy:** https://rtasstudio.com/ai-policy  
+- **Git commit:** `363a037` — *Make RTAS Studio AI Paddle AUP compliant for second review.*  
+- **Production deploy:** `dpl_EHCTAabSDWtnPSQMsAozoMWtz6Sx` (READY) · https://rtas-studio-ai-k8f94to09-rtas-group.vercel.app  
