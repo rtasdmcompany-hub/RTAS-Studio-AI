@@ -5,6 +5,7 @@ export * from "./legal/types";
 export * from "./legal/terms";
 export * from "./legal/privacy";
 export * from "./legal/cookies";
+export * from "./legal/refund";
 export * from "./identity-pipeline";
 export * from "./studio-fields";
 export * from "./payments";

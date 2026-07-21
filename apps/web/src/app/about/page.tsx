@@ -7,20 +7,21 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
+import { buildPageMetadata } from "@/lib/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
   title: "About",
   description: `About ${PRODUCT_NAME} — mission, vision, and the team behind the international AI video studio built by ${COMPANY_NAME}.`,
-  openGraph: {
-    title: `About · ${PRODUCT_NAME}`,
-    description:
-      "Mission, vision, company story, and values for creators who need cinematic AI video with clear credits and commercial licensing.",
-  },
-};
+  path: "/about",
+  openGraphTitle: `About · ${PRODUCT_NAME}`,
+  openGraphDescription:
+    "Mission, vision, company story, and values for creators who need cinematic AI video with clear credits and commercial licensing.",
+});
 
 const TRUST = [
   {
     title: "Merchant of Record billing",
-    body: "International checkout via Paddle or Lemon Squeezy — tax, invoices, and compliance handled by the MoR so you can focus on shipping work.",
+    body: "International checkout via Paddle (Merchant of Record) — tax, invoices, and compliance handled by Paddle so you can focus on shipping work.",
   },
   {
     title: "Identity-aware generation",

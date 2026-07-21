@@ -13,6 +13,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { StructuredData } from "@/components/seo/StructuredData";
 import {
   PRICING_AUDIENCE_GUIDE,
   PRICING_FAQ,
@@ -23,19 +24,34 @@ import {
   PRICING_HERO_SUPPORT,
   PRICING_VALUE_POINTS,
 } from "@/lib/pricing-copy";
+import { buildPageMetadata } from "@/lib/site-metadata";
+import { breadcrumbSchema, faqSchema } from "@/lib/structured-data";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Pricing",
   description: `${PRODUCT_NAME} pricing: Creator Starter $${TESTER_PRICE_USD}, Pro Studio $${STANDARD_PRICE_USD}/mo, Production Enterprise $${PREMIUM_PRICE_USD}/mo. 1 credit = 1 second. Global merchant-of-record checkout.`,
-  openGraph: {
-    title: `Pricing · ${PRODUCT_NAME}`,
-    description: `Transparent credit pricing from $${TESTER_PRICE_USD}. Pro $${STANDARD_PRICE_USD}/mo · Enterprise $${PREMIUM_PRICE_USD}/mo.`,
-  },
-};
+  path: "/pricing",
+  openGraphTitle: `Pricing · ${PRODUCT_NAME}`,
+  openGraphDescription: `Transparent credit pricing from $${TESTER_PRICE_USD}. Pro $${STANDARD_PRICE_USD}/mo · Enterprise $${PREMIUM_PRICE_USD}/mo.`,
+});
 
 export default function PricingPage() {
   return (
     <MarketingLayout>
+      <StructuredData
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Pricing", path: "/pricing" },
+          ]),
+          faqSchema(
+            PRICING_FAQ.map((item) => ({
+              question: item.question,
+              answer: item.answer,
+            }))
+          ),
+        ]}
+      />
       <InnerPageContainer>
         <InnerPageSection className="rtas-pricing-hero rtas-pricing-hero--conversion text-center">
           <p className="rtas-eyebrow">{PRICING_HERO_EYEBROW}</p>
@@ -87,7 +103,8 @@ export default function PricingPage() {
           <p className="rtas-pricing-legal">
             <a href="/features#compare">Full feature comparison</a> ·{" "}
             <a href="/help/billing">Billing help</a> · <a href="/terms">Terms</a> ·{" "}
-            <a href="/privacy">Privacy</a> · <a href="/cookies">Cookies</a>
+            <a href="/privacy">Privacy</a> · <a href="/refund">Refund Policy</a> ·{" "}
+            <a href="/cookies">Cookies</a>
           </p>
         </InnerPageSection>
 

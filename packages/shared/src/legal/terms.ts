@@ -9,7 +9,9 @@ export const COMPANY_NAME = "RTAS DIGITAL MARKETING COMPANY";
 export const GROUP_NAME = "RTAS GROUP OF COMPANIES";
 export const PRODUCT_NAME = "RTAS STUDIO AI";
 
-export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is a proprietary software division under ${GROUP_NAME}. The Service is developed, operated, and licensed by ${COMPANY_NAME} on behalf of the Group.`;
+export const LEGAL_JURISDICTION = "Pakistan";
+
+export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is a proprietary software division under ${GROUP_NAME}. The Service is developed, operated, and licensed by ${COMPANY_NAME} (registered / operating in ${LEGAL_JURISDICTION}) on behalf of the Group.`;
 
 export const LEGAL_LAST_UPDATED = "July 2026";
 
@@ -39,7 +41,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "5. Payment Terms & Refund Policies Managed via Worldwide Merchant Networks",
-    body: `Card, wallet, and local payment methods are processed by independent Merchant-of-Record ("MoR") partners — including Paddle, Lemon Squeezy, and comparable worldwide merchant networks — that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting support@rtasdigital.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference.`,
+    body: `Card, wallet, and local payment methods are processed by our Merchant of Record ("MoR"), Paddle (and comparable worldwide merchant networks if configured), that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting support@rtasdigital.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference. See also our Refund Policy at https://rtasstudio.com/refund.`,
   },
   {
     title: "6. Commercial Licensing & Download Rights",
@@ -72,7 +74,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "12. International Compliance, Governing Law & Dispute Resolution",
-    body: `These Terms are governed by the laws applicable to ${COMPANY_NAME}'s registered jurisdiction, without regard to conflict-of-law rules, except where mandatory consumer protections in your country of residence require otherwise. Nothing in these Terms limits non-waivable rights under EU, UK, Australian, Canadian, or other consumer-protection statutes. Disputes should first be addressed to support@rtasdigital.com; where arbitration or courts are permitted, you agree to individual resolution and waive class actions to the extent enforceable.`,
+    body: `These Terms are governed by the laws of ${LEGAL_JURISDICTION}, without regard to conflict-of-law rules, except where mandatory consumer protections in your country of residence require otherwise. Nothing in these Terms limits non-waivable rights under EU, UK, Australian, Canadian, or other consumer-protection statutes. Disputes should first be addressed to support@rtasdigital.com; where arbitration or courts are permitted, you agree to individual resolution and waive class actions to the extent enforceable.`,
   },
   {
     title: "13. Limitation of Liability & Warranty Disclaimer",

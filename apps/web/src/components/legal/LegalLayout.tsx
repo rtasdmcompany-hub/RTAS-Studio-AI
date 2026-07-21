@@ -47,6 +47,7 @@ export function LegalLayout({ title, subtitle, children }: Props) {
           <InnerPageSection as="nav" className="legal-nav legal-nav--inline" aria-label="Legal">
             <Link href="/terms">Terms</Link>
             <Link href="/privacy">Privacy</Link>
+            <Link href="/refund">Refund Policy</Link>
             <Link href="/cookies">Cookies</Link>
           </InnerPageSection>
         </div>

@@ -8,10 +8,14 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
-  title: `Billing & credits · Help · ${PRODUCT_NAME}`,
+import { buildPageMetadata } from "@/lib/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Billing & credits",
   description: `Plans, credits, renewals, and downloads for ${PRODUCT_NAME}.`,
-};
+  path: "/help/billing",
+  openGraphTitle: `Billing & credits · Help · ${PRODUCT_NAME}`,
+});
 
 export default function HelpBillingPage() {
   return (
@@ -26,7 +30,7 @@ export default function HelpBillingPage() {
           </p>
           <h1 className="text-zinc-100">Plans, credits & downloads</h1>
           <p className="mt-3 max-w-2xl text-ds-text-muted">
-            Payments are handled by our Merchant of Record (Paddle or Lemon Squeezy).
+            Payments are handled by our Merchant of Record, Paddle.
             Card data never touches RTAS servers.
           </p>
         </InnerPageSection>

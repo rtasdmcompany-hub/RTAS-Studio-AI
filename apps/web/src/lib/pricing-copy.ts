@@ -93,7 +93,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
     id: "payment",
     question: "Who processes payment?",
     answer:
-      "Checkout runs through our Merchant of Record (Paddle or Lemon Squeezy). Local currency may appear at checkout. Card data never touches RTAS servers.",
+      "Checkout runs through our Merchant of Record, Paddle. Local currency may appear at checkout. Card data never touches RTAS servers.",
   },
   {
     id: "commercial",
