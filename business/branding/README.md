@@ -5,6 +5,25 @@
 
 ---
 
+## Formal brand system (Phase 11 · Sprint 7)
+
+Canonical docs live under [`docs/branding/`](../../docs/branding/):
+
+| Document | Path |
+|----------|------|
+| Brand Strategy | [`docs/branding/BRAND_STRATEGY.md`](../../docs/branding/BRAND_STRATEGY.md) |
+| Brand Guidelines | [`docs/branding/BRAND_GUIDELINES.md`](../../docs/branding/BRAND_GUIDELINES.md) |
+| Messaging Framework | [`docs/branding/MESSAGING_FRAMEWORK.md`](../../docs/branding/MESSAGING_FRAMEWORK.md) |
+| Public Relations Plan | [`docs/branding/PUBLIC_RELATIONS_PLAN.md`](../../docs/branding/PUBLIC_RELATIONS_PLAN.md) |
+| Partnership Strategy | [`docs/branding/PARTNERSHIP_STRATEGY.md`](../../docs/branding/PARTNERSHIP_STRATEGY.md) |
+| Community Strategy | [`docs/branding/COMMUNITY_STRATEGY.md`](../../docs/branding/COMMUNITY_STRATEGY.md) |
+| Content Marketing Plan | [`docs/branding/CONTENT_MARKETING_PLAN.md`](../../docs/branding/CONTENT_MARKETING_PLAN.md) |
+| Global Expansion Strategy | [`docs/branding/GLOBAL_EXPANSION_STRATEGY.md`](../../docs/branding/GLOBAL_EXPANSION_STRATEGY.md) |
+| Competitive Positioning | [`docs/branding/COMPETITIVE_POSITIONING.md`](../../docs/branding/COMPETITIVE_POSITIONING.md) |
+| Sprint 7 report | [`docs/business/PHASE11-SPRINT7-REPORT.md`](../../docs/business/PHASE11-SPRINT7-REPORT.md) |
+
+---
+
 ## Primary public assets (web app)
 
 | Asset | Path |
@@ -13,6 +32,7 @@
 | Open Graph image | `apps/web/public/og-image.png` |
 | Group logo | `apps/web/public/rtas-group-logo.png` |
 | Showcase videos | `apps/web/public/showcase/*.mp4` |
+| Design tokens | `packages/design-tokens/css/tokens.css` |
 
 Live site: https://rtasstudio.com  
 
@@ -37,10 +57,10 @@ Live site: https://rtasstudio.com
 
 ---
 
-## Future (not yet in this sprint)
+## Future (still open)
 
-- Full brand book (typography, color tokens, motion)  
-- Press kit ZIP  
-- Iconography set  
+- Packaged press kit ZIP  
+- Light-mode logo lockups (Proposed in guidelines until shipped)  
+- Iconography set beyond current mark  
 
 Add those here when designed — do not placeholder with Lorem assets.
