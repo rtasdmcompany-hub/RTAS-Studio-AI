@@ -136,3 +136,17 @@ Suggested reply excerpt:
 - **AI Usage Policy:** https://rtasstudio.com/ai-policy  
 - **Git commit:** `363a037` — *Make RTAS Studio AI Paddle AUP compliant for second review.*  
 - **Production deploy:** `dpl_EHCTAabSDWtnPSQMsAozoMWtz6Sx` (READY) · https://rtas-studio-ai-k8f94to09-rtas-group.vercel.app  
+
+## Second-review email (sent)
+
+- **To:** sellers@paddle.com  
+- **From (Resend):** auth@rtasstudio.com  
+- **CC / Reply-To:** vendor Gmail  
+- **Resend message id:** `a6598c01-87c9-4cda-84a0-0d5420c00222`  
+- **Sent at:** 2026-07-22 (UTC)  
+- **Full copy:** `docs/PADDLE_RESUBMISSION_EMAIL.md`  
+
+## Remaining operational note
+
+- Cloudflare **Email Routing API** still returns 403 (token lacks Email Routing permissions).  
+- Inbound mail for info/support/contact/admin/auth is live via **Forward Email** MX (`mx1/mx2.forwardemail.net`).  
