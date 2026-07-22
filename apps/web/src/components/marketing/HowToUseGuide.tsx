@@ -11,6 +11,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
 function GuideMedia({
   media,
@@ -263,7 +264,7 @@ export function HowToUseGuide() {
         <h2 className="text-zinc-100">Need help?</h2>
         <p>
           Use live chat in the bottom-right corner or email{" "}
-          <a href="mailto:support@rtasdigital.com">support@rtasdigital.com</a>.
+          <a href={`mailto:${SITE_SUPPORT_EMAIL}`}>{SITE_SUPPORT_EMAIL}</a>.
         </p>
         <div className="rtas-howto-page__actions">
           <ButtonLink href="/pricing" variant="ghost">

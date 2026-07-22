@@ -33,7 +33,7 @@ export const REFUND_SECTIONS: LegalSection[] = [
   },
   {
     title: "5. How to request a refund",
-    body: `Email support@rtasdigital.com within sixty (60) days of the charge and include: account email, MoR receipt/transaction ID, plan name, date of charge, and a short reason. Do not open a chargeback before contacting support — premature chargebacks may delay resolution and can lead to account suspension for fraud risk.`,
+    body: `Email contact@rtasstudio.com within sixty (60) days of the charge and include: account email, MoR receipt/transaction ID, plan name, date of charge, and a short reason. Do not open a chargeback before contacting support — premature chargebacks may delay resolution and can lead to account suspension for fraud risk.`,
   },
   {
     title: "6. Processing time",
@@ -41,6 +41,6 @@ export const REFUND_SECTIONS: LegalSection[] = [
   },
   {
     title: "7. Contact",
-    body: `Billing & refunds: support@rtasdigital.com. Website: https://rtasstudio.com. Related documents: Terms of Service (/terms) and Privacy Policy (/privacy).`,
+    body: `Billing & refunds: contact@rtasstudio.com. Website: https://rtasstudio.com. Related documents: Terms of Service (/terms) and Privacy Policy (/privacy).`,
   },
 ];

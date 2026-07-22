@@ -38,6 +38,6 @@ export const COOKIE_SECTIONS: LegalSection[] = [
   },
   {
     title: "6. Retention, Updates & Contact",
-    body: `Session cookies expire when you close the browser; persistent cookies and local storage entries typically persist up to twelve (12) months unless cleared earlier. We update this Policy when technologies change. Questions: support@rtasdigital.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
+    body: `Session cookies expire when you close the browser; persistent cookies and local storage entries typically persist up to twelve (12) months unless cleared earlier. We update this Policy when technologies change. Questions: contact@rtasstudio.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
   },
 ];

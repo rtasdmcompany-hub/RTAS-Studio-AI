@@ -28,7 +28,7 @@ export const TRUST_SAFETY_SECTIONS: LegalSection[] = [
   },
   {
     title: "4. Reporting & enforcement",
-    body: `Report suspected abuse to support@rtasdigital.com with links, job IDs, or screenshots. We may disable accounts, withhold downloads, and preserve logs for investigation. Related policies: Terms of Service (/terms), AI Usage Policy (/ai-policy), Privacy Policy (/privacy).`,
+    body: `Report suspected abuse to contact@rtasstudio.com with links, job IDs, or screenshots. We may disable accounts, withhold downloads, and preserve logs for investigation. Related policies: Terms of Service (/terms), AI Usage Policy (/ai-policy), Privacy Policy (/privacy).`,
   },
   {
     title: "5. Updates",

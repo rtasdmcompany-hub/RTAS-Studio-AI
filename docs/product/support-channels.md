@@ -10,7 +10,7 @@
 | Changelog | **Live** | `/help/changelog` |
 | Product guide | **Live** | `/how-to-use` |
 | Feedback / bugs / features | **Live** (mailto) | `/feedback` |
-| Email support | **Live** | support@rtasdigital.com |
+| Email support | **Live** | contact@rtasstudio.com (also support@rtasstudio.com) |
 | Live chat FAQ | **Live** | Marketing + Studio shell widget |
 | Knowledge Base | Placeholder | Expand articles from Help |
 | Video tutorials | Placeholder | Link from Help when published |

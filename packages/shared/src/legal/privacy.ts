@@ -12,7 +12,7 @@ export const PRIVACY_INTRO = `${LEGAL_ENTITY_STATEMENT} This Privacy Policy expl
 export const PRIVACY_SECTIONS: LegalSection[] = [
   {
     title: "1. Corporate Entity & Data Controller",
-    body: `${LEGAL_ENTITY_STATEMENT} For privacy purposes, ${COMPANY_NAME} acts as the data controller for account, billing, and Service usage data described below. Payment card data is processed by our Merchant-of-Record partners acting as independent controllers or processors for checkout. Contact: support@rtasdigital.com.`,
+    body: `${LEGAL_ENTITY_STATEMENT} For privacy purposes, ${COMPANY_NAME} acts as the data controller for account, billing, and Service usage data described below. Payment card data is processed by our Merchant-of-Record partners acting as independent controllers or processors for checkout. Contact: contact@rtasstudio.com.`,
   },
   {
     title: "2. Personal Data We Collect & Lawful Bases",
@@ -39,7 +39,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   },
   {
     title: "6. Your Global Privacy Rights",
-    body: `Depending on your jurisdiction, you may have the right to access, rectify, erase, restrict, or port your personal data, and to object to certain processing or automated decision-making. California residents may have rights to know, delete, and opt out of "sale" or "sharing" (we do not sell personal data). EU/EEA and UK users may lodge complaints with their local supervisory authority. To exercise rights, email support@rtasdigital.com with sufficient identity verification. We respond within applicable statutory timelines (typically 30–45 days).`,
+    body: `Depending on your jurisdiction, you may have the right to access, rectify, erase, restrict, or port your personal data, and to object to certain processing or automated decision-making. California residents may have rights to know, delete, and opt out of "sale" or "sharing" (we do not sell personal data). EU/EEA and UK users may lodge complaints with their local supervisory authority. To exercise rights, email contact@rtasstudio.com with sufficient identity verification. We respond within applicable statutory timelines (typically 30–45 days).`,
   },
   {
     title: "7. Security Measures & Incident Response",
@@ -47,10 +47,10 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   },
   {
     title: "8. Children's Privacy",
-    body: `The Service is not directed to children under 13 (or under 16 in certain jurisdictions). We do not knowingly collect personal data from children without verifiable parental consent. If you believe a child has provided data, contact support@rtasdigital.com and we will delete it promptly.`,
+    body: `The Service is not directed to children under 13 (or under 16 in certain jurisdictions). We do not knowingly collect personal data from children without verifiable parental consent. If you believe a child has provided data, contact contact@rtasstudio.com and we will delete it promptly.`,
   },
   {
     title: "9. Policy Updates, Cookies & Contact",
-    body: `Material changes to this Policy will be posted on this page with an updated "Last updated" date. Non-essential cookies and similar technologies are described in our Cookie Policy. Privacy inquiries: support@rtasdigital.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
+    body: `Material changes to this Policy will be posted on this page with an updated "Last updated" date. Non-essential cookies and similar technologies are described in our Cookie Policy. Privacy inquiries: contact@rtasstudio.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
   },
 ];

@@ -23,4 +23,4 @@
 3. Open Studio and create  
 4. Upgrade when you need more credits  
 
-**Contact:** support@rtasdigital.com · Product: `/` · Pricing: `/pricing`
+**Contact:** contact@rtasstudio.com · Product: `/` · Pricing: `/pricing` · Site: https://rtasstudio.com

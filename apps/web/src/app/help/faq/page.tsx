@@ -8,10 +8,17 @@ import {
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
 
-export const metadata: Metadata = {
-  title: `FAQ · Help · ${PRODUCT_NAME}`,
+import { StructuredData } from "@/components/seo/StructuredData";
+import { SITE_HELP_EMAIL, SITE_SUPPORT_EMAIL } from "@/lib/site-links";
+import { buildPageMetadata } from "@/lib/site-metadata";
+import { breadcrumbSchema, faqSchema } from "@/lib/structured-data";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "FAQ",
   description: `Frequently asked questions about ${PRODUCT_NAME}.`,
-};
+  path: "/help/faq",
+  openGraphTitle: `FAQ · Help · ${PRODUCT_NAME}`,
+});
 
 const FAQ = [
   {
@@ -36,13 +43,25 @@ const FAQ = [
   },
   {
     q: "How do I contact support?",
-    a: "Email support@rtasdigital.com or use Feedback in the app. Include your account email and a short description of the issue.",
+    a: `Email ${SITE_SUPPORT_EMAIL} or ${SITE_HELP_EMAIL}, or use Feedback in the app. Include your account email and a short description of the issue.`,
   },
 ] as const;
 
 export default function HelpFaqPage() {
   return (
     <MarketingLayout>
+      <StructuredData
+        data={[
+          breadcrumbSchema([
+            { name: "Home", path: "/" },
+            { name: "Help", path: "/help" },
+            { name: "FAQ", path: "/help/faq" },
+          ]),
+          faqSchema(
+            FAQ.map((item) => ({ question: item.q, answer: item.a }))
+          ),
+        ]}
+      />
       <InnerPageContainer>
         <InnerPageSection>
           <p className="rtas-eyebrow">

@@ -78,7 +78,7 @@ Hum ne **Runway, Kling, Pika** jaisi products study ki — un ka **secret code c
 
 ## Support email
 
-Terms mein `support@rtasdigital.com` — apna asal email daal dein jab ready hon.
+Terms mein `contact@rtasstudio.com` — public contact email (transactional From: auth@rtasstudio.com).
 
 ---
 

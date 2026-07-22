@@ -13,6 +13,7 @@ import {
   PricingCheckoutModal,
   type PricingCheckoutModalState,
 } from "@/components/marketing/PricingCheckoutModal";
+import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
 function FeatureChecklist({
   features,
@@ -125,7 +126,7 @@ export function PricingPlans() {
       setModal({
         kind: "info",
         title: "Something went wrong",
-        message: "Please try again or email support@rtasdigital.com.",
+        message: `Please try again or email ${SITE_SUPPORT_EMAIL}.`,
       });
     } finally {
       setBusy(null);

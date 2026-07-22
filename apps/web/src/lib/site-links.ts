@@ -141,7 +141,12 @@ export const SITE_SOCIAL_LINKS: SiteSocialLink[] = [
   },
 ];
 
-export const SITE_SUPPORT_EMAIL = "support@rtasdigital.com";
+/** Primary public contact (footer, contact page, careers, feedback). */
+export const SITE_SUPPORT_EMAIL = "contact@rtasstudio.com";
+/** Support / help desk alias — use in help FAQ and support-specific CTAs. */
+export const SITE_HELP_EMAIL = "support@rtasstudio.com";
+/** General info alias. */
+export const SITE_INFO_EMAIL = "info@rtasstudio.com";
 
 export const SITE_TRUST_BADGES = [
   {

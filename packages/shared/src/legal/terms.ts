@@ -41,7 +41,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "5. Payment Terms & Refund Policies Managed via Worldwide Merchant Networks",
-    body: `Card, wallet, and local payment methods are processed by our Merchant of Record ("MoR"), Paddle (and comparable worldwide merchant networks if configured), that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting support@rtasdigital.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference. See also our Refund Policy at https://rtasstudio.com/refund.`,
+    body: `Card, wallet, and local payment methods are processed by our Merchant of Record ("MoR"), Paddle (and comparable worldwide merchant networks if configured), that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting contact@rtasstudio.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference. See also our Refund Policy at https://rtasstudio.com/refund.`,
   },
   {
     title: "6. Commercial Licensing & Download Rights",
@@ -79,7 +79,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "12. International Compliance, Governing Law & Dispute Resolution",
-    body: `These Terms are governed by the laws of ${LEGAL_JURISDICTION}, without regard to conflict-of-law rules, except where mandatory consumer protections in your country of residence require otherwise. Nothing in these Terms limits non-waivable rights under EU, UK, Australian, Canadian, or other consumer-protection statutes. Disputes should first be addressed to support@rtasdigital.com; where arbitration or courts are permitted, you agree to individual resolution and waive class actions to the extent enforceable.`,
+    body: `These Terms are governed by the laws of ${LEGAL_JURISDICTION}, without regard to conflict-of-law rules, except where mandatory consumer protections in your country of residence require otherwise. Nothing in these Terms limits non-waivable rights under EU, UK, Australian, Canadian, or other consumer-protection statutes. Disputes should first be addressed to contact@rtasstudio.com; where arbitration or courts are permitted, you agree to individual resolution and waive class actions to the extent enforceable.`,
   },
   {
     title: "13. Limitation of Liability & Warranty Disclaimer",
@@ -87,7 +87,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "14. Modifications, Termination & Contact",
-    body: `We may update these Terms with notice via the Service or email for material changes. Continued use after the effective date constitutes acceptance. We may terminate or suspend access for breach, non-payment, or legal requirement. Upon termination, licenses to evaluation content end; provisions that by nature should survive will remain in effect. Legal, billing, and compliance inquiries: support@rtasdigital.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
+    body: `We may update these Terms with notice via the Service or email for material changes. Continued use after the effective date constitutes acceptance. We may terminate or suspend access for breach, non-payment, or legal requirement. Upon termination, licenses to evaluation content end; provisions that by nature should survive will remain in effect. Legal, billing, and compliance inquiries: contact@rtasstudio.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
   },
 ];
 

@@ -7,8 +7,9 @@ import {
   CHAT_QUICK_REPLIES,
   type ChatMessage,
 } from "@/lib/live-chat";
+import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
-const SUPPORT_EMAIL = "support@rtasdigital.com";
+const SUPPORT_EMAIL = SITE_SUPPORT_EMAIL;
 
 function formatBotText(text: string): ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -78,8 +79,8 @@ export function LiveChatWidget() {
       const reply =
         data.reply ??
         (res.ok
-          ? "Sorry, I couldn't answer that. Please email support@rtasdigital.com."
-          : data.error ?? "Chat is temporarily unavailable. Please email support@rtasdigital.com.");
+          ? `Sorry, I couldn't answer that. Please email ${SUPPORT_EMAIL}.`
+          : data.error ?? `Chat is temporarily unavailable. Please email ${SUPPORT_EMAIL}.`);
 
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
     } catch {

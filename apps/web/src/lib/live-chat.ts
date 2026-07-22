@@ -7,6 +7,7 @@ import {
   TESTER_DURATION_DAYS,
   TESTER_PRICE_USD,
 } from "@rtas/shared";
+import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
 export type ChatRole = "user" | "assistant";
 
@@ -22,7 +23,7 @@ export const CHAT_QUICK_REPLIES = [
   "Talk to a human",
 ] as const;
 
-const SUPPORT_EMAIL = "support@rtasdigital.com";
+const SUPPORT_EMAIL = SITE_SUPPORT_EMAIL;
 
 type FaqRule = {
   id: string;

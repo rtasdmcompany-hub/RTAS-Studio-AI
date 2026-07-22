@@ -6,7 +6,7 @@
 
  */
 
-
+import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
 export type SoftenedGenerationError = {
 
@@ -22,7 +22,7 @@ export type SoftenedGenerationError = {
 
 const REPORT_ISSUE_MAILTO =
 
-  "mailto:support@rtasdigital.com?subject=" +
+  `mailto:${SITE_SUPPORT_EMAIL}?subject=` +
 
   encodeURIComponent("RTAS Studio AI — Generation Issue");
 

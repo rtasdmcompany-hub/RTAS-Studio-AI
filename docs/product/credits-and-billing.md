@@ -22,7 +22,7 @@ See `/pricing` and `docs/marketing/FEATURES.md` for current packaging.
 
 - Dashboard → **Manage plans**
 - Help → [Billing](/help/billing)
-- Support: support@rtasdigital.com
+- Support: contact@rtasstudio.com
 
 ## Security note
 
