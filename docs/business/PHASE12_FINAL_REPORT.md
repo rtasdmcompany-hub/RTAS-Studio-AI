@@ -36,7 +36,7 @@ Phase 12 was authorized by Phase 11 sign-off (**APPROVED WITH MINOR ACTIONS**) t
 
 **Sprint 1 (verified in repo):** Commercial foundation audit — checklist, blockers, first-customer readiness. Verdict then: foundation **READY WITH MINOR FIXES**; public paid acquisition blocked on C1/C2.
 
-**Sprints 2–9:** Treated as organizationally complete per Sprint 10 mission brief. **No Sprint 9 `docs/release/` GO_LIVE / QA / RC pack** was present at audit start that cleared Critical items. Sprint 10 therefore performed a fresh commercial review against live production + existing commercial/Phase 10/11 evidence.
+**Sprints 2–9:** Treated as organizationally complete per Sprint 10 mission brief. A Sprint 9 release pack (`GO_LIVE_CHECKLIST`, `PRODUCTION_QA_REPORT`, `LAUNCH_RISK_REGISTER`, `FINAL_RELEASE_CANDIDATE_REPORT`) appeared in-repo during/after this audit and **concurs**: paid launch **FAIL/NO-GO** with R-C1/R-C2 (Paddle E2E + Fal generation) still **Open**. Sprint 10 live probes independently confirmed `live_generation: false` / `fal_credit`.
 
 **Sprint 10:** Final commercial review. Live probes confirm site/auth/legal/SEO shell healthy; **Fal live generation still billing-blocked**; **Paddle E2E still unproven**. Decision: **NOT APPROVED**.
 
@@ -214,12 +214,11 @@ V1 LAUNCH ░░░░░░░░░░░░░░░░░░░░  WITHHELD
 |-------|-------|
 | Pre-commit HEAD | `ae70145961feb2037459384a8a8fcd6c85103678` |
 | Sprint 10 docs commit | `9a0bd23125c5a48c9fab27abb773d00c06d6c72b` |
-| Branch | `master` (ahead of origin by ≥1) |
+| Git evidence fill commit | `a25747e0f4522e73854f4e70b2a82c3365a8b362` |
+| Branch | `master` |
 | Files in Sprint 10 commit | 5 files · +724 lines · release pack + this report |
 
 Primary documentation commit message: `docs: Phase 12 Sprint 10 commercial launch audit (NOT APPROVED)`.
-
-A follow-up commit may update this evidence section only.
 
 ---
 

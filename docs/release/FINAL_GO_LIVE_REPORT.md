@@ -20,7 +20,7 @@
 | MoR checkout E2E (C1) | Yes | Client token present; **purchase→credits unproven** | **NO-GO** |
 | Live generation (C2) | Yes | `live_generation: false` / `fal_credit` | **NO-GO** |
 | Observability baseline | Preferred | Sentry/analytics **false** on web health | **WARN** |
-| Sprint 9 Critical clearance artifact | Preferred | **Not found** in `docs/release/` pre-Sprint 10 | **NO-GO support** |
+| Sprint 9 Critical clearance artifact | Preferred | Present; **paid GO FAIL** — R-C1/R-C2 Open | **NO-GO support** |
 
 **Rule applied:** Any open **Critical** commercial gate = commercial **NO-GO**. Engineering Phase 10 “ready” flags on API `/api/ready` do **not** override live Fal billing failure or missing MoR E2E proof.
 

@@ -36,7 +36,7 @@ V1 commercial launch declaration documents are **withheld** (see [`PHASE12_FINAL
 | `packages/shared` credits constants | Pricing truth |
 | Checkout / webhook source | Fail-closed payment path |
 
-**Absent:** `docs/release/` Sprint 9 GO_LIVE / RC clearance pack was **not present** prior to this sprint. Phase 12 Sprints 2–9 are treated as organizationally complete per mission brief, but **no Sprint 9 Critical-clearance artifact** was found that overturns C1/C2.
+**Sprint 9 release pack:** Present by end of Sprint 10 (`GO_LIVE_CHECKLIST`, `PRODUCTION_QA_REPORT`, `LAUNCH_RISK_REGISTER`, `FINAL_RELEASE_CANDIDATE_REPORT`). It does **not** clear Critical items — paid acquisition remains **NO-GO** (R-C1/R-C2 Open), consistent with this audit’s live Fal `fal_credit` probe.
 
 ---
 
