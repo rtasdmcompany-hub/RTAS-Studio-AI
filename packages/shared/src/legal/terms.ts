@@ -13,7 +13,7 @@ export const LEGAL_JURISDICTION = "Pakistan";
 
 export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is a proprietary software division under ${GROUP_NAME}. The Service is developed, operated, and licensed by ${COMPANY_NAME} (registered / operating in ${LEGAL_JURISDICTION}) on behalf of the Group.`;
 
-export const LEGAL_LAST_UPDATED = "July 2026";
+export const LEGAL_LAST_UPDATED = "22 July 2026";
 
 export const TERMS_INTRO = `${LEGAL_ENTITY_STATEMENT} These Terms of Service ("Terms") govern your access to and use of the ${PRODUCT_NAME} platform, including web applications, APIs, generated media, and related support services (collectively, the "Service"). By creating an account, purchasing credits or a subscription, or otherwise using the Service, you enter a binding agreement with ${COMPANY_NAME}. If you do not agree, you must discontinue use immediately.`;
 
@@ -41,7 +41,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "5. Payment Terms & Refund Policies Managed via Worldwide Merchant Networks",
-    body: `Card, wallet, and local payment methods are processed by our Merchant of Record ("MoR"), Paddle (and comparable worldwide merchant networks if configured), that calculate applicable sales tax, VAT, or GST, issue compliant invoices, and perform fraud screening in supported jurisdictions. ${COMPANY_NAME} does not store full payment card numbers on its servers. Settlement to ${COMPANY_NAME} (including Pakistan-based banking arrangements configured with the MoR) follows each processor's payout schedule. Except where mandatory consumer-protection law requires otherwise, subscription fees are non-refundable once a billing period has commenced. Chargebacks filed without contacting contact@rtasstudio.com first may result in account suspension. Billing disputes must be raised within sixty (60) days of the charge using your MoR receipt reference. See also our Refund Policy at https://rtasstudio.com/refund.`,
+    body: `Card, wallet, and local payment methods are processed by our Merchant of Record ("MoR"), Paddle, which is the legal seller of paid ${PRODUCT_NAME} purchases to you. Paddle calculates applicable sales tax, VAT, or GST, issues compliant invoices/receipts, screens for fraud, and handles buyer refunds and chargebacks under Paddle's Buyer Terms and Refund Policy. ${COMPANY_NAME} does not store full payment card numbers on its servers and does not pay card refunds directly. Settlement to ${COMPANY_NAME} follows Paddle's payout schedule. Except where mandatory consumer-protection law requires otherwise, Transactions are generally non-refundable after delivery or credit use. For refunds, cancellations, and receipt lookups, use your Paddle confirmation email or https://paddle.net. Contact Paddle (and, for product issues, contact@rtasstudio.com) before filing a chargeback. See our Refund Policy at https://rtasstudio.com/refund and Paddle's Refund Policy at https://www.paddle.com/legal/refund-policy.`,
   },
   {
     title: "6. Commercial Licensing & Download Rights",
