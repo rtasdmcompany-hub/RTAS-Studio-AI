@@ -212,11 +212,14 @@ V1 LAUNCH ░░░░░░░░░░░░░░░░░░░░  WITHHELD
 
 | Field | Value |
 |-------|-------|
-| Pre-commit HEAD (to be filled at commit time) | _see commit output_ |
-| Sprint 10 docs commit | _pending commit_ |
-| Branch | _pending_ |
+| Pre-commit HEAD | `ae70145961feb2037459384a8a8fcd6c85103678` |
+| Sprint 10 docs commit | `9a0bd23125c5a48c9fab27abb773d00c06d6c72b` |
+| Branch | `master` (ahead of origin by ≥1) |
+| Files in Sprint 10 commit | 5 files · +724 lines · release pack + this report |
 
-*This section is updated immediately after the Sprint 10 documentation commit.*
+Primary documentation commit message: `docs: Phase 12 Sprint 10 commercial launch audit (NOT APPROVED)`.
+
+A follow-up commit may update this evidence section only.
 
 ---
 
