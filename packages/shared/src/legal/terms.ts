@@ -29,7 +29,7 @@ export const LEGAL_LOCATION_STATEMENT = `Operating from ${LEGAL_JURISDICTION}`;
  * Canonical entity / operator statement — no ambiguity about registration
  * of a “group of companies.”
  */
-export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is developed and operated by ${COMPANY_NAME}. Part of the ${GROUP_NAME}. ${COMPANY_NAME} is ${LEGAL_LOCATION_STATEMENT.toLowerCase()}.`;
+export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is developed and operated by ${COMPANY_NAME}. Part of the ${GROUP_NAME}. ${COMPANY_NAME} operates from ${LEGAL_JURISDICTION}.`;
 
 /** Document versioning — displayed on every legal page. */
 export const LEGAL_DOCUMENT_VERSION = "1.1";

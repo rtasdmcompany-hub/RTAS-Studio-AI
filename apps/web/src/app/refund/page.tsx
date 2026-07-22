@@ -9,8 +9,11 @@ import { breadcrumbSchema } from "@/lib/structured-data";
 export const metadata: Metadata = buildPageMetadata({
   title: "Refund Policy",
   description:
-    "RTAS Studio AI refund policy for digital credits, subscriptions, and merchant-of-record billing.",
+    "RTAS Studio AI refund policy for digital credits, subscriptions, and Merchant of Record (Paddle) billing.",
   path: "/refund",
+  openGraphTitle: "Refund Policy · RTAS Studio AI",
+  openGraphDescription:
+    "How refunds, cancellations, and chargebacks work for RTAS Studio AI purchases sold by Paddle as Merchant of Record.",
 });
 
 export default function RefundPage() {

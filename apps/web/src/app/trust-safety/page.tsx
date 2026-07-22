@@ -11,6 +11,9 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "RTAS Studio AI Trust & Safety: prohibited uses including face swapping, celebrity impersonation, deepfake abuse, and identity fraud.",
   path: "/trust-safety",
+  openGraphTitle: "Trust & Safety · RTAS Studio AI",
+  openGraphDescription:
+    "Authorized creativity only — RTAS Studio AI prohibitions on face swapping, celebrity cloning, and deepfake abuse.",
 });
 
 export default function TrustSafetyPage() {

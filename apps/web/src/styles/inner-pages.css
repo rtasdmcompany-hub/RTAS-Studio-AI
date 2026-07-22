@@ -144,7 +144,7 @@
   margin: var(--ds-space-0);
 }
 
-.inner-page-section .legal-prose h3 {
+.inner-page-section .legal-prose h2 {
   color: rgb(244 244 245);
   font-size: var(--ds-text-1-05);
   font-weight: 700;
@@ -156,7 +156,7 @@
   background-clip: unset;
 }
 
-.inner-page-section .legal-prose h3:first-of-type {
+.inner-page-section .legal-prose h2:first-of-type {
   margin-top: var(--ds-space-5);
 }
 
@@ -193,10 +193,6 @@
 
 .inner-page-section .legal-prose section {
   border-bottom-color: var(--ds-color-white-6);
-}
-
-.inner-page-section .legal-prose h2 {
-  color: rgb(244 244 245);
 }
 
 .inner-page-section .legal-nav--inline {

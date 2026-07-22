@@ -12,7 +12,7 @@ export function LegalProse({ intro, sections }: Props) {
         <p className="legal-lead !text-zinc-50">{intro}</p>
         {sections.map((section) => (
           <section key={section.title} aria-labelledby={slugId(section.title)}>
-            <h3 id={slugId(section.title)}>{section.title}</h3>
+            <h2 id={slugId(section.title)}>{section.title}</h2>
             <p>{section.body}</p>
             {section.bullets && section.bullets.length > 0 ? (
               <ul>

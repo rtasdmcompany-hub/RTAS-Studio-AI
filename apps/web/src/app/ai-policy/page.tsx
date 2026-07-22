@@ -11,6 +11,9 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "RTAS Studio AI Usage Policy: generate only original, licensed, owned, or authorized content. Identity Preservation for authorized likenesses only.",
   path: "/ai-policy",
+  openGraphTitle: "AI Usage Policy · RTAS Studio AI",
+  openGraphDescription:
+    "Permitted and prohibited AI uses on RTAS Studio AI, including Identity Preservation rules and Merchant of Record compliance.",
 });
 
 export default function AiPolicyPage() {

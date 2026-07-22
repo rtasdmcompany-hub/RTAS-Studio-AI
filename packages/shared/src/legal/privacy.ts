@@ -37,7 +37,7 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   },
   {
     title: "5. International Transfers & Cross-Border Safeguards",
-    body: `Because ${PRODUCT_NAME} serves users globally and ${COMPANY_NAME} is ${LEGAL_LOCATION_STATEMENT.toLowerCase()}, data may be processed in the United States, European Union, United Kingdom, Pakistan, and other countries where we or our subprocessors maintain infrastructure. Where required, we implement Standard Contractual Clauses (SCCs), UK International Data Transfer Addenda, or equivalent mechanisms, and assess transfer risks in line with Schrems II guidance.`,
+    body: `Because ${PRODUCT_NAME} serves users globally and ${COMPANY_NAME} operates from ${LEGAL_JURISDICTION}, data may be processed in the United States, European Union, United Kingdom, Pakistan, and other countries where we or our subprocessors maintain infrastructure. Where required, we implement Standard Contractual Clauses (SCCs), UK International Data Transfer Addenda, or equivalent mechanisms, and assess transfer risks in line with Schrems II guidance.`,
   },
   {
     title: "6. Your Global Privacy Rights",
