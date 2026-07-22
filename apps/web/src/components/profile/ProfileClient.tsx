@@ -714,8 +714,9 @@ export function ProfileClient({ initialProfile }: Props) {
         </div>
 
         <footer className="profile-legal">
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms of Service</Link>
+          <Link href="/privacy">Privacy Policy</Link>
+          <Link href="/refund">Refund Policy</Link>
           <Link href="/cookies">Cookies</Link>
           <Link href="/pricing#plans">Pricing</Link>
         </footer>

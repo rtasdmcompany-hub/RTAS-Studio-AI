@@ -58,13 +58,22 @@ export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
   { id: "billing", label: "Billing", href: "/help/billing" },
 ];
 
+/**
+ * Paddle Merchant of Record required policies — exact labels Paddle expects
+ * ("Terms of Service", "Privacy Policy" / privacy notice, "Refund Policy").
+ * Shown first in the Legal column and again in the footer bottom strip.
+ */
+export const SITE_PADDLE_POLICY_LINKS: SiteNavLink[] = [
+  { id: "terms", label: "Terms of Service", href: "/terms" },
+  { id: "privacy", label: "Privacy Policy", href: "/privacy" },
+  { id: "refund", label: "Refund Policy", href: "/refund" },
+];
+
 /** Legal column */
 export const SITE_LEGAL_LINKS: SiteNavLink[] = [
-  { id: "privacy", label: "Privacy", href: "/privacy" },
-  { id: "terms", label: "Terms", href: "/terms" },
+  ...SITE_PADDLE_POLICY_LINKS,
   { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },
   { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
-  { id: "refund", label: "Refund Policy", href: "/refund" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
 ];
 
@@ -72,11 +81,9 @@ export const SITE_LEGAL_LINKS: SiteNavLink[] = [
 export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "help", label: "Help Center", href: "/help" },
   { id: "contact-support", label: "Contact", href: "/help/contact" },
-  { id: "privacy", label: "Privacy", href: "/privacy" },
-  { id: "terms", label: "Terms", href: "/terms" },
+  ...SITE_PADDLE_POLICY_LINKS,
   { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },
   { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
-  { id: "refund", label: "Refund Policy", href: "/refund" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
   { id: "status", label: "System status", href: "/status" },
   { id: "faq", label: "FAQ", href: "/help/faq" },

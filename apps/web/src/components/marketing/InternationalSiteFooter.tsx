@@ -9,6 +9,7 @@ import {
   SITE_COMPANY_LINKS,
   SITE_DEVELOPER_LINKS,
   SITE_LEGAL_LINKS,
+  SITE_PADDLE_POLICY_LINKS,
   SITE_PRODUCT_LINKS,
   SITE_RESOURCE_LINKS,
   SITE_SOCIAL_LINKS,
@@ -136,6 +137,21 @@ export function InternationalSiteFooter({ className = "" }: Props) {
         </div>
       </div>
       <div className="studio-world-footer__bottom">
+        <nav
+          className="studio-world-footer__policies"
+          aria-label="Terms of Service, Privacy Policy, and Refund Policy"
+        >
+          {SITE_PADDLE_POLICY_LINKS.map((link, index) => (
+            <span key={link.id} className="studio-world-footer__policies-item">
+              {index > 0 ? (
+                <span className="studio-world-footer__policies-sep" aria-hidden>
+                  ·
+                </span>
+              ) : null}
+              <FooterLink href={link.href} label={link.label} external={link.external} />
+            </span>
+          ))}
+        </nav>
         <p>{COPYRIGHT_NOTICE}</p>
         <p className="studio-world-footer__muted">
           Premium subscription required for commercial downloads. Watermarked previews are for

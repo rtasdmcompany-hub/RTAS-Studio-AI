@@ -734,6 +734,32 @@
   text-align: center;
 }
 
+.studio-world-footer__policies {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.15rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+.studio-world-footer__policies a {
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  font-weight: 500;
+}
+
+.studio-world-footer__policies a:hover {
+  color: #fff;
+}
+
+.studio-world-footer__policies-sep {
+  margin: 0 0.4rem;
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .studio-world-footer__bottom p {
   margin: 0;
   font-size: 0.75rem;
