@@ -147,6 +147,10 @@ export const SITE_SUPPORT_EMAIL = "contact@rtasstudio.com";
 export const SITE_HELP_EMAIL = "support@rtasstudio.com";
 /** General info alias. */
 export const SITE_INFO_EMAIL = "info@rtasstudio.com";
+/** Designated legal correspondence address (Forward Email / routing). */
+export const SITE_LEGAL_EMAIL = "legal@rtasstudio.com";
+/** Designated privacy / data-rights address (Forward Email / routing). */
+export const SITE_PRIVACY_EMAIL = "privacy@rtasstudio.com";
 
 export const SITE_TRUST_BADGES = [
   {

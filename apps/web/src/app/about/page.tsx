@@ -48,7 +48,7 @@ const VALUES = [
   },
   {
     title: "International by default",
-    body: `Built under ${GROUP_NAME} for creators and teams shipping music videos, ads, and stories across markets.`,
+    body: `Part of the ${GROUP_NAME} — built for creators and teams shipping music videos, ads, and stories across markets.`,
   },
 ] as const;
 
@@ -60,9 +60,10 @@ export default function AboutPage() {
           <p className="rtas-eyebrow">About</p>
           <h1 className="text-zinc-100">{PRODUCT_NAME}</h1>
           <p className="rtas-about-page__lead mx-auto mt-3 max-w-2xl text-ds-text-muted">
-            Built by {COMPANY_NAME} under {GROUP_NAME} — an international AI video
-            studio for creators and teams who need cinematic output with clear credits,
-            commercial licensing, and a premium product experience.
+            Developed and operated by {COMPANY_NAME}. Part of the {GROUP_NAME} — an
+            international AI video studio for creators and teams who need cinematic
+            output with clear credits, commercial licensing, and a premium product
+            experience.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/studio" variant="lavender">
@@ -109,7 +110,7 @@ export default function AboutPage() {
           <p className="rtas-eyebrow">Company story</p>
           <h2 className="text-xl text-zinc-100">From marketing craft to AI studio</h2>
           <p className="mt-3 max-w-3xl text-sm text-ds-text-muted">
-            {COMPANY_NAME} built {PRODUCT_NAME} as a proprietary software division under{" "}
+            {COMPANY_NAME} developed and operates {PRODUCT_NAME} as part of the{" "}
             {GROUP_NAME}. The product grew from a practical need: creative teams were
             stitching together prompts, editors, and billing tools that did not speak to
             each other. We designed a guided studio — mode, category, style, Identity Preservation when

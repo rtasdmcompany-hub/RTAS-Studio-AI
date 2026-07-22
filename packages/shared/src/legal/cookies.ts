@@ -1,8 +1,9 @@
 import {
   COMPANY_NAME,
-  GROUP_NAME,
+  LEGAL_CONTACT_EMAIL,
   LEGAL_ENTITY_STATEMENT,
-  LEGAL_LAST_UPDATED,
+  LEGAL_LOCATION_STATEMENT,
+  LEGAL_SUPPORT_EMAIL,
   PRODUCT_NAME,
 } from "./terms";
 import type { LegalSection } from "./types";
@@ -11,26 +12,26 @@ export const COOKIES_INTRO = `${LEGAL_ENTITY_STATEMENT} This Cookie Policy descr
 
 export const COOKIE_SECTIONS: LegalSection[] = [
   {
-    title: "1. Scope & Corporate Entity",
-    body: `${LEGAL_ENTITY_STATEMENT} Cookies set by ${COMPANY_NAME} on ${PRODUCT_NAME} domains support authentication, security, studio workflow persistence, and — with your consent — analytics. Third parties such as payment processors and OAuth providers may set their own cookies when you interact with their flows.`,
+    title: "1. Scope & Operator",
+    body: `${LEGAL_ENTITY_STATEMENT} Cookies set by ${COMPANY_NAME} on ${PRODUCT_NAME} domains support authentication, security, studio workflow persistence, and — with your consent — analytics. Third parties such as our Merchant of Record (Paddle) and OAuth providers may set their own cookies when you interact with their flows.`,
   },
   {
     title: "2. Essential & Functional Cookies",
     body: `Strictly necessary technologies enable core Service functionality and cannot be disabled without breaking sign-in or checkout.`,
     bullets: [
-      "Session and authentication tokens (NextAuth / secure HTTP-only cookies).",
+      "Session and authentication tokens (secure HTTP-only cookies).",
       "CSRF and security tokens that protect against cross-site request forgery.",
-      "Local storage drafts for studio form fields and UI preferences you explicitly save.",
+      "Local storage for studio form fields and UI preferences you explicitly save.",
       "Cookie-consent state so we remember your banner choice.",
     ],
   },
   {
     title: "3. Analytics & Performance Technologies",
-    body: `If you accept non-essential cookies, we may use privacy-oriented analytics to measure page performance, feature adoption, and error rates. These tools receive pseudonymous identifiers — not sold to advertisers. Declining analytics cookies does not affect paid features or generation capacity.`,
+    body: `If you accept non-essential cookies, we may use privacy-oriented analytics to measure page performance, feature adoption, and error rates. These tools receive pseudonymous identifiers — not sold to advertisers. Declining analytics cookies does not affect paid features, Credits, or generation capacity.`,
   },
   {
     title: "4. Third-Party Cookies (Payments, OAuth & CDNs)",
-    body: `When you complete checkout or sign in with Google, Merchant-of-Record partners (e.g., Paddle, Lemon Squeezy) and identity providers may set cookies on their domains to prevent fraud, maintain sessions, and comply with PCI-DSS workflows. Content delivery networks may cache assets locally. Their policies govern data on their domains; review each provider's documentation before completing checkout or OAuth.`,
+    body: `When you complete checkout or sign in with Google, our Merchant of Record (Paddle) and identity providers may set cookies on their domains to prevent fraud, maintain sessions, and comply with PCI-DSS workflows. Content delivery networks may cache assets locally. Their policies govern data on their domains; review each provider's documentation before completing checkout or OAuth.`,
   },
   {
     title: "5. Consent Management & Your Choices",
@@ -38,6 +39,6 @@ export const COOKIE_SECTIONS: LegalSection[] = [
   },
   {
     title: "6. Retention, Updates & Contact",
-    body: `Session cookies expire when you close the browser; persistent cookies and local storage entries typically persist up to twelve (12) months unless cleared earlier. We update this Policy when technologies change. Questions: contact@rtasstudio.com · ${COMPANY_NAME} · ${GROUP_NAME}. Last updated: ${LEGAL_LAST_UPDATED}.`,
+    body: `Session cookies expire when you close the browser; persistent cookies and local storage entries typically persist up to twelve (12) months unless cleared earlier. We update this Policy when technologies change. Questions: ${LEGAL_SUPPORT_EMAIL} · ${LEGAL_CONTACT_EMAIL} · ${COMPANY_NAME} · ${LEGAL_LOCATION_STATEMENT}.`,
   },
 ];

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
   COMPANY_NAME,
-  GROUP_NAME,
+  LEGAL_DOCUMENT_VERSION,
+  LEGAL_EFFECTIVE_DATE,
   LEGAL_ENTITY_STATEMENT,
   LEGAL_LAST_UPDATED,
+  LEGAL_LOCATION_STATEMENT,
   PRODUCT_NAME,
 } from "@rtas/shared";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
@@ -36,9 +38,13 @@ export function LegalLayout({ title, subtitle, children }: Props) {
             <p className="legal-meta">
               {LEGAL_ENTITY_STATEMENT}
               <br />
-              {PRODUCT_NAME} · {COMPANY_NAME} · {GROUP_NAME}
+              {PRODUCT_NAME} · {COMPANY_NAME} · {LEGAL_LOCATION_STATEMENT}
               <br />
-              Last updated: {LEGAL_LAST_UPDATED}
+              Document Version {LEGAL_DOCUMENT_VERSION}
+              <br />
+              Effective Date: {LEGAL_EFFECTIVE_DATE}
+              <br />
+              Last Updated: {LEGAL_LAST_UPDATED}
             </p>
           </InnerPageSection>
 
@@ -48,7 +54,9 @@ export function LegalLayout({ title, subtitle, children }: Props) {
             <Link href="/terms">Terms of Service</Link>
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/refund">Refund Policy</Link>
-            <Link href="/cookies">Cookies</Link>
+            <Link href="/cookies">Cookie Policy</Link>
+            <Link href="/ai-policy">AI Usage Policy</Link>
+            <Link href="/trust-safety">Trust &amp; Safety</Link>
           </InnerPageSection>
         </div>
       </InnerPageContainer>
