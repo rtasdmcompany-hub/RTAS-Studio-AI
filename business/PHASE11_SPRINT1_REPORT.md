@@ -12,7 +12,7 @@
 | # | Deliverable | Path | Status |
 |---|-------------|------|--------|
 | — | Folder structure + README | `business/` · `business/README.md` | Complete |
-| — | Reserved dirs | `investors/` `finance/` `legal/` `branding/` (+ `.gitkeep`) | Complete |
+| — | Reserved dirs | `investors/` `finance/` `legal/` `branding/` (README placeholders) | Complete |
 | 2 | Company Overview | `business/company/COMPANY_OVERVIEW.md` | Complete |
 | 3 | Product Positioning | `business/marketing/PRODUCT_POSITIONING.md` | Complete |
 | 4 | ICP | `business/sales/ICP.md` | Complete |

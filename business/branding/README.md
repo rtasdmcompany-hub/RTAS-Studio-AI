@@ -23,8 +23,8 @@ Live site: https://rtasstudio.com
 | Topic | Document |
 |-------|----------|
 | Mission / vision / values | `../company/COMPANY_OVERVIEW.md` |
-| Positioning | `../company/PRODUCT_POSITIONING.md` |
-| USP / messaging | `../company/USP.md` |
+| Positioning | `../marketing/PRODUCT_POSITIONING.md` |
+| USP / messaging | `../marketing/USP.md` |
 
 ---
 
