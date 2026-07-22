@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  TESTER_CREDITS,
+  TESTER_DURATION_DAYS,
+  TESTER_PRICE_USD,
+} from "@rtas/shared";
 import { Button, ButtonLink } from "@rtas/ui";
 
 const STORAGE_KEY = "rtas_onboarding_dismissed_v1";
@@ -61,7 +66,9 @@ export function DashboardWelcome({ firstName }: Props) {
             <strong>Open Studio</strong> — choose a category and describe your scene.
           </li>
           <li>
-            <strong>Track credits</strong> — one credit equals one second of finished video.
+            <strong>Track credits</strong> — 1 credit = 1 second. New accounts start at 0;
+            Tester (${TESTER_PRICE_USD}) unlocks {TESTER_CREDITS} seconds for{" "}
+            {TESTER_DURATION_DAYS} days.
           </li>
           <li>
             <strong>Review results here</strong> — library, queue status, and billing live on this dashboard.

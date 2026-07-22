@@ -1,7 +1,5 @@
 import {
   creditsForDuration,
-  FREE_TRIAL_DURATION_SECONDS,
-  hasUnexpiredCredits,
   isPaidTier,
   PREMIUM_CREDITS,
   PREMIUM_PRICE_USD,
@@ -59,15 +57,14 @@ export function hasTesterAccess(profile: UserProfile): boolean {
   );
 }
 
-/** Legacy one-time free preview — deprecated for new signups */
+/**
+ * Legacy free preview — disabled. Entry plan is Tester ($5 / 30s).
+ */
 export function canUseFreeTrial(
-  profile: UserProfile,
-  durationSeconds: number
+  _profile: UserProfile,
+  _durationSeconds: number
 ): boolean {
-  if (isPaidTier(profile.tier)) return false;
-  if (profile.subscriptionActive) return false;
-  const trialUsed = profile.hasUsedFreeTrial ?? profile.freeTrialUsed;
-  return !trialUsed && durationSeconds <= FREE_TRIAL_DURATION_SECONDS;
+  return false;
 }
 
 /** Block generation — show recharge popup */
@@ -92,7 +89,9 @@ export const FREE_TRIAL_ABUSE_MESSAGE =
 
 export { shouldConfirmEarlyResubscribe, rolloverCredits };
 
+/** Header / pill label — always reflects the real credit balance. */
 export function creditsLabel(profile: UserProfile): string {
+  const balance = Math.max(0, profile.credits);
   if (profile.tier === "tester") {
     const days = profile.creditsExpireAt
       ? Math.max(
@@ -102,15 +101,18 @@ export function creditsLabel(profile: UserProfile): string {
           )
         )
       : TESTER_DURATION_DAYS;
-    return `${profile.credits} (Tester · ${days}d left)`;
+    return `${balance} (Tester · ${days}d left)`;
   }
   if (profile.tier === "standard") {
-    return `${profile.credits} (Standard)`;
+    return `${balance} (Standard)`;
   }
   if (profile.tier === "premium") {
-    return `${profile.credits} (Premium 4K)`;
+    return `${balance} (Premium 4K)`;
   }
-  return `0 — Tester $${TESTER_PRICE_USD}`;
+  if (balance > 0) {
+    return `${balance}`;
+  }
+  return `0 · Tester $${TESTER_PRICE_USD}`;
 }
 
 export function paywallReasonMessage(profile: UserProfile, creditsRequired: number): string {

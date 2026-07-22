@@ -116,7 +116,11 @@ export function StudioProfileProvider({ children }: { children: ReactNode }) {
       const capped = capCreditsForTier(merged);
       saveProfile(capped);
       setProfileState(capped);
-      setStudioMetrics(server.studioMetrics);
+      // Keep metrics balance aligned with profile (single source of truth).
+      setStudioMetrics({
+        ...server.studioMetrics,
+        videoGenerationCredits: capped.credits,
+      });
       return capped;
     } catch {
       return null;

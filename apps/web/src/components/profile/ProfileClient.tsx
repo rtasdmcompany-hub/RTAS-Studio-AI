@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { UserProfile } from "@rtas/shared";
 import {
-  FREE_TRIAL_DURATION_SECONDS,
   PREMIUM_CREDITS,
   PREMIUM_PRICE_USD,
   STANDARD_CREDITS,
@@ -168,7 +167,7 @@ export function ProfileClient({ initialProfile }: Props) {
           ? "Tester"
           : "Free";
 
-  const credits = studioMetrics?.videoGenerationCredits ?? profile.credits;
+  const credits = profile.credits;
   const queueActive =
     studioMetrics?.concurrentTracks ?? studioMetrics?.renderingQueues ?? 0;
   const queueMax = studioMetrics?.maxConcurrentGenerations ?? 3;
@@ -238,6 +237,12 @@ export function ProfileClient({ initialProfile }: Props) {
       items.push({
         id: "credits",
         tone: "warn",
+        text: `No credits yet — start with Tester $${TESTER_PRICE_USD} (${TESTER_CREDITS}s / ${TESTER_DURATION_DAYS} days).`,
+      });
+    } else if (credits <= 0) {
+      items.push({
+        id: "credits",
+        tone: "warn",
         text: "You are out of credits. Upgrade your plan to continue creating.",
       });
     } else if (
@@ -257,13 +262,6 @@ export function ProfileClient({ initialProfile }: Props) {
         text: "Autosaved Studio draft is ready to continue",
       });
     }
-    if (!(profile.freeTrialUsed || profile.hasUsedFreeTrial)) {
-      items.push({
-        id: "trial",
-        tone: "ok",
-        text: `${FREE_TRIAL_DURATION_SECONDS}-second free preview is still available`,
-      });
-    }
     return items.slice(0, 4);
   }, [
     activeJobs.length,
@@ -272,8 +270,6 @@ export function ProfileClient({ initialProfile }: Props) {
     credits,
     profile.subscriptionActive,
     profile.creditsExpireAt,
-    profile.freeTrialUsed,
-    profile.hasUsedFreeTrial,
     draft,
   ]);
 
@@ -439,7 +435,7 @@ export function ProfileClient({ initialProfile }: Props) {
             {notifications.length === 0 ? (
               <p className="dashboard-card__empty">
                 {isFirstTime
-                  ? `${FREE_TRIAL_DURATION_SECONDS}-second free preview is available. Open Studio to try it.`
+                  ? `Plans start at Tester $${TESTER_PRICE_USD} — ${TESTER_CREDITS} seconds for ${TESTER_DURATION_DAYS} days.`
                   : "You are all caught up. No action needed."}
               </p>
             ) : (
@@ -609,8 +605,8 @@ export function ProfileClient({ initialProfile }: Props) {
             </button>
           </div>
           <p className="dashboard-section__lead">
-            Review your account details, free preview status, and upgrade options. Checkout opens in a
-            secure new tab.
+            Review your account details and upgrade options. Checkout opens in a
+            secure new tab. 1 credit = 1 second of finished video.
           </p>
           <div className="dashboard-account__grid">
             <Card variant="glass" className="dashboard-card dashboard-card--static">
@@ -636,9 +632,9 @@ export function ProfileClient({ initialProfile }: Props) {
             </Card>
             <Card variant="glass" className="dashboard-card dashboard-card--static">
               <p>
-                <strong>{FREE_TRIAL_DURATION_SECONDS}s preview</strong>
+                <strong>Credits</strong>
                 <span>
-                  {profile.freeTrialUsed || profile.hasUsedFreeTrial ? "Used" : "Available once"}
+                  {credits} second{credits === 1 ? "" : "s"}
                 </span>
               </p>
               <p>

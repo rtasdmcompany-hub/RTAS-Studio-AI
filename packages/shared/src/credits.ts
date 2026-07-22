@@ -20,7 +20,10 @@ export const TESTER_CREDITS = 30;
 export const TESTER_DURATION_DAYS = 5;
 export const TESTER_RATE_USD_PER_SEC = 0.01;
 
-/** @deprecated Legacy one-time preview; new users should use Tester plan */
+/**
+ * @deprecated Not part of the public product. Entry plan is Tester ($5 / 30s).
+ * Kept only for legacy generation guards; do not advertise in UI.
+ */
 export const FREE_TRIAL_DURATION_SECONDS = 20;
 
 /** @deprecated Use 1 credit per second; kept for legacy references */
@@ -67,7 +70,6 @@ export function checkCredits(
   options?: { allowPreviewSkip?: boolean }
 ): CreditCheckResult {
   const creditsRequired = creditsForDuration(durationSeconds);
-  const trialUsed = profile.hasUsedFreeTrial ?? profile.freeTrialUsed;
 
   if (profile.creditsExpireAt) {
     const expired = new Date(profile.creditsExpireAt) < new Date();
@@ -83,15 +85,6 @@ export function checkCredits(
   const paidTier = isPaidTier(profile.tier ?? "free");
   if (paidTier && profile.credits >= creditsRequired) {
     return { allowed: true, creditsRequired, reason: "ok" };
-  }
-
-  if (!trialUsed && durationSeconds <= FREE_TRIAL_DURATION_SECONDS) {
-    return {
-      allowed: true,
-      creditsRequired: 0,
-      reason: "free_trial",
-      useFreeTrial: true,
-    };
   }
 
   if (profile.subscriptionActive && profile.credits >= creditsRequired) {

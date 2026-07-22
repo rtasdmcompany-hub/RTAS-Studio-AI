@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useStudioProfile } from "@/context/StudioProfileContext";
-import { FREE_TRIAL_DURATION_SECONDS } from "@rtas/shared";
+import { TESTER_CREDITS, TESTER_DURATION_DAYS, TESTER_PRICE_USD } from "@rtas/shared";
 
 type Notice = { id: string; tone: "info" | "warn" | "ok"; text: string; href: string };
 
@@ -48,6 +48,13 @@ export function HeaderNotifications() {
       items.push({
         id: "credits",
         tone: "warn",
+        text: `No credits — Tester $${TESTER_PRICE_USD} gives ${TESTER_CREDITS}s for ${TESTER_DURATION_DAYS} days.`,
+        href: "/pricing",
+      });
+    } else if (credits <= 0) {
+      items.push({
+        id: "credits",
+        tone: "warn",
         text: "Credits depleted — upgrade to keep rendering.",
         href: "/pricing",
       });
@@ -60,14 +67,6 @@ export function HeaderNotifications() {
         tone: "warn",
         text: `Credits expire ${new Date(profile.creditsExpireAt).toLocaleDateString()}`,
         href: "/pricing",
-      });
-    }
-    if (!profile.freeTrialUsed && !profile.hasUsedFreeTrial) {
-      items.push({
-        id: "trial",
-        tone: "ok",
-        text: `${FREE_TRIAL_DURATION_SECONDS}s evaluation preview still available`,
-        href: "/studio",
       });
     }
     items.push({
@@ -96,39 +95,33 @@ export function HeaderNotifications() {
         className="studio-notify__trigger"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-haspopup="menu"
         aria-label={warnCount ? `Notifications, ${warnCount} alerts` : "Notifications"}
         onClick={() => setOpen((v) => !v)}
       >
-        <span aria-hidden>🔔</span>
-        {warnCount > 0 ? <span className="studio-notify__dot" aria-hidden /> : null}
+        <span className="studio-notify__bell" aria-hidden>
+          ◈
+        </span>
+        {warnCount > 0 ? (
+          <span className="studio-notify__badge">{warnCount > 9 ? "9+" : warnCount}</span>
+        ) : null}
       </button>
       {open ? (
-        <div id={menuId} className="studio-notify__menu" role="menu">
-          <p className="studio-notify__title">Notifications</p>
-          {notices.length === 0 ? (
-            <p className="studio-notify__empty">You are all caught up.</p>
-          ) : (
-            notices.map((n) => (
-              <Link
-                key={n.id}
-                href={n.href}
-                className={`studio-notify__item studio-notify__item--${n.tone}`}
-                role="menuitem"
-                onClick={() => setOpen(false)}
-              >
-                {n.text}
-              </Link>
-            ))
-          )}
-          <Link
-            href="/profile"
-            className="studio-notify__footer"
-            role="menuitem"
-            onClick={() => setOpen(false)}
-          >
-            Open Dashboard →
-          </Link>
+        <div className="studio-notify__menu" id={menuId} role="menu">
+          <p className="studio-notify__heading">Account</p>
+          <ul className="studio-notify__list">
+            {notices.map((n) => (
+              <li key={n.id}>
+                <Link
+                  href={n.href}
+                  className={`studio-notify__item studio-notify__item--${n.tone}`}
+                  role="menuitem"
+                  onClick={() => setOpen(false)}
+                >
+                  {n.text}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </div>

@@ -186,30 +186,28 @@ export function applyCreditExpiry(profile: UserProfile): UserProfile {
   };
 }
 
+/** Prefer server billing fields so header + dashboard stay in sync. */
 export function mergeServerProfile(
   local: UserProfile,
   server: UserProfile
 ): UserProfile {
-  const serverPaid =
-    server.subscriptionActive ||
+  const serverTier =
     server.tier === "premium" ||
     server.tier === "standard" ||
     server.tier === "tester" ||
-    server.credits > 0;
-  if (!serverPaid) return local;
+    server.tier === "free"
+      ? server.tier
+      : local.tier;
+
   return {
     ...local,
     ...server,
     id: local.id,
     email: local.email || server.email,
-    tier:
-      server.tier === "premium" ||
-      server.tier === "standard" ||
-      server.tier === "tester"
-        ? server.tier
-        : local.tier,
+    name: local.name || server.name,
+    tier: serverTier,
     subscriptionActive: server.subscriptionActive,
-    credits: server.credits,
+    credits: Math.max(0, server.credits),
     creditsExpireAt: server.creditsExpireAt,
     subscriptionRenewsAt: server.subscriptionRenewsAt,
     paymentProvider: server.paymentProvider ?? local.paymentProvider,

@@ -1,6 +1,5 @@
 import {
   creditsForDuration,
-  FREE_TRIAL_DURATION_SECONDS,
   isPaidTier,
   TESTER_CREDITS,
   type UserProfile,
@@ -21,10 +20,8 @@ export function getMaxVideoDurationSeconds(profile: UserProfile): number {
   if (profile.tier === "standard" || profile.tier === "premium") {
     return Math.max(0, profile.credits);
   }
-  if (!profile.freeTrialUsed && !profile.hasUsedFreeTrial) {
-    return FREE_TRIAL_DURATION_SECONDS;
-  }
-  return 0;
+  // Free accounts start at 0 — entry plan is Tester ($5 / 30s).
+  return Math.max(0, profile.credits);
 }
 
 export function validateDurationSelection(

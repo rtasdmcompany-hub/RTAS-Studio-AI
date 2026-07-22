@@ -99,7 +99,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
     id: "commercial",
     question: "When do I get commercial rights?",
     answer:
-      "Active Pro and Enterprise plans unlock downloadable masters and commercial entitlement. Evaluation and free previews are for review only.",
+      "Active Pro and Enterprise plans unlock downloadable masters and commercial entitlement. Evaluation and watermarked outputs on unpaid accounts are for private review only.",
   },
 ];
 

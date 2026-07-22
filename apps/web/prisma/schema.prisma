@@ -20,7 +20,7 @@ model User {
 
   // Studio profile & SaaS generation limits
   tier                   String    @default("free")
-  credits                Int       @default(50)
+  credits                Int       @default(0)
   concurrentTracks       Int       @default(0)
   creditsExpireAt        DateTime?
   subscriptionActive     Boolean   @default(false)

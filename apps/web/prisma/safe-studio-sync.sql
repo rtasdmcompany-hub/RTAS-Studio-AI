@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "User" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "tier" TEXT NOT NULL DEFAULT 'free',
-    "credits" INTEGER NOT NULL DEFAULT 50,
+    "credits" INTEGER NOT NULL DEFAULT 0,
     "concurrentTracks" INTEGER NOT NULL DEFAULT 0,
     "creditsExpireAt" TIMESTAMP(3),
     "subscriptionActive" BOOLEAN NOT NULL DEFAULT false,
