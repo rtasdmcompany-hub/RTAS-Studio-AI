@@ -14,5 +14,9 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <MarketingLayout>{children}</MarketingLayout>;
+  return (
+    <MarketingLayout>
+      <div className="auth-shell">{children}</div>
+    </MarketingLayout>
+  );
 }
