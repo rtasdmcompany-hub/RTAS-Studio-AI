@@ -3,7 +3,7 @@ import { readJsonDocument, writeJsonDocument } from "@/lib/server/persistent-sto
 const STORE_NAME = "trial-claims";
 
 export const FREE_TRIAL_ABUSE_MESSAGE =
-  "Free trial limit reached for this device/network. Please upgrade to the Premium Plan to continue.";
+  "Generation limit reached for this device/network. Please get the Tester ($5) or Standard plan to continue.";
 
 export interface TrialClaimRecord {
   userId: string;

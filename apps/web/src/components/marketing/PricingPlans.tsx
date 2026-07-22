@@ -149,6 +149,9 @@ export function PricingPlans() {
 
             <p className="rtas-pricing-tier__subtitle">{tier.subtitle}</p>
             <h2 className="rtas-pricing-tier__name">{tier.name}</h2>
+            {tier.marketingAlias ? (
+              <p className="rtas-pricing-tier__alias">Also called {tier.marketingAlias}</p>
+            ) : null}
             <p className="rtas-pricing-tier__price">
               ${tier.price}
               <span>{tier.priceSuffix}</span>

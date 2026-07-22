@@ -55,7 +55,7 @@ export const UNIVERSAL_STEPS = [
     tagVariant: "purple" as const,
     title: "Step 5: Export with Commercial License",
     detail:
-      "Free trial delivers a watermarked evaluation render. Upgrade to Tester, Standard, or Premium for clean commercial downloads, full HD/4K output, and licensed distribution rights.",
+      "Accounts start with 0 credits — there is no free render pool. Tester ($5) delivers a watermarked evaluation render. Upgrade to Standard or Premium for clean commercial downloads, full HD/4K output, and licensed distribution rights.",
   },
 ] as const;
 

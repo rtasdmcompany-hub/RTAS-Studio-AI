@@ -31,7 +31,7 @@ const POSTS = [
     title: "Plans that map to real output",
     category: "Pricing",
     readTime: "5 min read",
-    body: "Creator Starter, Pro Studio, and Production Enterprise are packaged around what you actually ship: resolution caps, watermark policy, queue priority, and commercial rights. We break down when Pro is the default for weekly creators, when Enterprise unlocks cinematic 4K, and how Merchant of Record checkout handles tax and invoices internationally.",
+    body: "Tester, Standard, and Premium 4K are packaged around what you actually ship: resolution caps, watermark policy, queue priority, and commercial rights. We break down when Standard is the default for weekly creators, when Premium unlocks cinematic 4K, and how Merchant of Record checkout handles tax and invoices internationally. Marketing aliases (Creator Starter / Pro Studio / Production Enterprise) map 1:1 to these plans.",
     href: "/pricing",
     cta: "Compare pricing",
   },

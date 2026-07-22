@@ -83,7 +83,7 @@ export default function ShowcasePage() {
         <section className="rtas-ai-showcase-final" aria-labelledby="showcase-final-title">
           <h2 id="showcase-final-title">Your next clip can look like this.</h2>
           <p>
-            Start with Creator Starter to evaluate the pipeline, or go Pro when you are ready to
+            Start with Tester to evaluate the pipeline, or go Standard when you are ready to
             ship clean commercial masters.
           </p>
           <div className="rtas-ai-showcase-final__actions">

@@ -1,6 +1,7 @@
 /**
  * Pricing conversion copy — commercial voice, honest economics.
  * Prices and credit pools always come from @rtas/shared.
+ * Canonical plan names: Tester · Standard · Premium 4K
  */
 
 import {
@@ -18,7 +19,7 @@ export const PRICING_HERO_EYEBROW = "Transparent global pricing";
 export const PRICING_HERO_HEADLINE = "Pick the plan that matches your next render.";
 
 export const PRICING_HERO_SUPPORT =
-  "1 credit = 1 second of finished video. Start with a one-time evaluation, then scale to monthly HD or cinematic 4K — merchant-of-record checkout worldwide.";
+  "1 credit = 1 second of finished video. Start with Tester ($5 one-time), then scale to Standard HD or Premium 4K — merchant-of-record checkout worldwide.";
 
 export const PRICING_VALUE_POINTS = [
   {
@@ -34,26 +35,26 @@ export const PRICING_VALUE_POINTS = [
   {
     id: "license",
     title: "Commercial when paid",
-    body: "Active Pro and Enterprise unlock clean masters and commercial entitlement.",
+    body: "Active Standard and Premium unlock clean masters and commercial entitlement.",
   },
 ] as const;
 
 export const PRICING_AUDIENCE_GUIDE = [
   {
     id: "tester",
-    planHint: "Creator Starter",
+    planHint: "Tester · Creator Starter",
     title: "Evaluating the pipeline",
     body: `One real clip end-to-end for $${TESTER_PRICE_USD}. ${TESTER_CREDITS}s · ${TESTER_DURATION_DAYS}-day access. Watermarked evaluation exports.`,
   },
   {
     id: "standard",
-    planHint: "Pro Studio",
+    planHint: "Standard · Pro Studio",
     title: "Shipping weekly content",
     body: `$${STANDARD_PRICE_USD}/mo · ${STANDARD_CREDITS}s (~33 min). Clean 1080p, commercial downloads, priority Identity Preservation queue.`,
   },
   {
     id: "premium",
-    planHint: "Production Enterprise",
+    planHint: "Premium 4K · Production Enterprise",
     title: "4K brand & music films",
     body: `$${PREMIUM_PRICE_USD}/mo · ${PREMIUM_CREDITS}s at cinematic 4K. Priority+ queue for ads, music videos, and hero talent continuity.`,
   },
@@ -74,14 +75,14 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   },
   {
     id: "starter",
-    question: "Is Creator Starter a subscription?",
-    answer: `No. It is a $${TESTER_PRICE_USD} one-time evaluation with ${TESTER_CREDITS}s and a ${TESTER_DURATION_DAYS}-day access window. Exports carry an evaluation watermark and preview license only.`,
+    question: "Is Tester a subscription?",
+    answer: `No. Tester (also called Creator Starter) is a $${TESTER_PRICE_USD} one-time evaluation with ${TESTER_CREDITS}s and a ${TESTER_DURATION_DAYS}-day access window. Exports carry an evaluation watermark and preview license only.`,
   },
   {
     id: "pro-vs-enterprise",
-    question: "Pro vs Enterprise — what changes?",
+    question: "Standard vs Premium 4K — what changes?",
     answer:
-      "Both include the same monthly credit pool. Pro delivers clean 1080p HD masters. Enterprise unlocks cinematic 4K, advanced identity continuity, and priority+ queuing.",
+      "Both include the same monthly credit pool (2000s). Standard delivers clean 1080p HD masters. Premium 4K unlocks cinematic 4K, advanced identity continuity, and priority+ queuing. Marketing aliases: Pro Studio = Standard; Production Enterprise = Premium 4K.",
   },
   {
     id: "cancel",
@@ -99,7 +100,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
     id: "commercial",
     question: "When do I get commercial rights?",
     answer:
-      "Active Pro and Enterprise plans unlock downloadable masters and commercial entitlement. Evaluation and watermarked outputs on unpaid accounts are for private review only.",
+      "Active Standard and Premium plans unlock downloadable masters and commercial entitlement. Evaluation and watermarked outputs on unpaid accounts are for private review only.",
   },
 ];
 

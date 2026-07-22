@@ -34,16 +34,16 @@ export function FeatureComparisonTable() {
     <div className="rtas-feature-matrix-wrap">
       <table className="rtas-feature-matrix">
         <caption className="sr-only">
-          Feature comparison across Creator Starter, Pro Studio, and Production Enterprise
+          Feature comparison across Tester, Standard, and Premium 4K
         </caption>
         <thead>
           <tr>
             <th scope="col">Feature</th>
-            <th scope="col">Starter</th>
+            <th scope="col">Tester</th>
             <th scope="col" className="rtas-feature-matrix__col--featured">
-              Pro
+              Standard
             </th>
-            <th scope="col">Enterprise</th>
+            <th scope="col">Premium 4K</th>
           </tr>
         </thead>
         <tbody>

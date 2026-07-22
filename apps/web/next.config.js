@@ -38,6 +38,10 @@ const nextConfig = {
       { source: "/signup", destination: "/auth/signup", permanent: false },
       { source: "/register", destination: "/auth/signup", permanent: false },
       { source: "/auth/signin", destination: "/auth/login", permanent: false },
+      { source: "/contact", destination: "/help/contact", permanent: true },
+      { source: "/support", destination: "/help/contact", permanent: true },
+      { source: "/changelog", destination: "/help/changelog", permanent: true },
+      { source: "/release-notes", destination: "/help/changelog", permanent: true },
     ];
   },
   async headers() {

@@ -17,6 +17,7 @@ import {
   type VisualStyle,
 } from "@rtas/shared";
 import { useStudioProfile } from "@/context/StudioProfileContext";
+import { AnalyticsEvents, trackClientEvent } from "@/lib/analytics";
 import { GENERATION_LAST_STAGE_INDEX } from "@/lib/generation-progress-stages";
 import {
   BACKEND_CONNECTION_ERROR,
@@ -981,7 +982,7 @@ export function StudioClient() {
         };
         if (!verifyRes.ok) {
           showGenerationFailure(
-            "Free trial limit",
+            "Generation limit",
             verifyData.message ?? FREE_TRIAL_ABUSE_MESSAGE
           );
           return null;
@@ -2091,6 +2092,10 @@ export function StudioClient() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    trackClientEvent(AnalyticsEvents.DOWNLOAD_STARTED, {
+      source: "studio_success",
+      videoId: activeVideo.id,
+    });
     pushToast({
       tone: "success",
       title: "Download started",

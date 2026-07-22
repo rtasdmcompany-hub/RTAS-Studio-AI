@@ -167,25 +167,25 @@ export default function HomePage() {
       >
         <h2>Simple plans. Global checkout.</h2>
         <p className="rtas-landing-pricing__lead">
-          Start with a low-risk evaluation, then scale to monthly Pro or Production Enterprise.
+          Start with Tester, then scale to Standard or Premium 4K.
           Credits stay transparent: <strong>1 credit = 1 second</strong>.
         </p>
         <div className="rtas-landing-pricing__tiers">
           <article className="rtas-landing-pricing__tier">
-            <h3>Creator Starter</h3>
+            <h3>Tester</h3>
             <p className="rtas-landing-pricing__price">${TESTER_PRICE_USD}</p>
-            <p>Pay-as-you-go evaluation</p>
+            <p>One-time evaluation · also called Creator Starter</p>
           </article>
           <article className="rtas-landing-pricing__tier rtas-landing-pricing__tier--featured">
             <p className="rtas-landing-pricing__badge">Most popular</p>
-            <h3>Pro Studio</h3>
+            <h3>Standard</h3>
             <p className="rtas-landing-pricing__price">${STANDARD_PRICE_USD}/mo</p>
-            <p>Monthly HD credits + commercial downloads</p>
+            <p>Monthly HD credits + commercial downloads · also called Pro Studio</p>
           </article>
           <article className="rtas-landing-pricing__tier">
-            <h3>Production Enterprise</h3>
+            <h3>Premium 4K</h3>
             <p className="rtas-landing-pricing__price">${PREMIUM_PRICE_USD}/mo</p>
-            <p>Cinematic capacity for brand and music work</p>
+            <p>Cinematic 4K for brand and music work · also called Production Enterprise</p>
           </article>
         </div>
         <ButtonLink href="/pricing" variant="lavender" className="rtas-landing-pricing__cta">
@@ -202,13 +202,16 @@ export default function HomePage() {
           <ButtonLink href="/studio" variant="lavender">
             Start creating
           </ButtonLink>
+          <ButtonLink href="/enterprise" variant="ghost">
+            Enterprise
+          </ButtonLink>
           <ButtonLink href="/showcase" variant="ghost">
             Watch showcase
           </ButtonLink>
         </div>
         <p className="rtas-final-cta__note">
-          From ${TESTER_PRICE_USD} evaluation · ${STANDARD_PRICE_USD}/mo Pro · ${PREMIUM_PRICE_USD}/mo
-          Enterprise
+          From ${TESTER_PRICE_USD} Tester · ${STANDARD_PRICE_USD}/mo Standard · ${PREMIUM_PRICE_USD}/mo
+          Premium 4K
         </p>
       </section>
     </MarketingLayout>

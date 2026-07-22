@@ -21,7 +21,7 @@ import { breadcrumbSchema } from "@/lib/structured-data";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Features",
-  description: `Compare ${PRODUCT_NAME} capabilities across Creator Starter, Pro Studio, and Production Enterprise — text-to-video, commercials, Identity Preservation, credits, and commercial downloads.`,
+  description: `Compare ${PRODUCT_NAME} capabilities across Tester, Standard, and Premium 4K — text-to-video, commercials, Identity Preservation, credits, and commercial downloads.`,
   path: "/features",
   openGraphTitle: `Features · ${PRODUCT_NAME}`,
   openGraphDescription:
@@ -101,7 +101,7 @@ export default function FeaturesPage() {
 
         <section className="rtas-features-final" aria-labelledby="features-final-title">
           <h2 id="features-final-title">Choose the tier that matches your output.</h2>
-          <p>Pro is the default for weekly shipping. Enterprise unlocks cinematic 4K.</p>
+          <p>Standard is the default for weekly shipping. Premium 4K unlocks cinematic output.</p>
           <div className="rtas-features-final__actions">
             <ButtonLink href="/pricing#plans" variant="lavender">
               Compare pricing

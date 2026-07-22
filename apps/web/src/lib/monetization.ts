@@ -3,6 +3,7 @@ import {
   isPaidTier,
   PREMIUM_CREDITS,
   PREMIUM_PRICE_USD,
+  RECOMMENDED_PAYMENT_PROVIDER,
   rolloverCredits,
   STANDARD_CREDITS,
   STANDARD_PRICE_USD,
@@ -12,15 +13,16 @@ import {
   TESTER_PRICE_USD,
   type PaymentProvider,
 } from "@rtas/shared";
+import { resolveActivePaymentProvider } from "@rtas/utils/payments";
 import type { UserProfile } from "@rtas/shared";
 
 /** Active MoR provider for checkout (configure in .env) */
 export function getActivePaymentProvider(): PaymentProvider | null {
-  if (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "paddle") return "paddle";
-  if (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "lemon_squeezy") {
-    return "lemon_squeezy";
-  }
-  return null;
+  return resolveActivePaymentProvider();
+}
+
+export function getRecommendedPaymentProvider(): PaymentProvider {
+  return RECOMMENDED_PAYMENT_PROVIDER;
 }
 
 export function standardCreditsGrant(): number {
@@ -85,7 +87,7 @@ export function hasZeroCredits(profile: UserProfile): boolean {
 }
 
 export const FREE_TRIAL_ABUSE_MESSAGE =
-  "Free trial limit reached for this device/network. Please get the Tester or Standard plan to continue.";
+  "Generation limit reached for this device/network. Please get the Tester ($5) or Standard plan to continue.";
 
 export { shouldConfirmEarlyResubscribe, rolloverCredits };
 

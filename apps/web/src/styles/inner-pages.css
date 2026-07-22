@@ -453,11 +453,19 @@
 }
 
 .rtas-pricing-tier__name {
-  margin: var(--ds-space-0) var(--ds-space-0) var(--ds-space-2);
+  margin: var(--ds-space-0) var(--ds-space-0) 0.15rem;
   font-size: var(--ds-text-lg);
   font-weight: 700;
   color: rgb(244 244 245);
   line-height: 1.25;
+}
+
+.rtas-pricing-tier__alias {
+  margin: 0 0 var(--ds-space-2);
+  font-size: var(--ds-text-xs);
+  font-weight: 500;
+  color: rgb(161 161 170);
+  line-height: 1.35;
 }
 
 .rtas-pricing-tier__price {

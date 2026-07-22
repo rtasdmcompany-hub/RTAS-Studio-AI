@@ -25,14 +25,18 @@ import {
   PRICING_VALUE_POINTS,
 } from "@/lib/pricing-copy";
 import { buildPageMetadata } from "@/lib/site-metadata";
-import { breadcrumbSchema, faqSchema } from "@/lib/structured-data";
+import {
+  breadcrumbSchema,
+  faqSchema,
+  pricingProductSchema,
+} from "@/lib/structured-data";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Pricing",
-  description: `${PRODUCT_NAME} pricing: Creator Starter $${TESTER_PRICE_USD}, Pro Studio $${STANDARD_PRICE_USD}/mo, Production Enterprise $${PREMIUM_PRICE_USD}/mo. 1 credit = 1 second. Global merchant-of-record checkout.`,
+  description: `${PRODUCT_NAME} pricing: Tester $${TESTER_PRICE_USD}, Standard $${STANDARD_PRICE_USD}/mo, Premium 4K $${PREMIUM_PRICE_USD}/mo. 1 credit = 1 second. Global merchant-of-record checkout.`,
   path: "/pricing",
   openGraphTitle: `Pricing · ${PRODUCT_NAME}`,
-  openGraphDescription: `Transparent credit pricing from $${TESTER_PRICE_USD}. Pro $${STANDARD_PRICE_USD}/mo · Enterprise $${PREMIUM_PRICE_USD}/mo.`,
+  openGraphDescription: `Transparent credit pricing from $${TESTER_PRICE_USD}. Standard $${STANDARD_PRICE_USD}/mo · Premium 4K $${PREMIUM_PRICE_USD}/mo.`,
 });
 
 export default function PricingPage() {
@@ -44,6 +48,7 @@ export default function PricingPage() {
             { name: "Home", path: "/" },
             { name: "Pricing", path: "/pricing" },
           ]),
+          pricingProductSchema(),
           faqSchema(
             PRICING_FAQ.map((item) => ({
               question: item.question,
@@ -115,6 +120,9 @@ export default function PricingPage() {
           <div className="rtas-pricing-final__actions">
             <ButtonLink href="#plans" variant="lavender">
               Choose a plan
+            </ButtonLink>
+            <ButtonLink href="/enterprise#contact" variant="ghost">
+              Enterprise contact
             </ButtonLink>
             <ButtonLink href="/studio" variant="ghost">
               Open Studio

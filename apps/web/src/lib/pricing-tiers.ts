@@ -17,7 +17,10 @@ export type PricingFeatureRow = {
 
 export type PricingTier = {
   plan: PaidPlanType;
+  /** Canonical product name (checkout / billing source of truth). */
   name: string;
+  /** Optional marketing alias shown under the canonical name. */
+  marketingAlias?: string;
   subtitle: string;
   price: number;
   priceSuffix: string;
@@ -29,11 +32,17 @@ export type PricingTier = {
   ctaLabel: string;
 };
 
+/**
+ * Public plan cards.
+ * Canonical names: Tester · Standard · Premium 4K
+ * Marketing aliases (optional display): Creator Starter · Pro Studio · Production Enterprise
+ */
 export const PRICING_TIERS: PricingTier[] = [
   {
     plan: "tester",
-    name: "Creator Starter",
-    subtitle: "Pay-as-you-go evaluation",
+    name: "Tester",
+    marketingAlias: "Creator Starter",
+    subtitle: "One-time evaluation",
     price: TESTER_PRICE_USD,
     priceSuffix: "one-time",
     creditsLabel: `${TESTER_CREDITS}s · ${TESTER_DURATION_DAYS}-day access`,
@@ -49,11 +58,12 @@ export const PRICING_TIERS: PricingTier[] = [
       { label: "Identity Preservation queue", value: "Standard processing", included: true },
       { label: "Commercial download", value: "Preview license only", included: false },
     ],
-    ctaLabel: `Start for $${TESTER_PRICE_USD}`,
+    ctaLabel: `Start Tester — $${TESTER_PRICE_USD}`,
   },
   {
     plan: "standard",
-    name: "Pro Studio",
+    name: "Standard",
+    marketingAlias: "Pro Studio",
     subtitle: "Most popular · Monthly",
     price: STANDARD_PRICE_USD,
     priceSuffix: "/month",
@@ -71,11 +81,12 @@ export const PRICING_TIERS: PricingTier[] = [
       { label: "Identity Preservation queue", value: "Priority queuing", included: true },
       { label: "Commercial download", value: "Licensed commercial use", included: true },
     ],
-    ctaLabel: `Go Pro — $${STANDARD_PRICE_USD}/mo`,
+    ctaLabel: `Go Standard — $${STANDARD_PRICE_USD}/mo`,
   },
   {
     plan: "premium",
-    name: "Production Enterprise",
+    name: "Premium 4K",
+    marketingAlias: "Production Enterprise",
     subtitle: "Cinematic · Monthly",
     price: PREMIUM_PRICE_USD,
     priceSuffix: "/month",
@@ -92,7 +103,7 @@ export const PRICING_TIERS: PricingTier[] = [
       { label: "Identity Preservation queue", value: "Priority+ enterprise queue", included: true },
       { label: "Commercial download", value: "Full commercial license", included: true },
     ],
-    ctaLabel: `Go Enterprise — $${PREMIUM_PRICE_USD}/mo`,
+    ctaLabel: `Go Premium 4K — $${PREMIUM_PRICE_USD}/mo`,
   },
 ];
 
