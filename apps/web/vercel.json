@@ -73,6 +73,26 @@
       "source": "/dashboard",
       "destination": "/profile",
       "permanent": false
+    },
+    {
+      "source": "/contact",
+      "destination": "/help/contact",
+      "permanent": true
+    },
+    {
+      "source": "/support",
+      "destination": "/help/contact",
+      "permanent": true
+    },
+    {
+      "source": "/changelog",
+      "destination": "/help/changelog",
+      "permanent": true
+    },
+    {
+      "source": "/release-notes",
+      "destination": "/help/changelog",
+      "permanent": true
     }
   ]
 }

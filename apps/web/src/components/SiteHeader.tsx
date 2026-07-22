@@ -20,6 +20,7 @@ const SITE_NAV: {
   { href: "/showcase", label: "Showcase", priority: 1 },
   { href: "/pricing", label: "Pricing", priority: 1 },
   { href: "/features", label: "Features", priority: 2 },
+  { href: "/enterprise", label: "Enterprise", priority: 2 },
   { href: "/docs", label: "Docs", priority: 2, fullLabel: "Documentation" },
   { href: "/help", label: "Help", priority: 3 },
 ];
@@ -45,6 +46,9 @@ function isNavActive(pathname: string, href: string): boolean {
   if (href === "/showcase") return pathname.startsWith("/showcase");
   if (href === "/features") return pathname.startsWith("/features");
   if (href === "/pricing") return pathname === "/pricing";
+  if (href === "/enterprise") {
+    return pathname.startsWith("/enterprise") || pathname.startsWith("/partners");
+  }
   if (href === "/docs") {
     return pathname.startsWith("/docs") || pathname.startsWith("/how-to-use");
   }
@@ -52,7 +56,8 @@ function isNavActive(pathname: string, href: string): boolean {
     return (
       pathname.startsWith("/help") ||
       pathname.startsWith("/feedback") ||
-      pathname.startsWith("/support")
+      pathname.startsWith("/support") ||
+      pathname.startsWith("/beta")
     );
   }
   return false;
