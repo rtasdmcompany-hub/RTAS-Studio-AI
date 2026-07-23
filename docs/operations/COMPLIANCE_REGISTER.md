@@ -32,7 +32,12 @@
 | C-03 | Trust & Safety | Prohibitions: face-swap, celebrity impersonation, deepfake abuse, etc. | **Implemented** | https://rtasstudio.com/trust-safety | Ops Owner | Quarterly + after AUP incidents | Oct 2026 |
 | C-04 | Terms / AUP | Terms of Service incl. Prohibited Uses & Acceptable Use (§10) | **Implemented** | https://rtasstudio.com/terms | Ops Owner | Quarterly | Oct 2026 |
 | C-05 | Refunds | Refund policy aligned with Paddle MoR | **Implemented** | https://rtasstudio.com/refund | Ops Owner | Quarterly | Oct 2026 |
-| C-06 | Cookies | Cookie notice / consent framing + third-party payment cookies disclosure | **Implemented** | https://rtasstudio.com/cookies | Ops Owner | Quarterly | Oct 2026 |
+| C-06 | Cookies | Cookie notice / consent framing + third-party payment cookies disclosure | **Implemented** | https://rtasstudio.com/cookies · granular Necessary/Analytics/Marketing (Sprint 8) | Ops Owner | Quarterly | Oct 2026 |
+| C-21 | Copyright / DMCA | Public Copyright & DMCA policy + designated legal@ contact | **Implemented** | https://rtasstudio.com/dmca | Ops Owner | Quarterly | Oct 2026 |
+| C-22 | Community Guidelines | Public community expectations | **Implemented** | https://rtasstudio.com/community-guidelines | Ops Owner | Quarterly | Oct 2026 |
+| C-23 | Self-serve DSAR | Data export + deletion request in Privacy settings | **Implemented** | `/profile/privacy` · `/api/user/privacy/*` | Ops Owner | Quarterly | Oct 2026 |
+| C-24 | Security / Compliance Centers | User-facing Implemented vs Roadmap hubs | **Implemented** | `/security` · `/compliance` | Ops Owner | Quarterly | Oct 2026 |
+
 | C-07 | Merchant of Record | Paddle as MoR for card processing/tax/refunds | **Implemented (policy)** · **Partial (checkout execution)** | Legal pages · Paddle dashboard | Ops Owner | Weekly while gated · Monthly when live | Ongoing |
 | C-08 | Security baseline | Headers, auth, webhook verify, secrets hygiene, audits | **Implemented (baseline)** | `docs/SECURITY.md` · pre-launch audit docs | Ops Owner | Quarterly | Oct 2026 |
 | C-09 | Data Protection / DPD posture | Privacy disclosures + MoR; international transfer language in policy | **Partial** | Privacy policy; operator in Pakistan | Ops Owner | Quarterly | Oct 2026 |
