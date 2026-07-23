@@ -116,4 +116,13 @@ Migration: `apps/web/prisma/migrations/20260723_customer_success_support/migrati
 
 ## Git evidence
 
-Commits created in this sprint (see `git log` after commit). No secrets committed. No force push. No `git config` changes.
+Primary implementation landed in branch history alongside adjacent Phase 13 commits (parallel sprint traffic). Key SHAs verified locally:
+
+| SHA | Note |
+|-----|------|
+| `08ed042` | Includes Sprint 6 ticket/success/customer-success surfaces + report (bundled in a docs commit during parallel work) |
+| `dd90a8a` / nearby | Schema already contained `SupportTicket*` + `lastLoginAt` when Sprint 6 pages were added |
+
+**Integrity checks:** No secrets committed · No force push · No `git config` changes.
+
+**Deploy follow-up:** Apply `apps/web/prisma/migrations/20260723_customer_success_support/migration.sql` on production Postgres; run `prisma generate` when the client lock is free (local generate hit `EPERM` on `.prisma/client` while another process held the file).
