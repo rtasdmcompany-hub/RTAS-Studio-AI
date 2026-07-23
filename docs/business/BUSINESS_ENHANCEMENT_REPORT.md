@@ -29,7 +29,8 @@ Phase 13 Business Enhancement: Revenue Promotion Engine (RPE)
 - `apps/web/src/lib/promotions/types.ts`
 
 ## Git Commits
-- See follow-up commit created after this report (RPE-only). Do not treat unrelated dirty tree files as part of this enhancement.
+- `728d4ba` — `feat(promotions): Phase 13 Revenue Promotion Engine`
+- RPE-only commit; unrelated dirty-tree files were left unstaged.
 
 ## Screenshots
 - Unavailable in this run. No reliable screenshot capture was produced.
