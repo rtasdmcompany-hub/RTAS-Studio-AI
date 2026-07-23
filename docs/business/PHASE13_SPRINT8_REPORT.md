@@ -117,8 +117,7 @@ Commits on `master` for this sprint (no force-push; no git config changes; no se
 | `79da7e1` | feat(legal): add DMCA and community guidelines; align cookie and privacy policies |
 | `dc4e3d3` | feat(compliance): privacy controls, security/compliance centers, status probes |
 | `0959f7c` | docs(compliance): Sprint 8 compliance pack, founder ops, and report |
-
-(Plus this evidence note amend commit if present.)
+| `b91ff84` | docs(phase13): record Sprint 8 commit SHAs in report |
 
 ---
 
