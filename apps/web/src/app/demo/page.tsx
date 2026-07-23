@@ -13,25 +13,25 @@ import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Schedule a Demo",
-  description: `Request a live demo of ${PRODUCT_NAME} for your team — Identity Preservation, credits, and production workflows. Validated form notifies sales when email delivery is configured.`,
+  description: `Book a demo, technical consultation, or discovery call for ${PRODUCT_NAME}. Validated form notifies sales and confirms when email delivery is configured.`,
   path: "/demo",
   openGraphTitle: `Schedule a Demo · ${PRODUCT_NAME}`,
   openGraphDescription:
-    "Book a product demo with RTAS. No fake calendars or invented availability — we reply to real business emails.",
+    "Book a product demo, technical consultation, or discovery call with RTAS. No fake calendars or invented availability.",
 });
 
 const WHAT_TO_EXPECT = [
   {
-    title: "30–45 minute walkthrough",
-    body: "Studio compose → render → export, credits (1 credit = 1 second), and Identity Preservation policy.",
+    title: "Book Demo",
+    body: "30–45 minute studio walkthrough: compose → render → export, credits, Identity Preservation.",
   },
   {
-    title: "Your use case first",
-    body: "Bring a real brief when you can — music video, ad, brand film, or education content.",
+    title: "Technical Consultation",
+    body: "API, security posture, deployment options, and integration scoping for technical buyers.",
   },
   {
-    title: "Honest next steps",
-    body: "Self-serve Tester/Standard/Premium or a proposal when volume or procurement requires it. No invented discounts.",
+    title: "Discovery Call",
+    body: "Use-case and commercial discovery for agencies and brand teams before a proposal.",
   },
 ] as const;
 
@@ -40,22 +40,22 @@ export default function DemoRequestPage() {
     <MarketingLayout>
       <InnerPageContainer>
         <InnerPageSection className="text-center">
-          <p className="rtas-eyebrow">Demo request</p>
+          <p className="rtas-eyebrow">Demo booking</p>
           <h1 className="text-zinc-100">See {PRODUCT_NAME} with your team</h1>
           <p className="mx-auto mt-3 max-w-2xl text-ds-text-muted">
-            Submit a demo request with a business email. We notify the commercial inbox when
-            delivery is configured; otherwise you will see an honest error and can email{" "}
-            {SITE_SUPPORT_EMAIL} directly.
+            Choose Book Demo, Technical Consultation, or Discovery Call. We notify the commercial
+            inbox and send a confirmation when email delivery is configured; otherwise you will see
+            an honest error and can email {SITE_SUPPORT_EMAIL} directly.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <ButtonLink href="#request" variant="lavender">
-              Request demo
+              Book a session
             </ButtonLink>
             <ButtonLink href="/enterprise" variant="ghost">
               Enterprise overview
             </ButtonLink>
-            <ButtonLink href="/pricing" variant="ghost">
-              Pricing
+            <ButtonLink href="/enterprise#pricing" variant="ghost">
+              Enterprise pricing
             </ButtonLink>
           </div>
         </InnerPageSection>
@@ -63,7 +63,7 @@ export default function DemoRequestPage() {
         <section className="grid gap-4 md:grid-cols-3" aria-labelledby="demo-expect">
           <InnerPageSection className="md:col-span-3 text-center pb-2">
             <h2 id="demo-expect" className="text-xl text-zinc-100">
-              What to expect
+              Session types
             </h2>
           </InnerPageSection>
           {WHAT_TO_EXPECT.map((item) => (
@@ -76,10 +76,10 @@ export default function DemoRequestPage() {
 
         <InnerPageSection id="request" aria-labelledby="demo-form">
           <h2 id="demo-form" className="text-xl text-zinc-100">
-            Schedule a demo
+            Book Demo / Technical Consultation / Discovery Call
           </h2>
           <p className="mt-2 max-w-xl text-sm text-ds-text-muted">
-            Prefer a quote or broader enterprise inquiry? Use the{" "}
+            Prefer a written proposal? Use the{" "}
             <Link href="/enterprise#contact" className="text-ds-accent-lavender hover:underline">
               enterprise contact form
             </Link>
@@ -87,14 +87,18 @@ export default function DemoRequestPage() {
           </p>
           <div className="mt-6 max-w-xl">
             <CommercialLeadForm
-              kind="enterprise"
-              submitLabel="Send demo request"
+              kind="demo"
+              submitLabel="Confirm booking request"
               showCompany
               showRole
-              showRequestType
+              showWebsite
+              showEnterpriseFields
+              showDemoType
+              showPlanInterest
+              defaultDemoType="book_demo"
               defaultRequestType="demo"
               emailLabel="Business email"
-              messageLabel="Demo context"
+              messageLabel="Session context"
               messagePlaceholder="Team size, markets, Identity Preservation needs, preferred timezone…"
               messageRequired
               messageMinLength={20}
