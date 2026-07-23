@@ -27,6 +27,8 @@ const INDEXABLE_PATHS: Array<{
   { path: "/affiliate", changeFrequency: "monthly", priority: 0.65 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.6 },
   { path: "/help", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/engage", changeFrequency: "monthly", priority: 0.65 },
+  { path: "/referral", changeFrequency: "monthly", priority: 0.55 },
   { path: "/success", changeFrequency: "monthly", priority: 0.72 },
   { path: "/help/faq", changeFrequency: "monthly", priority: 0.7 },
   { path: "/help/contact", changeFrequency: "monthly", priority: 0.65 },
