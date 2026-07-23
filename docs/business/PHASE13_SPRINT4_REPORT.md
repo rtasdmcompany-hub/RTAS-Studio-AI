@@ -109,7 +109,7 @@ Critical workflows implemented and documented with honest empty/zero/Not connect
 ## Evidence
 
 - Implementation files listed above under Deliverables.
-- Git commits: see `git log` for Sprint 4 messages after commit (this report updated with SHAs in commit body).
+- Git commit: `3e58b3c` — `feat(marketing): Phase 13 Sprint 4 automation and engagement platform`
 - URLs (local/prod after deploy): `/admin/marketing`, `/engage`, `/referral`, `/profile/notifications`, `/help`.
 
 ---
