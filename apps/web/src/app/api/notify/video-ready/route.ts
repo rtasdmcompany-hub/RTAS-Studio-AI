@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { PRODUCT_NAME } from "@rtas/shared";
 import { sendEmail } from "@/lib/server/mailer";
 import {
   checkRateLimitAsync,
   rateLimitResponse,
   requireApiSession,
 } from "@/lib/server/api-auth";
-import { escapeHtml } from "@/lib/server/html-escape";
+import { renderVideoReadyEmail } from "@/lib/marketing/email-templates";
+import { getNotificationPrefs } from "@/lib/marketing/notifications";
 
 type Body = {
   title?: string;
@@ -29,6 +29,15 @@ export async function POST(request: Request) {
   const limited = await checkRateLimitAsync(`notify:${auth.userId}`, 5, 60_000);
   if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
 
+  const prefs = await getNotificationPrefs(auth.userId);
+  if (!prefs.emailProduct) {
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: "product_email_disabled",
+    });
+  }
+
   let body: Body = {};
   try {
     body = (await request.json()) as Body;
@@ -46,51 +55,35 @@ export async function POST(request: Request) {
   );
   const studioUrl = `${appUrl}/studio`;
   const videoLink = body.videoUrl?.trim();
-  // Only allow same-origin or relative video links to avoid open-redirect phishing.
   const safeVideoLink =
     videoLink &&
     (videoLink.startsWith("/") ||
       videoLink.startsWith(`${appUrl}/`) ||
       videoLink === appUrl)
-      ? videoLink
-      : undefined;
+      ? videoLink.startsWith("/")
+        ? `${appUrl}${videoLink}`
+        : videoLink
+      : studioUrl;
 
-  const safeName = auth.session.user?.name
-    ? escapeHtml(auth.session.user.name)
-    : "";
-  const safeTitle = escapeHtml(title);
-  const safeDuration = escapeHtml(durationLabel);
-  const safeHref = safeVideoLink ? escapeHtml(safeVideoLink) : "";
-  const safeStudio = escapeHtml(studioUrl);
-  const safeProduct = escapeHtml(PRODUCT_NAME);
+  const rendered = renderVideoReadyEmail({
+    name: auth.session.user?.name || undefined,
+    title,
+    durationLabel,
+    watchUrl: safeVideoLink,
+  });
 
-  const subject = `${PRODUCT_NAME} — your video is ready`;
-  const text = [
-    `Hi${auth.session.user?.name ? ` ${auth.session.user.name}` : ""},`,
-    "",
-    `Your video "${title}" (${durationLabel}) is ready in ${PRODUCT_NAME}.`,
-    safeVideoLink ? `Watch: ${safeVideoLink}` : `Open Studio: ${studioUrl}`,
-    "",
-    "Thank you for creating with RTAS.",
-  ].join("\n");
-
-  const html = `
-    <p>Hi${safeName ? ` ${safeName}` : ""},</p>
-    <p>Your video <strong>${safeTitle}</strong> (${safeDuration}) is ready.</p>
-    ${
-      safeHref
-        ? `<p><a href="${safeHref}">Watch your video</a></p>`
-        : `<p><a href="${safeStudio}">Open ${safeProduct}</a></p>`
-    }
-    <p>Thank you for creating with RTAS.</p>
-  `;
-
-  const result = await sendEmail({ to: email, subject, html, text });
+  const result = await sendEmail({
+    to: email,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+  });
 
   return NextResponse.json({
     ok: result.ok,
     provider: result.provider,
     devPreviewPath: result.devPreviewPath,
     error: result.error,
+    templateId: rendered.templateId,
   });
 }

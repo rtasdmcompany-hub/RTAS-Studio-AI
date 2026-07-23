@@ -1,11 +1,11 @@
 import { createHmac, timingSafeEqual } from "crypto";
-import { PRODUCT_NAME } from "@rtas/shared";
 import { getEmailDeliveryMode, getNextAuthSecret, getNextAuthUrl } from "@/lib/env";
 import { findAuthUserByEmail, findAuthUserById, updateCredentialsPasswordHash } from "@/lib/server/auth-users";
 import { maskEmail } from "@/lib/server/email-verification";
 import { sendEmail } from "@/lib/server/mailer";
 import type { EmailDeliveryMode } from "@/lib/env";
 import bcrypt from "bcryptjs";
+import { renderPasswordResetEmail } from "@/lib/marketing/email-templates";
 
 const TOKEN_TTL_MS = 60 * 60 * 1000;
 const BCRYPT_ROUNDS = 10;
@@ -68,35 +68,6 @@ async function createResetToken(userId: string, email: string): Promise<string> 
   return signResetPayload(userId, email, expiresAtMs);
 }
 
-function buildResetEmail(name: string, resetUrl: string) {
-  const subject = `Reset your ${PRODUCT_NAME} password`;
-  const html = `
-    <div style="font-family:Segoe UI,Arial,sans-serif;line-height:1.6;color:#111;">
-      <h2 style="margin:0 0 12px;">Reset your password</h2>
-      <p>Hi ${name},</p>
-      <p>We received a request to reset the password for your ${PRODUCT_NAME} account. Click the button below to choose a new password.</p>
-      <p style="margin:28px 0;">
-        <a href="${resetUrl}" style="background:#7c5cff;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;display:inline-block;font-weight:600;">
-          Reset password
-        </a>
-      </p>
-      <p style="font-size:13px;color:#555;">This link expires in 1 hour. If you did not request a password reset, you can ignore this email.</p>
-      <p style="font-size:12px;color:#777;word-break:break-all;">Or copy this link: ${resetUrl}</p>
-    </div>
-  `.trim();
-
-  const text = [
-    `Hi ${name},`,
-    "",
-    `Reset your ${PRODUCT_NAME} password:`,
-    resetUrl,
-    "",
-    "This link expires in 1 hour.",
-  ].join("\n");
-
-  return { subject, html, text };
-}
-
 export async function sendPasswordResetEmailForUser(input: {
   userId: string;
   email: string;
@@ -124,13 +95,16 @@ export async function sendPasswordResetEmailForUser(input: {
   const token = await createResetToken(input.userId, input.email);
   const baseUrl = getNextAuthUrl().replace(/\/$/, "");
   const resetUrl = `${baseUrl}/auth/reset-password?token=${encodeURIComponent(token)}`;
-  const { subject, html, text } = buildResetEmail(input.name, resetUrl);
+  const rendered = renderPasswordResetEmail({
+    name: input.name,
+    resetUrl,
+  });
 
   const sent = await sendEmail({
     to: input.email,
-    subject,
-    html,
-    text,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
   });
 
   if (sent.ok) {

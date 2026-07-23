@@ -6,11 +6,17 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useStudioProfile } from "@/context/StudioProfileContext";
 import { TESTER_CREDITS, TESTER_DURATION_DAYS, TESTER_PRICE_USD } from "@rtas/shared";
+import type { InAppAnnouncement } from "@/lib/marketing/notifications";
 
-type Notice = { id: string; tone: "info" | "warn" | "ok"; text: string; href: string };
+type Notice = {
+  id: string;
+  tone: "info" | "warn" | "ok";
+  text: string;
+  href: string;
+};
 
 /**
- * Lightweight account alerts — mirrors dashboard signals without a separate inbox API.
+ * Account alerts + system announcements (Notification Center).
  */
 export function HeaderNotifications() {
   const { data: session, status } = useSession();
@@ -19,10 +25,31 @@ export function HeaderNotifications() {
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [announcements, setAnnouncements] = useState<InAppAnnouncement[]>([]);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/user/notifications");
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          announcements?: InAppAnnouncement[];
+        };
+        if (!cancelled) setAnnouncements(json.announcements ?? []);
+      } catch {
+        /* keep account-only notices */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,14 +96,30 @@ export function HeaderNotifications() {
         href: "/pricing",
       });
     }
+
+    for (const a of announcements.slice(0, 3)) {
+      items.push({
+        id: `ann-${a.id}`,
+        tone: a.kind === "security" || a.kind === "billing" ? "warn" : "info",
+        text: a.title,
+        href: a.href || "/profile/notifications",
+      });
+    }
+
+    items.push({
+      id: "prefs",
+      tone: "info",
+      text: "Notification preferences",
+      href: "/profile/notifications",
+    });
     items.push({
       id: "library",
       tone: "info",
       text: "Open Dashboard for renders, library, and billing.",
       href: "/profile",
     });
-    return items.slice(0, 4);
-  }, [session?.user, profile]);
+    return items.slice(0, 6);
+  }, [session?.user, profile, announcements]);
 
   if (status === "loading") {
     return <span className="studio-notify-skeleton" aria-hidden />;
@@ -107,7 +150,7 @@ export function HeaderNotifications() {
       </button>
       {open ? (
         <div className="studio-notify__menu" id={menuId} role="menu">
-          <p className="studio-notify__heading">Account</p>
+          <p className="studio-notify__heading">Notifications</p>
           <ul className="studio-notify__list">
             {notices.map((n) => (
               <li key={n.id}>
