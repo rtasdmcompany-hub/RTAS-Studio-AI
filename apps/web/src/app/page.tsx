@@ -48,12 +48,12 @@ const VALUE_GRID = [
     body: "Upload audio, sync lyrics, and direct cinematic motion built for musicians and storytellers.",
   },
   {
-    title: "Identity Preservation.",
-    body: "Authorized Identity Consistency keeps likeness consistent across shots — a core RTAS advantage.",
+    title: "Authorized Identity Preservation.",
+    body: "Authorized identity consistency keeps likeness consistent across shots — for content you own or are cleared to use.",
   },
   {
     title: "Credits you can explain.",
-    body: "1 credit = 1 second. Transparent pricing with merchant-of-record checkout worldwide.",
+    body: "1 credit = 1 second. Transparent pricing with Merchant-of-Record checkout.",
   },
 ] as const;
 
@@ -165,7 +165,7 @@ export default function HomePage() {
         className="rtas-landing-pricing video-content-panel"
         aria-label="Pricing overview"
       >
-        <h2>Simple plans. Global checkout.</h2>
+        <h2>Simple plans. Clear credits.</h2>
         <p className="rtas-landing-pricing__lead">
           Start with Tester, then scale to Standard or Premium 4K.
           Credits stay transparent: <strong>1 credit = 1 second</strong>.

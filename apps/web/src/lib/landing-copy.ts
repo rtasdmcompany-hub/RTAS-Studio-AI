@@ -6,10 +6,10 @@
 export const LANDING_BRAND = "RTAS STUDIO AI";
 
 export const LANDING_HERO_HEADLINE =
-  "Cinematic AI videos with identity consistency — from beat to publish.";
+  "Cinematic AI videos with Authorized Identity Preservation — from beat to publish.";
 
 export const LANDING_HERO_SUPPORT =
-  "The international studio for music videos, ads, and stories. Compose once, render with Authorized Identity Preservation on content you own, publish with commercial-ready exports.";
+  "The international AI video studio for music videos, ads, and stories. Compose once, render with authorized identity consistency on content you own, publish with commercial-ready exports.";
 
 export const LANDING_AUDIENCES = [
   {
@@ -37,8 +37,8 @@ export const LANDING_OUTCOMES = [
   },
   {
     id: "identity",
-    label: "Identity Preservation",
-    detail: "Authorized Identity Consistency keeps a likeness you own consistent shot after shot.",
+    label: "Authorized Identity Preservation",
+    detail: "Keeps a likeness you own or are authorized to use consistent shot after shot — not face-swap marketing.",
   },
   {
     id: "pipeline",

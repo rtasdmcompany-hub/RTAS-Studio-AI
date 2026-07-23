@@ -160,8 +160,8 @@ export const SITE_PRIVACY_EMAIL = "privacy@rtasstudio.com";
 export const SITE_TRUST_BADGES = [
   {
     id: "enterprise",
-    label: "Enterprise Ready",
-    description: "Built for teams that ship at scale",
+    label: "Built for Teams",
+    description: "Studio workflows for creators, agencies, and marketing orgs",
   },
   {
     id: "secure-ai",
@@ -190,7 +190,7 @@ export const SITE_TRUST_BADGES = [
   },
   {
     id: "uptime",
-    label: "99.9% Availability",
-    description: "Monitored hosting with health endpoints",
+    label: "Monitored Hosting",
+    description: "Health endpoints and operational monitoring",
   },
 ] as const;
