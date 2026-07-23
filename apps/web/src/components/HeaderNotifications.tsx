@@ -6,7 +6,11 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useStudioProfile } from "@/context/StudioProfileContext";
 import { TESTER_CREDITS, TESTER_DURATION_DAYS, TESTER_PRICE_USD } from "@rtas/shared";
-import type { InAppAnnouncement } from "@/lib/marketing/notifications";
+import type {
+  InAppAnnouncement,
+  NotificationChannelPrefs,
+} from "@/lib/marketing/notifications";
+import { DEFAULT_NOTIFICATION_PREFS } from "@/lib/marketing/notifications";
 
 type Notice = {
   id: string;
@@ -14,6 +18,24 @@ type Notice = {
   text: string;
   href: string;
 };
+
+function announcementAllowed(
+  kind: InAppAnnouncement["kind"],
+  prefs: NotificationChannelPrefs
+): boolean {
+  switch (kind) {
+    case "security":
+      return prefs.inAppSecurity;
+    case "billing":
+      return prefs.inAppBilling;
+    case "maintenance":
+      return prefs.inAppMaintenance;
+    case "announcement":
+    case "product":
+    default:
+      return prefs.inAppAnnouncements;
+  }
+}
 
 /**
  * Account alerts + system announcements (Notification Center).
@@ -26,6 +48,9 @@ export function HeaderNotifications() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<InAppAnnouncement[]>([]);
+  const [prefs, setPrefs] = useState<NotificationChannelPrefs>(
+    DEFAULT_NOTIFICATION_PREFS
+  );
 
   useEffect(() => {
     setOpen(false);
@@ -40,8 +65,11 @@ export function HeaderNotifications() {
         if (!res.ok) return;
         const json = (await res.json()) as {
           announcements?: InAppAnnouncement[];
+          prefs?: NotificationChannelPrefs;
         };
-        if (!cancelled) setAnnouncements(json.announcements ?? []);
+        if (cancelled) return;
+        setAnnouncements(json.announcements ?? []);
+        if (json.prefs) setPrefs(json.prefs);
       } catch {
         /* keep account-only notices */
       }
@@ -71,33 +99,36 @@ export function HeaderNotifications() {
     if (!session?.user || !profile) return [];
     const items: Notice[] = [];
     const credits = profile.credits ?? 0;
-    if (credits <= 0 && !profile.subscriptionActive) {
-      items.push({
-        id: "credits",
-        tone: "warn",
-        text: `No credits — Tester $${TESTER_PRICE_USD} gives ${TESTER_CREDITS}s for ${TESTER_DURATION_DAYS} days.`,
-        href: "/pricing",
-      });
-    } else if (credits <= 0) {
-      items.push({
-        id: "credits",
-        tone: "warn",
-        text: "Credits depleted — upgrade to keep rendering.",
-        href: "/pricing",
-      });
-    } else if (
-      profile.creditsExpireAt &&
-      new Date(profile.creditsExpireAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
-    ) {
-      items.push({
-        id: "expiry",
-        tone: "warn",
-        text: `Credits expire ${new Date(profile.creditsExpireAt).toLocaleDateString()}`,
-        href: "/pricing",
-      });
+    if (prefs.inAppBilling) {
+      if (credits <= 0 && !profile.subscriptionActive) {
+        items.push({
+          id: "credits",
+          tone: "warn",
+          text: `No credits — Tester $${TESTER_PRICE_USD} gives ${TESTER_CREDITS}s for ${TESTER_DURATION_DAYS} days.`,
+          href: "/pricing",
+        });
+      } else if (credits <= 0) {
+        items.push({
+          id: "credits",
+          tone: "warn",
+          text: "Credits depleted — upgrade to keep rendering.",
+          href: "/pricing",
+        });
+      } else if (
+        profile.creditsExpireAt &&
+        new Date(profile.creditsExpireAt).getTime() - Date.now() <
+          7 * 24 * 60 * 60 * 1000
+      ) {
+        items.push({
+          id: "expiry",
+          tone: "warn",
+          text: `Credits expire ${new Date(profile.creditsExpireAt).toLocaleDateString()}`,
+          href: "/pricing",
+        });
+      }
     }
 
-    for (const a of announcements.slice(0, 3)) {
+    for (const a of announcements.filter((x) => announcementAllowed(x.kind, prefs)).slice(0, 3)) {
       items.push({
         id: `ann-${a.id}`,
         tone: a.kind === "security" || a.kind === "billing" ? "warn" : "info",
@@ -119,7 +150,7 @@ export function HeaderNotifications() {
       href: "/profile",
     });
     return items.slice(0, 6);
-  }, [session?.user, profile, announcements]);
+  }, [session?.user, profile, announcements, prefs]);
 
   if (status === "loading") {
     return <span className="studio-notify-skeleton" aria-hidden />;
