@@ -110,13 +110,15 @@ Live production deploy verification of new routes is a post-merge gate (same pat
 
 ## Git evidence
 
-Commits created for this sprint (see `git log` on branch):
+Commits on `master` for this sprint (no force-push; no git config changes; no secrets):
 
-- Legal suite v1.2 + DMCA + Community Guidelines + cookie categories  
-- Cookie consent UI + privacy APIs + Security/Compliance/Status  
-- Docs: compliance pack + FOUNDER_OPERATIONS + this report  
+| SHA | Message |
+|-----|---------|
+| `79da7e1` | feat(legal): add DMCA and community guidelines; align cookie and privacy policies |
+| `dc4e3d3` | feat(compliance): privacy controls, security/compliance centers, status probes |
+| `0959f7c` | docs(compliance): Sprint 8 compliance pack, founder ops, and report |
 
-No force-push. No git config changes. No secrets in commit.
+(Plus this evidence note amend commit if present.)
 
 ---
 
