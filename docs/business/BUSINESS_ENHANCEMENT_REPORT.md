@@ -42,7 +42,7 @@ Phase 13 Business Enhancement: Revenue Promotion Engine (RPE)
 - `npx prisma generate` — **PASS** (Prisma Client v6.19.3)
 - IDE diagnostics on RPE paths — **PASS** (no linter errors)
 - Full `npx tsc --noEmit` — **FAIL / INCONCLUSIVE** (Node heap OOM exit 134 on large monorepo; not an RPE-specific diagnostic)
-- Apply migration `20260723_phase13_revenue_promotion_engine` before expecting live admin/placement data
+- CTO final verification (`docs/business/RPE_FINAL_VERIFICATION.md`): RPE tables applied + `migrate resolve` recorded; production RPE routes **404**; `npm run build` **FAIL** (non-RPE); typecheck **no clean PASS**; overall verdict **FAIL**
 
 ## Performance Impact
 - Lightweight first-party fetches for promotion placements
@@ -64,4 +64,4 @@ Phase 13 Business Enhancement: Revenue Promotion Engine (RPE)
 4. Keep affiliate/partner promotions inactive until partner approvals exist.
 
 ## Final Verdict
-READY WITH MINOR FIXES
+**FAIL** (see `RPE_FINAL_VERIFICATION.md` — DB objects applied; build/prod/smoke/typecheck not clear for CTO sign-off)
