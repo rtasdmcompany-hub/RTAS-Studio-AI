@@ -48,6 +48,17 @@ export async function logLoginActivity(input: {
       success: input.success,
     },
   });
+
+  if (input.success && input.userId && isPrismaConfigured()) {
+    try {
+      await prisma.user.update({
+        where: { id: input.userId },
+        data: { lastLoginAt: new Date() },
+      });
+    } catch {
+      /* non-blocking */
+    }
+  }
 }
 
 export async function logAdminActivity(input: {

@@ -7,45 +7,17 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
-
 import { StructuredData } from "@/components/seo/StructuredData";
-import { SITE_HELP_EMAIL, SITE_SUPPORT_EMAIL } from "@/lib/site-links";
+import { HELP_ARTICLES, HELP_CATEGORIES } from "@/lib/customer-success/help-kb";
 import { buildPageMetadata } from "@/lib/site-metadata";
 import { breadcrumbSchema, faqSchema } from "@/lib/structured-data";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "FAQ",
-  description: `Frequently asked questions about ${PRODUCT_NAME}.`,
+  description: `Categorized FAQ for ${PRODUCT_NAME}: Account, Billing, Credits, Video Generation, Templates, AI Models, Enterprise, API, Security, and Technical Issues.`,
   path: "/help/faq",
   openGraphTitle: `FAQ · Help · ${PRODUCT_NAME}`,
 });
-
-const FAQ = [
-  {
-    q: "Where do I start after signing up?",
-    a: "Open your Dashboard to see credits, then launch Studio to create your first video. A short welcome guide appears on first visit.",
-  },
-  {
-    q: "What is a credit?",
-    a: "1 credit equals 1 second of finished video. Your plan grants a monthly credit pool that expires at the end of the billing period.",
-  },
-  {
-    q: "Why can’t I download a preview?",
-    a: "Free previews are for review only. Subscribe or use paid credits for downloadable masters and commercial license entitlement.",
-  },
-  {
-    q: "How long does a render take?",
-    a: "Most short clips finish in a few minutes. Longer videos are built in segments and stitched automatically — you’ll get an email when ready.",
-  },
-  {
-    q: "Can I use videos commercially?",
-    a: "Yes, when you have an active paid subscription. Commercial license entitlement is included with Standard and Premium plans.",
-  },
-  {
-    q: "How do I contact support?",
-    a: `Email ${SITE_SUPPORT_EMAIL} or ${SITE_HELP_EMAIL}, or use Feedback in the app. Include your account email and a short description of the issue.`,
-  },
-] as const;
 
 export default function HelpFaqPage() {
   return (
@@ -58,7 +30,10 @@ export default function HelpFaqPage() {
             { name: "FAQ", path: "/help/faq" },
           ]),
           faqSchema(
-            FAQ.map((item) => ({ question: item.q, answer: item.a }))
+            HELP_ARTICLES.map((item) => ({
+              question: item.title,
+              answer: item.body,
+            }))
           ),
         ]}
       />
@@ -70,29 +45,40 @@ export default function HelpFaqPage() {
             </Link>{" "}
             · FAQ
           </p>
-          <h1 className="text-zinc-100">Common questions</h1>
+          <h1 className="text-zinc-100">Common questions by category</h1>
           <p className="mt-3 max-w-2xl text-ds-text-muted">
-            Clear answers for first-time creators and returning teams.
+            Clear answers for first-time creators and returning teams. Use Help search for
+            keyword lookup.
           </p>
         </InnerPageSection>
 
-        <InnerPageSection>
-          <dl className="space-y-6 text-left">
-            {FAQ.map((item) => (
-              <div key={item.q}>
-                <dt className="font-medium text-zinc-100">{item.q}</dt>
-                <dd className="mt-2 text-sm text-ds-text-muted">{item.a}</dd>
-              </div>
-            ))}
-          </dl>
-        </InnerPageSection>
+        {HELP_CATEGORIES.map((cat) => {
+          const items = HELP_ARTICLES.filter((a) => a.category === cat.id);
+          if (!items.length) return null;
+          return (
+            <InnerPageSection key={cat.id} aria-labelledby={`faq-${cat.id}`}>
+              <h2 id={`faq-${cat.id}`} className="text-xl text-zinc-100">
+                {cat.label}
+              </h2>
+              <p className="mt-1 text-sm text-ds-text-muted">{cat.description}</p>
+              <dl className="mt-6 space-y-6 text-left">
+                {items.map((item) => (
+                  <div key={item.id}>
+                    <dt className="font-medium text-zinc-100">{item.title}</dt>
+                    <dd className="mt-2 text-sm text-ds-text-muted">{item.body}</dd>
+                  </div>
+                ))}
+              </dl>
+            </InnerPageSection>
+          );
+        })}
 
         <InnerPageSection className="text-center">
-          <ButtonLink href="/help/contact" variant="primary">
-            Contact support
+          <ButtonLink href="/tickets" variant="primary">
+            Open a support ticket
           </ButtonLink>
-          <ButtonLink href="/how-to-use" variant="ghost" className="ml-3">
-            Product guide
+          <ButtonLink href="/help" variant="ghost" className="ml-3">
+            Search Help
           </ButtonLink>
         </InnerPageSection>
       </InnerPageContainer>

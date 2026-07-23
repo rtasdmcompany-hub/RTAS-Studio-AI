@@ -113,7 +113,11 @@ Critical dashboards, reports, and alerts are implemented and protected. Remainin
 
 ## Git evidence
 
-Commits for this sprint are recorded after finalize (message will reference Phase 13 Sprint 7). No secrets committed; no force push; git config untouched.
+| Commit | Message |
+|--------|---------|
+| `a09ece5` | `feat(admin): Phase 13 Sprint 7 executive BI platform` |
+
+No secrets committed; no force push; git config untouched.
 
 ---
 

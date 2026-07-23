@@ -197,6 +197,18 @@ export function CustomerRetentionCenter({
               <Link href="/help">Help Center</Link>
             </li>
             <li>
+              <Link href="/success">Success Center</Link>
+            </li>
+            <li>
+              <Link href="/retention">Retention Center</Link>
+            </li>
+            <li>
+              <Link href="/profile/health">Customer Health</Link>
+            </li>
+            <li>
+              <Link href="/tickets">Support tickets</Link>
+            </li>
+            <li>
               <Link href="/help/contact">Contact support</Link>
             </li>
             <li>
