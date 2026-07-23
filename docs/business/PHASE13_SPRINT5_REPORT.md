@@ -119,12 +119,14 @@ Applications, public pages, dashboards, docs, sitemap, and payout-not-live gatin
 
 ## Evidence (git)
 
-Commits created for this sprint (see `git log` after commit). Protocol followed:
+| Item | Value |
+|------|--------|
+| Commit | `252dedc` — `feat(partners): Phase 13 Sprint 5 affiliate and channel sales ecosystem` |
+| Secrets | Not committed (env templates only; `AFFILIATE_PAYOUTS_LIVE=false` default) |
+| Force push | Not used |
+| git config | Not modified |
 
-- No secrets committed  
-- No force push  
-- No `git config` changes  
-
+Protocol followed for this sprint commit.
 ---
 
 ## Screenshots / URLs (post-deploy)
