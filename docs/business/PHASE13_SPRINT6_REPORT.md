@@ -120,8 +120,9 @@ Primary implementation landed in branch history alongside adjacent Phase 13 comm
 
 | SHA | Note |
 |-----|------|
-| `08ed042` | Includes Sprint 6 ticket/success/customer-success surfaces + report (bundled in a docs commit during parallel work) |
-| `dd90a8a` / nearby | Schema already contained `SupportTicket*` + `lastLoginAt` when Sprint 6 pages were added |
+| `1418538` | Sprint 6 report git evidence update |
+| `08ed042` | Ticket/success/customer-success surfaces + initial report (landed during parallel Phase 13 commits) |
+| Schema `SupportTicket*` / `lastLoginAt` | Present on `master` prior to page commit |
 
 **Integrity checks:** No secrets committed · No force push · No `git config` changes.
 
