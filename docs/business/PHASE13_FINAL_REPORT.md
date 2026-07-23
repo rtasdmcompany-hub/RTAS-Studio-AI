@@ -94,9 +94,9 @@ Brand/pricing/docs **strong**. Affiliate/partners/BI/live funnel conversion **no
 | Check | Result | Notes |
 |-------|--------|-------|
 | Production HTTP probes | **Executed** | See above |
-| Prod build (`next build`) | **NOT EXECUTED** this sprint | Agent shell harness unstable on audit host; not invented PASS |
-| TypeScript `tsc` | **NOT EXECUTED** this sprint | Same |
-| Lint | **NOT EXECUTED** this sprint | Same |
+| TypeScript `tsc --noEmit` (`apps/web`) | **FAIL** (exit 2) | Missing `@rtas/utils/payments` exports (`createProviderCheckout`, `getPaymentAdapter`, `resolveActivePaymentProvider`); `engage` `external` prop; `LEGAL_JURISDICTION` undefined in shared privacy |
+| Lint (`npm run lint`) | **FAIL** (exit 1) | Missing ESLint rule `@typescript-eslint/no-explicit-any` (hard errors); react-hooks warnings |
+| Prod build (`next build`) | **SKIPPED** | Not run after tsc+lint FAIL (honest — no invented PASS) |
 | Lighthouse / CWV | **NOT MEASURED** | No scores invented |
 | Security spot-check | **PARTIAL PASS** | Inherited audit + auth gates observed; unauth studio→login |
 | Responsive / a11y | **NOT MEASURED** this sprint | Prior pages load; no new a11y score claimed |
@@ -104,7 +104,7 @@ Brand/pricing/docs **strong**. Affiliate/partners/BI/live funnel conversion **no
 | Legal pages | **PASS** | Live 200s |
 | Docs integrity | **PASS** | No fabricated traction |
 
-Critical code fixes: **None applied in Sprint 10** — blockers are primarily ops/config/deploy/proof, not a safe one-line code fix without production Fal/MoR access. Sitemap 500 needs deploy-side diagnosis (static generator exists in `apps/web/src/app/sitemap.ts`).
+Critical code fixes: **None applied in Sprint 10** — commercial GO still blocked on Fal/MoR live proof; tsc/lint failures are **engineering hygiene** (export surface / ESLint config) and reinforce NOT APPROVED rather than a silent green build. Sitemap 500 needs deploy-side diagnosis (generator exists in `apps/web/src/app/sitemap.ts`).
 
 ---
 
