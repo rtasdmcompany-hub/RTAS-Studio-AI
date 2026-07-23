@@ -121,6 +121,7 @@ Sprint 2 **feature scope** is ready for Sprint 3 with migration + email configur
 | SHA | Summary |
 |-----|---------|
 | `ec31b138b7f5ccd272ff12caf841789796384ed3` | feat(enterprise): Phase 13 Sprint 2 sales CRM and enterprise surfaces |
+| `29ed725aceecace222242c3455351222612df1c0` | docs(phase13): record Sprint 2 commit SHAs in report |
 | `144bc817859ab4962f5dddd85ff2d4bed5d66a97` | (prior) Prisma CRM models + commercial lead intake extensions (landed with Sprint 3 commit; required by this sprint) |
 
 **Primary Sprint 2 commit:** `ec31b13`
