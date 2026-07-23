@@ -219,6 +219,32 @@ export function AdminDashboardClient() {
               )}
             </ul>
           </Card>
+
+          <Card className="p-4">
+            <h2 className="text-lg text-zinc-100">Launch & growth</h2>
+            <ul className="mt-3 space-y-2 text-sm text-ds-text-muted">
+              <li>
+                <a className="underline underline-offset-2" href="/admin/launch">
+                  Executive launch readiness
+                </a>
+              </li>
+              <li>
+                <a className="underline underline-offset-2" href="/admin/acquisition">
+                  Customer acquisition funnel
+                </a>
+              </li>
+              <li>
+                <a className="underline underline-offset-2" href="/admin/revenue">
+                  Revenue ops
+                </a>
+              </li>
+              <li>
+                <a className="underline underline-offset-2" href="/launch">
+                  Public Launch Center
+                </a>
+              </li>
+            </ul>
+          </Card>
         </>
       )}
 

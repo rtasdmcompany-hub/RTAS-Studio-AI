@@ -109,7 +109,9 @@ Critical workflows implemented and documented with honest empty/zero/Not connect
 ## Evidence
 
 - Implementation files listed above under Deliverables.
-- Git commit: `3e58b3c` — `feat(marketing): Phase 13 Sprint 4 automation and engagement platform`
+- Git commits:
+  - `3e58b3c` — `feat(marketing): Phase 13 Sprint 4 automation and engagement platform`
+  - `19648cd` — `docs(phase13): record Sprint 4 commit SHA and sitemap routes`
 - URLs (local/prod after deploy): `/admin/marketing`, `/engage`, `/referral`, `/profile/notifications`, `/help`.
 
 ---
