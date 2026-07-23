@@ -4,27 +4,37 @@ import { useState } from "react";
 import Link from "next/link";
 import { Alert, Button } from "@rtas/ui";
 import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
+import { ENTERPRISE_DEMO_TYPE_LABELS } from "@/lib/enterprise/pipeline";
 
-export type CommercialLeadKind = "beta" | "enterprise" | "partners";
+export type CommercialLeadKind = "beta" | "enterprise" | "partners" | "demo";
 
 type Props = {
   kind: CommercialLeadKind;
   submitLabel: string;
-  /** Extra fields rendered before the message / acceptance block */
   showCompany?: boolean;
   showRole?: boolean;
   showWebsite?: boolean;
   showUseCase?: boolean;
   showPartnerType?: boolean;
   showRequestType?: boolean;
-  /** Prefill enterprise request type: demo | proposal | meeting | quote */
-  defaultRequestType?: "demo" | "proposal" | "meeting" | "quote";
+  /** Enterprise inquiry extras */
+  showEnterpriseFields?: boolean;
+  showDemoType?: boolean;
+  showPlanInterest?: boolean;
+  defaultRequestType?:
+    | "demo"
+    | "proposal"
+    | "meeting"
+    | "quote"
+    | "inquiry"
+    | "technical_consultation"
+    | "discovery_call";
+  defaultDemoType?: "book_demo" | "technical_consultation" | "discovery_call";
   requireTerms?: boolean;
   messageLabel?: string;
   messagePlaceholder?: string;
   messageRequired?: boolean;
   messageMinLength?: number;
-  /** Label for the email field (enterprise prefers business email). */
   emailLabel?: string;
 };
 
@@ -38,10 +48,31 @@ const PARTNER_TYPES = [
 
 const REQUEST_TYPES = [
   { value: "demo", label: "Schedule a demo" },
-  { value: "proposal", label: "Enterprise inquiry / proposal" },
+  { value: "technical_consultation", label: "Technical consultation" },
+  { value: "discovery_call", label: "Discovery call" },
+  { value: "proposal", label: "Request a proposal" },
   { value: "meeting", label: "Sales meeting" },
   { value: "quote", label: "Request a quote" },
+  { value: "inquiry", label: "General enterprise inquiry" },
 ] as const;
+
+const DEMO_TYPES = [
+  { value: "book_demo", label: ENTERPRISE_DEMO_TYPE_LABELS.book_demo },
+  {
+    value: "technical_consultation",
+    label: ENTERPRISE_DEMO_TYPE_LABELS.technical_consultation,
+  },
+  { value: "discovery_call", label: ENTERPRISE_DEMO_TYPE_LABELS.discovery_call },
+] as const;
+
+const PLAN_INTERESTS = [
+  { value: "tester", label: "Tester ($5 evaluation)" },
+  { value: "creator", label: "Creator → Standard ($89/mo)" },
+  { value: "business", label: "Business → Premium 4K ($249/mo)" },
+  { value: "enterprise", label: "Enterprise (Contact Sales)" },
+] as const;
+
+const TEAM_SIZES = ["1–5", "6–20", "21–50", "51–200", "200+"] as const;
 
 const fieldClass =
   "mt-1 w-full rounded-lg border border-ds-border bg-ds-surface px-3 py-2 text-ds-text";
@@ -55,7 +86,11 @@ export function CommercialLeadForm({
   showUseCase = false,
   showPartnerType = false,
   showRequestType = false,
+  showEnterpriseFields = false,
+  showDemoType = false,
+  showPlanInterest = false,
   defaultRequestType = "demo",
+  defaultDemoType = "book_demo",
   requireTerms = false,
   messageLabel = "Message",
   messagePlaceholder = "Tell us what you need…",
@@ -68,9 +103,15 @@ export function CommercialLeadForm({
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [website, setWebsite] = useState("");
+  const [phone, setPhone] = useState("");
+  const [teamSize, setTeamSize] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [timeline, setTimeline] = useState("");
   const [useCase, setUseCase] = useState("");
   const [partnerType, setPartnerType] = useState("");
   const [requestType, setRequestType] = useState(defaultRequestType);
+  const [demoType, setDemoType] = useState(defaultDemoType);
+  const [planInterest, setPlanInterest] = useState("");
   const [message, setMessage] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
@@ -103,12 +144,18 @@ export function CommercialLeadForm({
           kind,
           name,
           email,
-          company: showCompany ? company : undefined,
-          role: showRole ? role : undefined,
-          website: showWebsite ? website : undefined,
+          company: showCompany || showEnterpriseFields ? company : undefined,
+          role: showRole || showEnterpriseFields ? role : undefined,
+          website: showWebsite || showEnterpriseFields ? website : undefined,
+          phone: showEnterpriseFields ? phone || undefined : undefined,
+          teamSize: showEnterpriseFields ? teamSize || undefined : undefined,
+          industry: showEnterpriseFields ? industry || undefined : undefined,
+          timeline: showEnterpriseFields ? timeline || undefined : undefined,
           useCase: showUseCase ? useCase : undefined,
           partnerType: showPartnerType ? partnerType : undefined,
           requestType: showRequestType ? requestType : undefined,
+          demoType: showDemoType ? demoType : undefined,
+          planInterest: showPlanInterest && planInterest ? planInterest : undefined,
           message: message || undefined,
           acceptTerms: requireTerms ? acceptTerms : undefined,
           acceptPrivacy: requireTerms ? acceptPrivacy : undefined,
@@ -118,26 +165,39 @@ export function CommercialLeadForm({
         error?: string;
         code?: string;
         ok?: boolean;
+        warning?: string;
+        confirmationSent?: boolean;
       };
       if (!res.ok) {
         const fallback =
           res.status === 503
-            ? `Email delivery is not configured. Please write to ${SITE_SUPPORT_EMAIL} directly.`
+            ? `Lead channels unavailable. Please write to ${SITE_SUPPORT_EMAIL} directly.`
             : "Could not submit. Please try again or email us directly.";
         setError(data.error || fallback);
         return;
       }
+      const confirmNote = data.confirmationSent
+        ? " A confirmation email was sent when delivery is configured."
+        : "";
       setSuccess(
-        `Thanks — your request was sent. We will reply to ${email}. If you need anything sooner, email ${SITE_SUPPORT_EMAIL}.`
+        `Thanks — your request was received. We will reply to ${email}.${confirmNote}${
+          data.warning ? ` (${data.warning})` : ""
+        } If you need anything sooner, email ${SITE_SUPPORT_EMAIL}.`
       );
       setName("");
       setEmail("");
       setCompany("");
       setRole("");
       setWebsite("");
+      setPhone("");
+      setTeamSize("");
+      setIndustry("");
+      setTimeline("");
       setUseCase("");
       setPartnerType("");
       setRequestType(defaultRequestType);
+      setDemoType(defaultDemoType);
+      setPlanInterest("");
       setMessage("");
       setAcceptTerms(false);
       setAcceptPrivacy(false);
@@ -183,12 +243,14 @@ export function CommercialLeadForm({
           required
           maxLength={254}
           autoComplete="email"
-          placeholder={kind === "enterprise" ? "you@company.com" : undefined}
+          placeholder={
+            kind === "enterprise" || kind === "demo" ? "you@company.com" : undefined
+          }
           disabled={busy}
         />
       </label>
 
-      {showCompany ? (
+      {showCompany || showEnterpriseFields ? (
         <label className="block text-sm">
           <span className="text-ds-text-muted">
             {kind === "partners" ? "Organization" : "Company"}
@@ -205,13 +267,14 @@ export function CommercialLeadForm({
         </label>
       ) : null}
 
-      {showRole ? (
+      {showRole || showEnterpriseFields ? (
         <label className="block text-sm">
-          <span className="text-ds-text-muted">Role</span>
+          <span className="text-ds-text-muted">Role / title</span>
           <input
             className={fieldClass}
             value={role}
             onChange={(ev) => setRole(ev.target.value)}
+            required={kind === "enterprise" || kind === "demo" || showEnterpriseFields}
             maxLength={120}
             autoComplete="organization-title"
             placeholder="e.g. Producer, Creative Director, CTO"
@@ -220,7 +283,7 @@ export function CommercialLeadForm({
         </label>
       ) : null}
 
-      {showWebsite ? (
+      {showWebsite || showEnterpriseFields ? (
         <label className="block text-sm">
           <span className="text-ds-text-muted">Website (optional)</span>
           <input
@@ -233,6 +296,63 @@ export function CommercialLeadForm({
             disabled={busy}
           />
         </label>
+      ) : null}
+
+      {showEnterpriseFields ? (
+        <>
+          <label className="block text-sm">
+            <span className="text-ds-text-muted">Phone (optional)</span>
+            <input
+              type="tel"
+              className={fieldClass}
+              value={phone}
+              onChange={(ev) => setPhone(ev.target.value)}
+              maxLength={40}
+              autoComplete="tel"
+              disabled={busy}
+            />
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block text-sm">
+              <span className="text-ds-text-muted">Team size (optional)</span>
+              <select
+                className={fieldClass}
+                value={teamSize}
+                onChange={(ev) => setTeamSize(ev.target.value)}
+                disabled={busy}
+              >
+                <option value="">Select…</option>
+                {TEAM_SIZES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm">
+              <span className="text-ds-text-muted">Industry (optional)</span>
+              <input
+                className={fieldClass}
+                value={industry}
+                onChange={(ev) => setIndustry(ev.target.value)}
+                maxLength={80}
+                placeholder="Agency, brand, media…"
+                disabled={busy}
+              />
+            </label>
+          </div>
+          <label className="block text-sm">
+            <span className="text-ds-text-muted">Desired timeline (optional)</span>
+            <input
+              className={fieldClass}
+              value={timeline}
+              onChange={(ev) => setTimeline(ev.target.value)}
+              maxLength={200}
+              placeholder="e.g. Pilot in 30 days · Campaign Q3"
+              disabled={busy}
+            />
+          </label>
+        </>
       ) : null}
 
       {showPartnerType ? (
@@ -255,6 +375,27 @@ export function CommercialLeadForm({
         </label>
       ) : null}
 
+      {showDemoType ? (
+        <fieldset className="text-sm">
+          <legend className="text-ds-text-muted">Session type</legend>
+          <div className="mt-2 flex flex-col gap-2">
+            {DEMO_TYPES.map((t) => (
+              <label key={t.value} className="flex items-center gap-2 text-ds-text">
+                <input
+                  type="radio"
+                  name="demoType"
+                  value={t.value}
+                  checked={demoType === t.value}
+                  onChange={() => setDemoType(t.value)}
+                  disabled={busy}
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
       {showRequestType ? (
         <fieldset className="text-sm">
           <legend className="text-ds-text-muted">What do you need?</legend>
@@ -274,6 +415,25 @@ export function CommercialLeadForm({
             ))}
           </div>
         </fieldset>
+      ) : null}
+
+      {showPlanInterest ? (
+        <label className="block text-sm">
+          <span className="text-ds-text-muted">Plan interest</span>
+          <select
+            className={fieldClass}
+            value={planInterest}
+            onChange={(ev) => setPlanInterest(ev.target.value)}
+            disabled={busy}
+          >
+            <option value="">Select…</option>
+            {PLAN_INTERESTS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
       ) : null}
 
       {showUseCase ? (

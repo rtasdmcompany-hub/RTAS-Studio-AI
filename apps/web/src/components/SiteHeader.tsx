@@ -47,7 +47,11 @@ function isNavActive(pathname: string, href: string): boolean {
   if (href === "/features") return pathname.startsWith("/features");
   if (href === "/pricing") return pathname === "/pricing";
   if (href === "/enterprise") {
-    return pathname.startsWith("/enterprise") || pathname.startsWith("/partners");
+    return (
+      pathname.startsWith("/enterprise") ||
+      pathname.startsWith("/partners") ||
+      pathname.startsWith("/affiliate")
+    );
   }
   if (href === "/docs") {
     return pathname.startsWith("/docs") || pathname.startsWith("/how-to-use");

@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getNextAuthSecret } from "@/lib/env";
 
-const PROTECTED_PREFIXES = ["/studio", "/profile"] as const;
+const PROTECTED_PREFIXES = [
+  "/studio",
+  "/profile",
+  "/affiliate/dashboard",
+  "/partners/dashboard",
+  "/tickets",
+  "/retention",
+] as const;
 const CANONICAL_HOST = "rtasstudio.com";
 
 function isProtectedPath(pathname: string): boolean {
