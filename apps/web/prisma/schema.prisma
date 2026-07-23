@@ -31,6 +31,8 @@ model User {
   paymentProvider        String?
   externalCustomerId     String?
   externalSubscriptionId String?
+  /** Last successful sign-in — used for CS health / churn rules (never fabricated). */
+  lastLoginAt            DateTime?
 
   generationJobs GenerationJob[]
   projects       Project[]
@@ -100,6 +102,28 @@ model User {
   userSubscriptions           UserSubscription[]
   creditTransactions          CreditTransaction[]         @relation("CreditTransactionActor")
   usageRecords                UsageRecord[]               @relation("UsageRecordUser")
+
+  // Phase 12 Sprint 3 — Provider-agnostic Studio billing ledger
+  billingWebhookEvents        BillingWebhookEvent[]
+  billingTransactions         BillingTransaction[]
+  billingInvoices             BillingInvoice[]
+
+  // Phase 13 Sprint 5 — Affiliate & partner ecosystem
+  affiliateApplications       AffiliateApplication[]
+  affiliateAccount            AffiliateAccount?
+  partnerApplications         PartnerApplication[]
+  partnerAccount              PartnerAccount?
+
+  // Phase 13 Sprint 4 — Marketing automation & engagement
+  marketingNotificationPreference MarketingNotificationPreference?
+  studioReferralCode          StudioReferralCode?
+  studioReferralsSent         StudioReferral[]          @relation("StudioReferralReferrer")
+  emailSendLogs               EmailSendLog[]
+
+  // Phase 13 Sprint 6 — Customer success / support / retention
+  supportTickets              SupportTicket[]
+  customerFeedback            CustomerFeedback[]
+  customerSurveyResponses     CustomerSurveyResponse[]
 }
 
 /** Durable studio project — every generation creates/updates one. */
@@ -4771,6 +4795,25 @@ model SystemLog {
   @@index([source, createdAt(sort: Desc)])
 }
 
+/** Phase 13 Sprint 3 — marketing / newsletter / product-update lead capture */
+model MarketingLead {
+  id             String   @id @default(uuid())
+  email          String
+  name           String?
+  kind           String
+  source         String   @default("web")
+  consentPrivacy Boolean  @default(false)
+  ipHash         String?
+  userAgent      String?
+  metadataJson   Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([email, kind])
+  @@index([kind, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("MarketingLeads")
+}
+
 model ScheduledTask {
   id           String   @id @default(uuid())
   name         String   @unique
@@ -5471,6 +5514,80 @@ model PaymentRetry {
   @@index([invoiceId])
   @@index([status, nextRetryAt])
   @@map("PaymentRetries")
+}
+
+// =============================================================================
+// Phase 12 Sprint 3 — Provider-agnostic Studio billing ledger
+// =============================================================================
+
+model BillingWebhookEvent {
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  provider       String
+  eventId        String
+  eventType      String
+  signatureValid Boolean  @default(true)
+  processed      Boolean  @default(false)
+  duplicate      Boolean  @default(false)
+  error          String?
+  payloadJson    Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventType, createdAt(sort: Desc)])
+  @@map("BillingWebhookEvents")
+}
+
+model BillingInvoice {
+  id            String              @id @default(uuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceNumber String              @unique
+  provider      String
+  externalId    String?
+  status        String              @default("paid")
+  currency      String              @default("USD")
+  amountUsd     Float               @default(0)
+  planKey       String?
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  paidAt        DateTime?
+  metadataJson  Json?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  transactions  BillingTransaction[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([provider, externalId])
+  @@map("BillingInvoices")
+}
+
+model BillingTransaction {
+  id                     String          @id @default(uuid())
+  userId                 String
+  user                   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider               String
+  externalId             String?
+  eventType              String
+  status                 String          @default("completed")
+  amountUsd              Float           @default(0)
+  currency               String          @default("USD")
+  planKey                String?
+  creditsGranted         Int             @default(0)
+  externalSubscriptionId String?
+  invoiceId              String?
+  invoice                BillingInvoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  metadataJson           Json?
+  createdAt              DateTime        @default(now())
+
+  @@index([provider, externalId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([eventType])
+  @@map("BillingTransactions")
 }
 
 // =============================================================================
@@ -7683,5 +7800,517 @@ model Phase9ValidationRun {
   @@index([organizationId])
   @@index([passed])
   @@map("Phase9ValidationRuns")
+}
+
+// ---------------------------------------------------------------------------
+// Phase 13 Sprint 2 — Enterprise sales CRM (no seed/fake leads)
+// ---------------------------------------------------------------------------
+
+/** Enterprise / commercial sales lead — pipeline source of truth. */
+model EnterpriseLead {
+  id              String   @id @default(uuid())
+  /** beta | enterprise | partners | demo */
+  kind            String   @default("enterprise")
+  name            String
+  email           String
+  company         String?
+  role            String?
+  website         String?
+  phone           String?
+  teamSize        String?
+  industry        String?
+  /** demo | technical_consultation | discovery_call | proposal | meeting | quote | inquiry */
+  requestType     String?
+  /** book_demo | technical_consultation | discovery_call */
+  demoType        String?
+  message         String?
+  /** tester | creator | business | enterprise */
+  planInterest    String?
+  /** Estimated deal value USD — null until sales sets it; never fabricate. */
+  estimatedValueUsd Float?
+  /**
+   * Pipeline stage:
+   * new_lead | qualified | discovery | demo_scheduled | demo_completed |
+   * proposal_sent | negotiation | closed_won | closed_lost
+   */
+  stage           String   @default("new_lead")
+  /** open | won | lost | nurturing */
+  status          String   @default("open")
+  /** low | medium | high | urgent */
+  priority        String   @default("medium")
+  owner           String?
+  /** Comma-separated or JSON array string of tags */
+  tags            String   @default("")
+  notes           String?
+  timeline        String?
+  requirements    String?
+  /** yes | no | unknown */
+  authorizedUse   String   @default("unknown")
+  source          String   @default("web_form")
+  lossReason      String?
+  forecastCloseAt DateTime?
+  ipHash          String?
+  userAgent       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  activities EnterpriseLeadActivity[]
+  proposals  EnterpriseProposal[]
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([stage, status])
+  @@index([priority, createdAt(sort: Desc)])
+  @@index([owner])
+  @@index([kind, createdAt(sort: Desc)])
+  @@map("EnterpriseLeads")
+}
+
+model EnterpriseLeadActivity {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      EnterpriseLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  /** created | stage_change | note | email | demo_booked | proposal | owner_change | tag | status_change | priority_change */
+  type      String
+  body      String
+  actor     String   @default("system")
+  metadataJson Json?
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt(sort: Desc)])
+  @@index([type, createdAt(sort: Desc)])
+  @@map("EnterpriseLeadActivities")
+}
+
+/** Export-ready enterprise proposal draft (markdown). */
+model EnterpriseProposal {
+  id               String   @id @default(uuid())
+  /** Human-facing id e.g. RSAI-ENT-2026-001 */
+  proposalNumber   String   @unique
+  leadId           String?
+  lead             EnterpriseLead? @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customerName     String
+  customerContact  String?
+  customerEmail    String?
+  requirements     String?
+  solution         String?
+  timeline         String?
+  pricingNotes     String?
+  supportNotes     String?
+  acceptanceNotes  String?
+  markdownBody     String
+  /** draft | sent | accepted | declined */
+  status           String   @default("draft")
+  createdBy        String   @default("admin")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([leadId])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("EnterpriseProposals")
+}
+
+// =============================================================================
+// Phase 13 Sprint 5 — Affiliate, partnership & channel sales ecosystem
+// =============================================================================
+
+/** Public affiliate program applications. Payouts are NOT live until configured. */
+model AffiliateApplication {
+  id                 String    @id @default(uuid())
+  userId             String?
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name               String
+  email              String
+  company            String    @default("")
+  website            String    @default("")
+  audienceSize       String    @default("")
+  channels           String    @default("")
+  audienceDescription String   @default("")
+  promotionPlan      String
+  payoutPreference   String    @default("")
+  taxCountry         String    @default("")
+  acceptTerms        Boolean   @default(false)
+  acceptProgramRules Boolean   @default(false)
+  status             String    @default("pending")
+  notes              String    @default("")
+  ip                 String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("AffiliateApplications")
+}
+
+/** Approved / linked affiliate account for a Studio user (metrics start at zero). */
+model AffiliateAccount {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referralCode    String   @unique
+  status          String   @default("pending")
+  applicationId   String?
+  clicks          Int      @default(0)
+  signups         Int      @default(0)
+  paidConversions Int      @default(0)
+  commissionCents Int      @default(0)
+  paymentStatus   String   @default("not_connected")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status])
+  @@map("AffiliateAccounts")
+}
+
+/** Partnership track applications (agencies, software, education, tech, enterprise). */
+model PartnerApplication {
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name           String
+  email          String
+  organization   String
+  role           String   @default("")
+  website        String   @default("")
+  partnerType    String
+  message        String
+  acceptTerms    Boolean  @default(false)
+  status         String   @default("pending")
+  notes          String   @default("")
+  ip             String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([partnerType, status])
+  @@index([userId])
+  @@map("PartnerApplications")
+}
+
+/** Linked partner account for a Studio user after application review. */
+model PartnerAccount {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   String
+  partnerType    String
+  status         String   @default("pending")
+  applicationId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, partnerType])
+  @@map("PartnerAccounts")
+}
+
+// =============================================================================
+// Phase 13 Sprint 6 — Customer success, support tickets & retention
+// =============================================================================
+
+/** User-created support ticket. No seed / fake tickets. */
+model SupportTicket {
+  id            String   @id @default(uuid())
+  /** Human-facing id e.g. RSAI-T-20260723-A1B2 */
+  ticketNumber  String   @unique
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /**
+   * account | billing | credits | video_generation | templates | ai_models |
+   * enterprise | api | security | technical | other
+   */
+  category      String
+  /** low | medium | high | urgent */
+  priority      String   @default("medium")
+  subject       String
+  description   String
+  /** open | in_progress | waiting_on_customer | resolved | closed */
+  status        String   @default("open")
+  /** Internal-only notes — never exposed to the customer API. */
+  adminNotes    String   @default("")
+  resolvedAt    DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  replies       SupportTicketReply[]
+  attachments   SupportTicketAttachment[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, priority, createdAt(sort: Desc)])
+  @@index([category, createdAt(sort: Desc)])
+  @@map("SupportTickets")
+}
+
+model SupportTicketReply {
+  id          String   @id @default(uuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  /** customer | admin | system */
+  authorRole  String
+  authorUserId String?
+  body        String
+  /** When true, hidden from customer views. */
+  isInternal  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId, createdAt(sort: Asc)])
+  @@map("SupportTicketReplies")
+}
+
+/**
+ * Attachment metadata only — binary storage is out of band (URL / object key).
+ * Never store file bytes in Postgres.
+ */
+model SupportTicketAttachment {
+  id           String   @id @default(uuid())
+  ticketId     String
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fileName     String
+  contentType  String   @default("application/octet-stream")
+  sizeBytes    Int      @default(0)
+  /** Optional remote URL or storage key once upload pipeline is wired. */
+  storageKey   String?
+  createdAt    DateTime @default(now())
+
+  @@index([ticketId])
+  @@map("SupportTicketAttachments")
+}
+
+/**
+ * Product feedback + CSAT (1–5). Stored securely; empty until real submissions.
+ * Kinds: bug | feature | feedback | suggestion | other
+ * Status: received | under_review | planned | in_progress | shipped | closed
+ * Votes start at 0 — never seed fake counts.
+ */
+model CustomerFeedback {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String?
+  kind      String
+  title     String   @default("")
+  message   String
+  /** Optional CSAT 1–5 when provided. */
+  csatScore Int?
+  /** received | under_review | planned | in_progress | shipped | closed */
+  status    String   @default("received")
+  voteCount Int      @default(0)
+  /** When true, title/status/votes appear on the public feedback board. */
+  isPublic  Boolean  @default(true)
+  ipHash    String?
+  source    String   @default("/feedback")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  votes     FeedbackVote[]
+
+  @@index([kind, createdAt(sort: Desc)])
+  @@index([status, voteCount(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([csatScore])
+  @@index([isPublic, status, voteCount(sort: Desc)])
+  @@map("CustomerFeedback")
+}
+
+/** One vote per feedback item per voterKey (hashed IP or user id). No fake votes. */
+model FeedbackVote {
+  id         String   @id @default(uuid())
+  feedbackId String
+  feedback   CustomerFeedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  voterKey   String
+  createdAt  DateTime @default(now())
+
+  @@unique([feedbackId, voterKey])
+  @@index([feedbackId, createdAt(sort: Desc)])
+  @@map("FeedbackVotes")
+}
+
+/**
+ * NPS (0–10) and structured survey responses. No fabricated scores.
+ * surveyType: nps | csat | onboarding | churn_exit | feature
+ */
+model CustomerSurveyResponse {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email       String?
+  surveyType  String
+  /** NPS 0–10 or CSAT 1–5 depending on surveyType. */
+  score       Int?
+  comment     String?
+  metadataJson Json?
+  source      String   @default("/feedback")
+  createdAt   DateTime @default(now())
+
+  @@index([surveyType, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("CustomerSurveyResponses")
+}
+
+// =============================================================================
+// Phase 13 Sprint 4 — Marketing automation & customer engagement
+// =============================================================================
+
+/** Per-user email + in-app notification preferences (transactional always on). */
+model MarketingNotificationPreference {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailTransactional Boolean  @default(true)
+  emailMarketing     Boolean  @default(false)
+  emailBilling       Boolean  @default(true)
+  emailProduct       Boolean  @default(true)
+  inAppAnnouncements Boolean  @default(true)
+  inAppSecurity      Boolean  @default(true)
+  inAppBilling       Boolean  @default(true)
+  inAppMaintenance   Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("MarketingNotificationPreferences")
+}
+
+/** Opt-in newsletter list — metrics start at zero; no fabricated rates. */
+model NewsletterSubscriber {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String    @default("")
+  userId       String?
+  status       String    @default("subscribed")
+  source       String    @default("web")
+  unsubscribedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@map("NewsletterSubscribers")
+}
+
+/** Ops campaign rows — open/click stay 0 until ESP webhooks set metricsConnected. */
+model MarketingCampaign {
+  id               String    @id @default(uuid())
+  name             String
+  templateId       String
+  status           String    @default("planned")
+  segmentId        String?
+  scheduledAt      DateTime?
+  queuedCount      Int       @default(0)
+  subscriberCount  Int       @default(0)
+  sentCount        Int       @default(0)
+  opensCount       Int       @default(0)
+  clicksCount      Int       @default(0)
+  bouncesCount     Int       @default(0)
+  unsubCount       Int       @default(0)
+  metricsConnected Boolean   @default(false)
+  notes            String    @default("")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status, updatedAt(sort: Desc)])
+  @@index([templateId])
+  @@map("MarketingCampaigns")
+}
+
+/** Durable commercial lead capture (beta / enterprise / partners). */
+model CommercialLead {
+  id          String   @id @default(uuid())
+  kind        String
+  name        String
+  email       String
+  company     String   @default("")
+  role        String   @default("")
+  website     String   @default("")
+  partnerType String   @default("")
+  requestType String   @default("")
+  useCase     String   @default("")
+  message     String   @default("")
+  status      String   @default("new")
+  ip          String?
+  metadataJson Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([kind, createdAt(sort: Desc)])
+  @@index([email, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("CommercialLeads")
+}
+
+/** Consumer referral code (Proposed rewards — not auto-granted). */
+model StudioReferralCode {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code      String   @unique
+  link      String   @default("")
+  active    Boolean  @default(true)
+  uses      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  referrals StudioReferral[]
+
+  @@index([active])
+  @@map("StudioReferralCodes")
+}
+
+model StudioReferral {
+  id                   String    @id @default(uuid())
+  referralCodeId       String
+  referralCode         StudioReferralCode @relation(fields: [referralCodeId], references: [id], onDelete: Cascade)
+  code                 String
+  referrerUserId       String
+  referrer             User      @relation("StudioReferralReferrer", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredEmail        String    @default("")
+  referredUserId       String?
+  status               String    @default("invited")
+  rewardCredits        Int       @default(0)
+  referredBonusCredits Int       @default(0)
+  invitedAt            DateTime  @default(now())
+  signedUpAt           DateTime?
+  convertedAt          DateTime?
+  rewardedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([referrerUserId, invitedAt(sort: Desc)])
+  @@index([code])
+  @@index([status])
+  @@map("StudioReferrals")
+}
+
+/** Platform announcements for Notification Center (ops-managed). */
+model SystemAnnouncement {
+  id        String    @id @default(uuid())
+  kind      String    @default("announcement")
+  title     String
+  body      String
+  href      String    @default("")
+  active    Boolean   @default(true)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([active, createdAt(sort: Desc)])
+  @@index([kind])
+  @@map("SystemAnnouncements")
+}
+
+/** Email send audit — no fabricated open/click; delivery status only. */
+model EmailSendLog {
+  id         String   @id @default(uuid())
+  templateId String
+  toEmail    String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  subject    String
+  status     String   @default("sent")
+  provider   String?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([templateId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("EmailSendLogs")
 }
 

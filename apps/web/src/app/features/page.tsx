@@ -101,13 +101,19 @@ export default function FeaturesPage() {
 
         <section className="rtas-features-final" aria-labelledby="features-final-title">
           <h2 id="features-final-title">Choose the tier that matches your output.</h2>
-          <p>Standard is the default for weekly shipping. Premium 4K unlocks cinematic output.</p>
+          <p>
+            Standard is the default for weekly shipping. Premium 4K unlocks cinematic output.
+            Entry is paid Tester — not free generation credits.
+          </p>
           <div className="rtas-features-final__actions">
-            <ButtonLink href="/pricing#plans" variant="lavender">
-              Compare pricing
+            <ButtonLink href="/studio" variant="lavender">
+              Start creating
+            </ButtonLink>
+            <ButtonLink href="/pricing#plans" variant="ghost">
+              Compare plans
             </ButtonLink>
             <ButtonLink href="/how-to-use" variant="ghost">
-              60-second guide
+              How to use
             </ButtonLink>
           </div>
         </section>

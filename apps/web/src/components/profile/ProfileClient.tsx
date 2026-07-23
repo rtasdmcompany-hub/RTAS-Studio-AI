@@ -22,10 +22,13 @@ import { useStudioProfile } from "@/context/StudioProfileContext";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { ProfileAssetGallery } from "@/components/gallery/ProfileAssetGallery";
 import { DashboardWelcome } from "@/components/profile/DashboardWelcome";
+import { CustomerSuccessChecklist } from "@/components/profile/CustomerSuccessChecklist";
+import { CustomerRetentionCenter } from "@/components/profile/CustomerRetentionCenter";
 import {
   EmptyActivityIcon,
   EmptyProjectsIcon,
 } from "@/components/profile/dashboard-empty-icons";
+import { useSession } from "next-auth/react";
 import {
   loadRecentProjects,
   type RecentProject,
@@ -79,6 +82,7 @@ function jobStatusLabel(status: string): string {
 }
 
 export function ProfileClient({ initialProfile }: Props) {
+  const { data: session } = useSession();
   const {
     profile: contextProfile,
     syncFromServer,
@@ -98,6 +102,27 @@ export function ProfileClient({ initialProfile }: Props) {
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
   const [draft, setDraft] = useState<StudioDraftSnapshot | null>(null);
   const [showPlans, setShowPlans] = useState(false);
+  const [billingSummary, setBillingSummary] = useState<{
+    renewsAt: string | null;
+    purchaseHistory: Array<{
+      id: string;
+      eventType: string;
+      status: string;
+      amountUsd: number;
+      planKey?: string | null;
+      creditsGranted: number;
+      createdAt: string;
+    }>;
+    invoices: Array<{
+      id: string;
+      invoiceNumber: string;
+      status: string;
+      amountUsd: number;
+      planKey?: string | null;
+      paidAt?: string | null;
+      createdAt: string;
+    }>;
+  } | null>(null);
 
   useEffect(() => {
     const current = applyCreditExpiry(initialProfile);
@@ -113,6 +138,28 @@ export function ProfileClient({ initialProfile }: Props) {
         setSyncError("Couldn't refresh account status. Showing your last saved details.");
       });
   }, [initialProfile.id, setContextProfile, syncFromServer]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/user/billing")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        setBillingSummary({
+          renewsAt: data.renewsAt ?? null,
+          purchaseHistory: Array.isArray(data.purchaseHistory)
+            ? data.purchaseHistory
+            : [],
+          invoices: Array.isArray(data.invoices) ? data.invoices : [],
+        });
+      })
+      .catch(() => {
+        /* non-blocking */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.id, profile.subscriptionActive, profile.credits]);
 
   useEffect(() => {
     if (contextProfile && contextProfile.id === initialProfile.id) {
@@ -317,6 +364,30 @@ export function ProfileClient({ initialProfile }: Props) {
 
         <DashboardWelcome
           firstName={profile.name ? firstName(profile.name) : undefined}
+        />
+
+        <CustomerSuccessChecklist
+          profile={profile}
+          recentProjects={recentProjects}
+          recentJobs={recentJobs}
+          hydrated={hydrated}
+        />
+
+        <CustomerRetentionCenter
+          profile={profile}
+          recentJobCount={recentJobs.length}
+          completedVideoCount={
+            recentJobs.filter((j) => {
+              const s = j.status.toLowerCase();
+              return (
+                Boolean(j.generatedVideoUrl) ||
+                s.includes("complete") ||
+                s === "ready" ||
+                s === "succeeded"
+              );
+            }).length
+          }
+          emailVerified={session?.user?.emailVerified !== false}
         />
 
         <header className="dashboard-hero" id="dashboard-main">
@@ -645,8 +716,71 @@ export function ProfileClient({ initialProfile }: Props) {
                 <strong>Current plan</strong>
                 <span>{tierLabel}</span>
               </p>
+              <p>
+                <strong>Renews</strong>
+                <span>
+                  {profile.subscriptionRenewsAt || billingSummary?.renewsAt
+                    ? new Date(
+                        profile.subscriptionRenewsAt ||
+                          billingSummary?.renewsAt ||
+                          ""
+                      ).toLocaleDateString()
+                    : "—"}
+                </span>
+              </p>
             </Card>
           </div>
+
+          {billingSummary &&
+          (billingSummary.purchaseHistory.length > 0 ||
+            billingSummary.invoices.length > 0) ? (
+            <div className="dashboard-account__grid" style={{ marginTop: "1rem" }}>
+              <Card variant="glass" className="dashboard-card dashboard-card--static">
+                <p>
+                  <strong>Purchase history</strong>
+                </p>
+                <ul className="dashboard-timeline" style={{ marginTop: "0.75rem" }}>
+                  {billingSummary.purchaseHistory.slice(0, 5).map((row) => (
+                    <li key={row.id}>
+                      <div>
+                        <p className="dashboard-timeline__title">
+                          {row.planKey || row.eventType} · {row.status}
+                        </p>
+                        <p className="dashboard-timeline__meta">
+                          ${row.amountUsd.toFixed(2)}
+                          {row.creditsGranted
+                            ? ` · ${row.creditsGranted > 0 ? "+" : ""}${row.creditsGranted} credits`
+                            : ""}{" "}
+                          · {new Date(row.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+              <Card variant="glass" className="dashboard-card dashboard-card--static">
+                <p>
+                  <strong>Invoices</strong>
+                </p>
+                <ul className="dashboard-timeline" style={{ marginTop: "0.75rem" }}>
+                  {billingSummary.invoices.slice(0, 5).map((inv) => (
+                    <li key={inv.id}>
+                      <div>
+                        <p className="dashboard-timeline__title">
+                          {inv.invoiceNumber} · {inv.status}
+                        </p>
+                        <p className="dashboard-timeline__meta">
+                          ${inv.amountUsd.toFixed(2)}
+                          {inv.planKey ? ` · ${inv.planKey}` : ""} ·{" "}
+                          {new Date(inv.paidAt || inv.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
+          ) : null}
 
           {!showPlans ? (
             <div className="dashboard-billing-cta">

@@ -32,7 +32,7 @@ const GETTING_STARTED = [
   {
     step: "3",
     title: "Render and preview",
-    body: "Jobs run through a credit-guarded cloud pipeline. Track progress, then preview full-screen. Watermarked evaluation previews remain available on free tiers.",
+    body: "Jobs run through a credit-guarded cloud pipeline. Track progress, then preview full-screen. New accounts start at 0 credits — Tester or a subscription unlocks generation.",
   },
   {
     step: "4",
@@ -233,18 +233,18 @@ export default function DocsPage() {
         <InnerPageSection className="text-center">
           <h2 className="text-xl text-white">Need a quick answer?</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-ds-text-muted">
-            FAQ, troubleshooting, and contact live in Help Center. Status and deeper API
-            notes are under Developers.
+            Open Studio when you are ready to create, or use How to use for a guided walkthrough.
+            FAQ and contact live in Help Center.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <ButtonLink href="/help/faq" variant="lavender">
-              FAQ
+            <ButtonLink href="/studio" variant="lavender">
+              Open Studio
+            </ButtonLink>
+            <ButtonLink href="/how-to-use" variant="ghost">
+              How to use
             </ButtonLink>
             <ButtonLink href="/help" variant="ghost">
               Help Center
-            </ButtonLink>
-            <ButtonLink href="/feedback" variant="ghost">
-              Send feedback
             </ButtonLink>
           </div>
         </InnerPageSection>

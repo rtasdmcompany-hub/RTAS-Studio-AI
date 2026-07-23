@@ -35,6 +35,7 @@ export const SITE_COMPANY_LINKS: SiteNavLink[] = [
   { id: "about", label: "About", href: "/about" },
   { id: "careers", label: "Careers", href: "/careers" },
   { id: "partners", label: "Partners", href: "/partners" },
+  { id: "affiliate", label: "Affiliate", href: "/affiliate" },
   { id: "blog", label: "Blog", href: "/blog" },
   { id: "contact", label: "Contact", href: "/help/contact" },
   { id: "community", label: "Community", href: "https://discord.gg/rtas", external: true },
@@ -57,10 +58,19 @@ export const SITE_DEVELOPER_LINKS: SiteNavLink[] = [
 export const SITE_RESOURCE_LINKS: SiteNavLink[] = [
   { id: "docs", label: "Documentation", href: "/docs" },
   { id: "how", label: "How to use", href: "/how-to-use" },
-  { id: "help", label: "Customer Success", href: "/help" },
+  { id: "success", label: "Customer Success", href: "/success" },
+  { id: "help", label: "Help Center", href: "/help" },
+  { id: "roadmap", label: "Roadmap", href: "/roadmap" },
+  { id: "feedback", label: "Feedback", href: "/feedback" },
+  { id: "launch", label: "Launch Center", href: "/launch" },
+  { id: "engage", label: "Engagement Center", href: "/engage" },
+  { id: "retention", label: "Retention Center", href: "/retention" },
+  { id: "referral", label: "Referrals", href: "/referral" },
   { id: "faq", label: "FAQ", href: "/help/faq" },
   { id: "billing", label: "Billing", href: "/help/billing" },
+  { id: "partner-resources", label: "Partner resources", href: "/partners/resources" },
   { id: "changelog", label: "Release Notes", href: "/help/changelog" },
+  { id: "updates", label: "Updates & tips", href: "/updates" },
 ];
 
 /**
@@ -80,11 +90,22 @@ export const SITE_LEGAL_LINKS: SiteNavLink[] = [
   { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },
   { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
+  {
+    id: "community-guidelines",
+    label: "Community Guidelines",
+    href: "/community-guidelines",
+  },
+  { id: "dmca", label: "Copyright & DMCA", href: "/dmca" },
+  { id: "security", label: "Security Center", href: "/security" },
+  { id: "compliance", label: "Compliance Center", href: "/compliance" },
 ];
 
 /** Support aliases (help surfaces) */
 export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
+  { id: "success", label: "Customer Success", href: "/success" },
   { id: "help", label: "Help Center", href: "/help" },
+  { id: "tickets", label: "Support tickets", href: "/tickets" },
+  { id: "retention", label: "Retention Center", href: "/retention" },
   { id: "contact-support", label: "Contact", href: "/help/contact" },
   ...SITE_PADDLE_POLICY_LINKS,
   { id: "trust-safety", label: "Trust & Safety", href: "/trust-safety" },

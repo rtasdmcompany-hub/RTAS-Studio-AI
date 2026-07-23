@@ -114,16 +114,33 @@ export function AdminDashboardClient() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl text-zinc-100">Operations dashboard</h1>
           <p className="text-sm text-ds-text-muted">
             Live production data — users, jobs, credits, revenue estimates.
           </p>
         </div>
-        <Button variant="ghost" disabled={busy} onClick={() => void load(stored)}>
-          Refresh
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <a href="/admin/executive" className="rtas-btn-ghost rtas-ui-btn">
+            Executive BI
+          </a>
+          <a href="/admin/revenue" className="rtas-btn-ghost rtas-ui-btn">
+            Revenue ops
+          </a>
+          <a href="/admin/enterprise" className="rtas-btn-ghost rtas-ui-btn">
+            Enterprise CRM
+          </a>
+          <a href="/admin/marketing" className="rtas-btn-ghost rtas-ui-btn">
+            Marketing Center
+          </a>
+          <a href="/admin/tickets" className="rtas-btn-ghost rtas-ui-btn">
+            Support tickets
+          </a>
+          <Button variant="ghost" disabled={busy} onClick={() => void load(stored)}>
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {error && <Alert variant="error" message={error} />}

@@ -708,6 +708,37 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.studio-world-footer__subscribe {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  max-width: 28rem;
+}
+
+.rtas-subscribe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rtas-subscribe__title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.rtas-subscribe__desc {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.45;
+}
+
+.rtas-subscribe--compact .rtas-subscribe__title {
+  font-size: 0.85rem;
+}
+
 .studio-world-footer__col h3 {
   margin: 0 0 0.75rem;
   font-size: 0.72rem;

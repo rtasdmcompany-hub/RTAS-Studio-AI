@@ -119,18 +119,18 @@ export default function BlogPage() {
         <InnerPageSection className="text-center">
           <h2 className="text-xl text-white">Keep shipping</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm text-ds-text-muted">
-            For hands-on help, open How to use or Help Center. For plan decisions, compare
-            pricing. For live platform health, check Status.
+            Open Studio to create (credits required — Tester starts at paid evaluation). Compare
+            plans when you are ready. Help Center for support.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <ButtonLink href="/help" variant="lavender">
-              Help Center
+            <ButtonLink href="/studio" variant="lavender">
+              Start creating
             </ButtonLink>
             <ButtonLink href="/pricing" variant="ghost">
-              Pricing
+              View pricing
             </ButtonLink>
-            <ButtonLink href="/status" variant="ghost">
-              System status
+            <ButtonLink href="/help" variant="ghost">
+              Help Center
             </ButtonLink>
           </div>
         </InnerPageSection>

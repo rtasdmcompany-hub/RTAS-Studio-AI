@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MarketingSubscribeForm } from "@/components/marketing/MarketingSubscribeForm";
 import {
   COPYRIGHT_NOTICE,
   PRODUCT_NAME,
@@ -134,6 +135,17 @@ export function InternationalSiteFooter({ className = "" }: Props) {
               />
             ))}
           </div>
+        </div>
+
+        <div className="studio-world-footer__subscribe">
+          <MarketingSubscribeForm
+            kind="newsletter"
+            source="footer"
+            compact
+            allowKindSelect
+            title="Product updates & AI tips"
+            description="Email only — no free generation credits implied."
+          />
         </div>
       </div>
       <div className="studio-world-footer__bottom">

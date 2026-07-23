@@ -2480,6 +2480,8 @@ export function StudioClient() {
       <PremiumPaywallModal
         open={showPaywall}
         message={paywallMessage}
+        currentTier={profile.tier}
+        creditsAvailable={profile.credits}
         onSubscribeTester={handleSubscribeTester}
         onSubscribeStandard={handleSubscribeStandard}
         onSubscribePremium={handleSubscribePremium}
