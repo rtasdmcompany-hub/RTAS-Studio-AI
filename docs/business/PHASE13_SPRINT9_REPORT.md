@@ -94,11 +94,12 @@ Computed from checklist status weights (`done=1`, `in_progress=0.55`, `planned=0
 
 ## Git commits
 
-*(Filled after commit in this sprint.)*
-
 | Commit | Description |
 |--------|-------------|
-| *(pending)* | Phase 13 Sprint 9 GTM launch system |
+| `e492a1893f8e5d314c8d9ea94286fec1b1d38457` | Launch Center, campaigns, assets, roadmap, feedback portal, acquisition + launch-readiness admin, launch docs (landed with concurrent Sprint 4 finalize SHA on master) |
+| *(this report update)* | Sprint 9 scorecard + commit evidence |
+
+**Note:** Do not force-push. Commit message on `e492a18` reflects concurrent Sprint 4 finalize; file contents are Sprint 9 GTM deliverables (verified via `git show` / `git ls-files`).
 
 ---
 
