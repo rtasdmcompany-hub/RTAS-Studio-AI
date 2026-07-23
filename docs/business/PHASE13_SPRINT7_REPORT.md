@@ -113,9 +113,10 @@ Critical dashboards, reports, and alerts are implemented and protected. Remainin
 
 ## Git evidence
 
-| Commit | Message |
-|--------|---------|
-| `a09ece5` | `feat(admin): Phase 13 Sprint 7 executive BI platform` |
+| Commit | Message | Notes |
+|--------|---------|-------|
+| `a09ece5` | `feat(admin): Phase 13 Sprint 7 executive BI platform` | Primary BI implementation (APIs, engines, UI client, docs) |
+| `08ed042` | `docs(phase13): record Sprint 7 BI commit SHA` | Report SHA update (concurrent staged Sprint 6 files were also present in index at commit time) |
 
 No secrets committed; no force push; git config untouched.
 
