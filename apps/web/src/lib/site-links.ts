@@ -112,6 +112,8 @@ export const SITE_SUPPORT_LINKS: SiteNavLink[] = [
   { id: "ai-policy", label: "AI Usage Policy", href: "/ai-policy" },
   { id: "cookies", label: "Cookie Policy", href: "/cookies" },
   { id: "status", label: "System status", href: "/status" },
+  { id: "security", label: "Security Center", href: "/security" },
+  { id: "compliance", label: "Compliance Center", href: "/compliance" },
   { id: "faq", label: "FAQ", href: "/help/faq" },
   { id: "billing", label: "Billing", href: "/help/billing" },
 ];

@@ -32,9 +32,10 @@ export const LEGAL_LOCATION_STATEMENT = `Operating from ${LEGAL_JURISDICTION}`;
 export const LEGAL_ENTITY_STATEMENT = `${PRODUCT_NAME} is developed and operated by ${COMPANY_NAME}. Part of the ${GROUP_NAME}. ${COMPANY_NAME} operates from ${LEGAL_JURISDICTION}.`;
 
 /** Document versioning — displayed on every legal page. */
-export const LEGAL_DOCUMENT_VERSION = "1.1";
+export const LEGAL_DOCUMENT_VERSION = "1.2";
 export const LEGAL_EFFECTIVE_DATE = "22 July 2026";
-export const LEGAL_LAST_UPDATED = "22 July 2026";
+export const LEGAL_LAST_UPDATED = "23 July 2026";
+
 
 export const LEGAL_META: LegalDocumentMeta = {
   version: LEGAL_DOCUMENT_VERSION,
@@ -57,7 +58,7 @@ export const TERMS_SECTIONS: LegalSection[] = [
   },
   {
     title: "2. Agreement to Terms & Eligibility",
-    body: `By accessing the Service you confirm that you are at least the age of digital consent in your jurisdiction (typically 16–18, or 13 with verifiable parental consent where applicable), that you have authority to bind any organization on whose behalf you register, and that you agree to these Terms, our Privacy Policy, Cookie Policy, Refund Policy, AI Usage Policy, and Trust & Safety rules. Enterprise or agency accounts must ensure end-user compliance.`,
+    body: `By accessing the Service you confirm that you are at least the age of digital consent in your jurisdiction (typically 16–18, or 13 with verifiable parental consent where applicable), that you have authority to bind any organization on whose behalf you register, and that you agree to these Terms, our Privacy Policy, Cookie Policy, Refund Policy, AI Usage Policy, Trust & Safety rules, Community Guidelines, and Copyright & DMCA Policy. Enterprise or agency accounts must ensure end-user compliance.`,
   },
   {
     title: "3. Service Description & AI Processing",

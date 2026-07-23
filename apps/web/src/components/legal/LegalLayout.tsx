@@ -57,6 +57,10 @@ export function LegalLayout({ title, subtitle, children }: Props) {
             <Link href="/cookies">Cookie Policy</Link>
             <Link href="/ai-policy">AI Usage Policy</Link>
             <Link href="/trust-safety">Trust &amp; Safety</Link>
+            <Link href="/community-guidelines">Community Guidelines</Link>
+            <Link href="/dmca">Copyright &amp; DMCA</Link>
+            <Link href="/security">Security</Link>
+            <Link href="/compliance">Compliance</Link>
           </InnerPageSection>
         </div>
       </InnerPageContainer>

@@ -41,8 +41,9 @@ export const PRIVACY_SECTIONS: LegalSection[] = [
   },
   {
     title: "6. Your Global Privacy Rights",
-    body: `Depending on your jurisdiction, you may have the right to access, rectify, erase, restrict, or port your personal data, and to object to certain processing or automated decision-making. California residents may have rights to know, delete, and opt out of "sale" or "sharing" (we do not sell personal data). EU/EEA and UK users may lodge complaints with their local supervisory authority. To exercise rights, email ${LEGAL_PRIVACY_EMAIL} (or ${LEGAL_CONTACT_EMAIL}) with sufficient identity verification. We respond within applicable statutory timelines (typically 30–45 days).`,
+    body: `Depending on your jurisdiction, you may have the right to access, rectify, erase, restrict, or port your personal data, and to object to certain processing or automated decision-making. California residents may have rights to know, delete, and opt out of "sale" or "sharing" (we do not sell personal data). EU/EEA and UK users may lodge complaints with their local supervisory authority. Signed-in users may download a personal-data export and submit an account-deletion request from Privacy settings (/profile/privacy). You may also email ${LEGAL_PRIVACY_EMAIL} (or ${LEGAL_CONTACT_EMAIL}) with sufficient identity verification. We respond within applicable statutory timelines (typically 30–45 days). Deletion is subject to billing records, fraud-prevention, and statutory retention.`,
   },
+
   {
     title: "7. Security Measures & Incident Response",
     body: `We implement administrative, technical, and organizational measures including access controls, encryption in transit (TLS), authenticated sessions, and monitoring for anomalous activity. No method of transmission or storage is completely secure; you are responsible for safeguarding credentials. If a personal-data breach poses risk to your rights, we will notify you and regulators as required by applicable law.`,

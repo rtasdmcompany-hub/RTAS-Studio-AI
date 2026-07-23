@@ -8,6 +8,9 @@ export * from "./legal/cookies";
 export * from "./legal/refund";
 export * from "./legal/trust-safety";
 export * from "./legal/ai-policy";
+export * from "./legal/dmca";
+export * from "./legal/community-guidelines";
+
 export * from "./identity-pipeline";
 export * from "./studio-fields";
 export * from "./payments";
