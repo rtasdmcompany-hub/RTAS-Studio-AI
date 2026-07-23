@@ -27,10 +27,10 @@ Gate detail: [`GLOBAL_LAUNCH_APPROVAL.md`](./GLOBAL_LAUNCH_APPROVAL.md)
 | Sprint | Theme | Evidence in-repo / live |
 |--------|-------|-------------------------|
 | 1 | Global brand positioning | [`PHASE13_SPRINT1_REPORT.md`](./PHASE13_SPRINT1_REPORT.md) · `marketing/*` |
-| 2–9 | Treated complete per mission brief (GTM/sales/CS/BI/compliance/launch systems) | Prior `docs/marketing`, `docs/sales`, `docs/commercial`, `docs/launch`, analytics/SEO packs; **not all have dedicated PHASE13_SPRINTN reports** — Sprint 10 synthesizes without inventing missing sprint scores |
+| 2–9 | GTM / sales / RevOps / partners / CS / BI / compliance / launch systems | Dedicated `PHASE13_SPRINT{2–9}_REPORT.md` files present in `docs/business/`; e.g. Sprint 3 RevOps (`/admin/revenue`), Sprint 5 affiliate/partners (**in repo**; prod apex still **404** for `/affiliate` `/partners` `/beta` `/enterprise` as of Sprint 10 probes) |
 | 10 | Final audit + founder handover | This report + founder pack + approval |
 
-Honesty note: Only Sprint 1 has a dedicated Phase 13 sprint report file at closure. Sprints 2–9 are organizationally treated complete; live prod still missing several GTM routes those programs describe.
+Honesty note: Phase 13 sprint docs score implementation readiness; **production deploy lag** means several Sprint 3–5+ routes are not live on https://rtasstudio.com yet. Sprint 10 does not inflate those scores into a commercial GO.
 
 ---
 
