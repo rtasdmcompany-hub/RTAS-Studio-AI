@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/launch", label: "Launch readiness" },
   { href: "/admin/acquisition", label: "Acquisition" },
   { href: "/admin/revenue", label: "RevOps" },
+  { href: "/admin/promotions", label: "Promotions" },
   { href: "/admin/enterprise", label: "Enterprise" },
   { href: "/admin/marketing", label: "Marketing" },
   { href: "/admin/tickets", label: "Tickets" },

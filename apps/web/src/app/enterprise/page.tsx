@@ -16,6 +16,7 @@ import { CommercialLeadForm } from "@/components/commercial/CommercialLeadForm";
 import { EnterpriseCapabilityGrid } from "@/components/enterprise/EnterpriseCapabilityGrid";
 import { EnterprisePricingSection } from "@/components/enterprise/EnterprisePricingSection";
 import { EnterpriseTrustPanel } from "@/components/enterprise/EnterpriseTrustPanel";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 import { buildPageMetadata } from "@/lib/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -124,6 +125,13 @@ export default function EnterprisePage() {
             Demo — never a fabricated SKU price.
           </p>
         </InnerPageSection>
+
+        <PromotionPlacement
+          placement="enterprise_cta"
+          pagePath="/enterprise"
+          title="Enterprise recommendations"
+          emptyMinHeightClassName="min-h-[14rem]"
+        />
 
         <InnerPageSection id="contact" aria-labelledby="ent-contact">
           <h2 id="ent-contact" className="text-xl text-zinc-100">

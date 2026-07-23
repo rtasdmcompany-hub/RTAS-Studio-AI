@@ -8314,3 +8314,64 @@ model EmailSendLog {
   @@map("EmailSendLogs")
 }
 
+/** Phase 13 — Revenue Promotion Engine (RPE) master promotion registry. */
+model RevenuePromotion {
+  id                String   @id @default(uuid())
+  slug              String   @unique
+  title             String
+  description       String   @default("")
+  promotionType     String
+  sponsorName       String?
+  sponsorLabel      String?
+  status            String   @default("draft")
+  targetPage        String   @default("*")
+  placements        String[] @default([])
+  audienceRules     Json?
+  variants          Json?
+  ctaLabel          String   @default("Learn more")
+  ctaHref           String
+  ctaKind           String   @default("link")
+  checkoutPlan      String?
+  imageUrl          String?
+  badgeText         String?
+  priority          Int      @default(100)
+  dismissible       Boolean  @default(true)
+  revenueValueCents Int      @default(0)
+  startAt           DateTime?
+  endAt             DateTime?
+  metadataJson      Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  interactions RevenuePromotionInteraction[]
+
+  @@index([status, priority])
+  @@index([targetPage])
+  @@index([promotionType, status])
+  @@map("RevenuePromotions")
+}
+
+/** Event log for views, clicks, dismissals, and conversions. */
+model RevenuePromotionInteraction {
+  id                String   @id @default(uuid())
+  promotionId       String
+  promotion         RevenuePromotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  variantId         String?
+  action            String
+  placement         String
+  pagePath          String
+  userId            String?
+  sessionId         String?
+  country           String?
+  language          String?
+  revenueAmountCents Int     @default(0)
+  metadataJson      Json?
+  createdAt         DateTime @default(now())
+
+  @@index([promotionId, action, createdAt(sort: Desc)])
+  @@index([placement, createdAt(sort: Desc)])
+  @@index([pagePath, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("RevenuePromotionInteractions")
+}
+

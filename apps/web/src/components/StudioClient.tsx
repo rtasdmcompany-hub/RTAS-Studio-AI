@@ -118,6 +118,7 @@ import { StudioShortcutsHint } from "@/components/studio/StudioShortcutsHint";
 import { WizardRoadmap } from "@/components/studio/WizardRoadmap";
 import { StudioCreateExperience } from "@/components/studio/StudioCreateExperience";
 import { DraftManager } from "@/components/studio/DraftManager";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 import { StudioSkeleton } from "@/components/ui/skeletons";
 import Link from "next/link";
 import {
@@ -2659,6 +2660,17 @@ export function StudioClient() {
                     </Button>
                   </div>
                 </div>
+                {!isLoading ? (
+                  <div className="mt-4">
+                    <PromotionPlacement
+                      placement="studio_recommendations"
+                      pagePath="/studio"
+                      profile={profile}
+                      title="Recommended next"
+                      emptyMinHeightClassName="min-h-[14rem]"
+                    />
+                  </div>
+                ) : null}
                 <p className="studio-aup-notice" role="note">
                   RTAS Studio AI may only be used with content you own or are authorized to
                   use.{" "}

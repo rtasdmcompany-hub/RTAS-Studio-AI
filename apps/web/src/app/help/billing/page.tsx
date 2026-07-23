@@ -7,12 +7,13 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 
 import { buildPageMetadata } from "@/lib/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Billing & credits",
-  description: `Plans, credits, renewals, and downloads for ${PRODUCT_NAME}.`,
+  description: `Billing & credits help for ${PRODUCT_NAME}: Tester $5, Standard $89/mo, Premium $249/mo, renewals, downloads, and Merchant of Record (Paddle) checkout.`,
   path: "/help/billing",
   openGraphTitle: `Billing & credits · Help · ${PRODUCT_NAME}`,
 });
@@ -52,6 +53,13 @@ export default function HelpBillingPage() {
             <li>Manage your plan from Dashboard → Manage plans.</li>
           </ul>
         </InnerPageSection>
+
+        <PromotionPlacement
+          placement="billing_upgrade"
+          pagePath="/help/billing"
+          title="Recommended upgrades"
+          emptyMinHeightClassName="min-h-[14rem]"
+        />
 
         <InnerPageSection className="text-center">
           <ButtonLink href="/pricing" variant="lavender">

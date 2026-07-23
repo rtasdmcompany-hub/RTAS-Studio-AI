@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PaidPlanType } from "@rtas/shared";
+import { createProviderCheckout } from "@rtas/utils/payments";
 import { getActivePaymentProvider } from "@/lib/monetization";
 import { requireApiSession } from "@/lib/server/api-auth";
 
@@ -9,8 +10,9 @@ function normalizePlan(raw: unknown): PaidPlanType {
 }
 
 /**
- * Returns checkout URL for configured Merchant of Record (Paddle / Lemon Squeezy)
+ * Returns checkout URL for configured Merchant of Record (Lemon Squeezy / Paddle)
  * or demo activation for local development only.
+ * Never activates paid plans in production without a live provider checkout URL.
  */
 export async function POST(request: Request) {
   const auth = await requireApiSession();
@@ -18,7 +20,18 @@ export async function POST(request: Request) {
 
   const provider = getActivePaymentProvider();
 
-  let body: { email?: string; plan?: PaidPlanType } = {};
+  let body: {
+    email?: string;
+    plan?: PaidPlanType;
+    billingCycle?: string;
+    promotionAttribution?: {
+      promotionId?: string;
+      variantId?: string | null;
+      placement?: string;
+      pagePath?: string;
+      revenueValueUsd?: number;
+    };
+  } = {};
   try {
     body = await request.json();
   } catch {
@@ -27,46 +40,57 @@ export async function POST(request: Request) {
 
   const userId = auth.userId;
   const email =
-    body.email?.trim() ||
-    auth.session.user?.email?.trim() ||
-    "";
+    body.email?.trim() || auth.session.user?.email?.trim() || "";
   const plan = normalizePlan(body.plan);
+  const promo = body.promotionAttribution;
+  // Yearly prices are Planned — accept the flag for schema/hooks but charge monthly SKUs only.
+  const billingCycle =
+    body.billingCycle === "yearly" ? ("yearly" as const) : ("monthly" as const);
 
-  if (provider === "paddle") {
-    const checkoutUrl =
-      plan === "tester"
-        ? process.env.NEXT_PUBLIC_PADDLE_TESTER_CHECKOUT_URL
-        : plan === "premium"
-          ? process.env.NEXT_PUBLIC_PADDLE_PREMIUM_CHECKOUT_URL ??
-            process.env.NEXT_PUBLIC_PADDLE_CHECKOUT_URL
-          : process.env.NEXT_PUBLIC_PADDLE_STANDARD_CHECKOUT_URL ??
-            process.env.NEXT_PUBLIC_PADDLE_CHECKOUT_URL;
-    if (checkoutUrl) {
-      const url = new URL(checkoutUrl);
-      url.searchParams.set(
-        "passthrough",
-        JSON.stringify({ user_id: userId, email, plan })
-      );
-      return NextResponse.json({ url: url.toString(), provider: "paddle", plan });
-    }
-  }
-
-  if (provider === "lemon_squeezy") {
-    const checkoutUrl =
-      plan === "tester"
-        ? process.env.NEXT_PUBLIC_LEMONSQUEEZY_TESTER_CHECKOUT_URL
-        : plan === "premium"
-          ? process.env.NEXT_PUBLIC_LEMONSQUEEZY_PREMIUM_CHECKOUT_URL ??
-            process.env.NEXT_PUBLIC_LEMONSQUEEZY_CHECKOUT_URL
-          : process.env.NEXT_PUBLIC_LEMONSQUEEZY_STANDARD_CHECKOUT_URL ??
-            process.env.NEXT_PUBLIC_LEMONSQUEEZY_CHECKOUT_URL;
-    if (checkoutUrl) {
-      const sep = checkoutUrl.includes("?") ? "&" : "?";
-      return NextResponse.json({
-        url: `${checkoutUrl}${sep}checkout[custom][user_id]=${encodeURIComponent(userId)}&checkout[custom][plan]=${encodeURIComponent(plan)}&checkout[email]=${encodeURIComponent(email)}`,
-        provider: "lemon_squeezy",
+  if (provider) {
+    const result = await createProviderCheckout(
+      {
+        userId,
+        email,
         plan,
+        billingCycle: billingCycle === "yearly" ? "monthly" : billingCycle,
+        successUrl: (() => {
+          const base = `${process.env.NEXTAUTH_URL || "https://rtasstudio.com"}/studio?payment=success`;
+          if (!promo?.promotionId || !promo.placement) return base;
+          const url = new URL(base);
+          url.searchParams.set("promo", promo.promotionId);
+          if (promo.variantId) url.searchParams.set("promoVariant", promo.variantId);
+          url.searchParams.set("promoPlacement", promo.placement);
+          if (promo.pagePath) url.searchParams.set("promoPage", promo.pagePath);
+          if (typeof promo.revenueValueUsd === "number") {
+            url.searchParams.set("promoRevenueUsd", String(promo.revenueValueUsd));
+          }
+          return url.toString();
+        })(),
+      },
+      provider
+    );
+
+    if (result.ok) {
+      return NextResponse.json({
+        url: result.url,
+        provider: result.provider,
+        plan,
+        billingCycle,
       });
+    }
+
+    // Provider selected but not configured — fail closed in production below.
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        {
+          error: result.error,
+          code: result.code,
+          provider: result.provider,
+          plan,
+        },
+        { status: 503 }
+      );
     }
   }
 
@@ -75,7 +99,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Live payment is not configured. Set Paddle or Lemon Squeezy checkout URLs before accepting payments.",
+          "Live payment is not configured. Set NEXT_PUBLIC_PAYMENT_PROVIDER and provider checkout credentials before accepting payments.",
         provider: provider ?? "none",
         plan,
       },
@@ -86,7 +110,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     demo: true,
     message:
-      "Live payment is not configured yet — your plan was activated for development. Add Paddle checkout URLs in .env for production.",
+      "Live payment is not configured yet — your plan was activated for development. Add Lemon Squeezy or Paddle checkout credentials in .env for production.",
     provider: provider ?? "none",
     plan,
   });

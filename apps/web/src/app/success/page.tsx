@@ -7,6 +7,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 import { PRODUCT_VERSION } from "@/lib/release-notes";
 import { buildPageMetadata } from "@/lib/site-metadata";
 import { SITE_SOCIAL_LINKS } from "@/lib/site-links";
@@ -155,6 +156,13 @@ export default function SuccessCenterPage() {
             )
           )}
         </section>
+
+        <PromotionPlacement
+          placement="learning_center"
+          pagePath="/success"
+          title="Learning recommendations"
+          emptyMinHeightClassName="min-h-[14rem]"
+        />
       </InnerPageContainer>
     </MarketingLayout>
   );

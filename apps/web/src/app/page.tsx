@@ -7,6 +7,7 @@ import {
 import { ButtonLink } from "@rtas/ui";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { LandingCategoryShowcase } from "@/components/marketing/LandingCategoryShowcase";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 import { ShowcaseVideos } from "@/components/marketing/ShowcaseVideos";
 import { TrustBadges } from "@/components/marketing/TrustBadges";
 import {
@@ -61,6 +62,13 @@ export default function HomePage() {
   return (
     <MarketingLayout>
       <ShowcaseVideos />
+      <div className="px-4 pt-4 sm:px-6 lg:px-8">
+        <PromotionPlacement
+          placement="homepage_announcement"
+          pagePath="/"
+          emptyMinHeightClassName="min-h-[4.5rem]"
+        />
+      </div>
 
       <section id="categories" className="rtas-hero-showcase" aria-label="Hero">
         <div className="rtas-hero-showcase__videos">

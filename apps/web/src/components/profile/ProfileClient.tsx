@@ -24,6 +24,7 @@ import { ProfileAssetGallery } from "@/components/gallery/ProfileAssetGallery";
 import { DashboardWelcome } from "@/components/profile/DashboardWelcome";
 import { CustomerSuccessChecklist } from "@/components/profile/CustomerSuccessChecklist";
 import { CustomerRetentionCenter } from "@/components/profile/CustomerRetentionCenter";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 import {
   EmptyActivityIcon,
   EmptyProjectsIcon,
@@ -573,6 +574,21 @@ export function ProfileClient({ initialProfile }: Props) {
               <span className="dashboard-action__desc">Password, sessions, and security tips</span>
             </Link>
           </div>
+        </section>
+
+        <section className="dashboard-section" aria-labelledby="dash-recommended">
+          <div className="dashboard-section__head">
+            <h2 id="dash-recommended">Recommended for you</h2>
+            <p className="dashboard-section__sub">
+              Premium product recommendations based on plan, credits, and recent usage.
+            </p>
+          </div>
+          <PromotionPlacement
+            placement="dashboard_sidebar"
+            pagePath="/profile"
+            profile={profile}
+            emptyMinHeightClassName="min-h-[14rem]"
+          />
         </section>
 
         <div className="dashboard-split">

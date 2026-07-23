@@ -6,6 +6,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 
 import { buildPageMetadata } from "@/lib/site-metadata";
 
@@ -115,6 +116,13 @@ export default function BlogPage() {
             </InnerPageSection>
           ))}
         </section>
+
+        <PromotionPlacement
+          placement="blog_affiliate_recommendations"
+          pagePath="/blog"
+          title="Recommended partner resources"
+          emptyMinHeightClassName="min-h-[14rem]"
+        />
 
         <InnerPageSection className="text-center">
           <h2 className="text-xl text-white">Keep shipping</h2>

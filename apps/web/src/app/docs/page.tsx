@@ -6,6 +6,7 @@ import {
   InnerPageContainer,
   InnerPageSection,
 } from "@/components/marketing/InnerPageLayout";
+import { PromotionPlacement } from "@/components/promotions/PromotionPlacement";
 
 import { buildPageMetadata } from "@/lib/site-metadata";
 
@@ -178,6 +179,13 @@ export default function DocsPage() {
             </InnerPageSection>
           ))}
         </section>
+
+        <PromotionPlacement
+          placement="docs_partner_recommendations"
+          pagePath="/docs"
+          title="Recommended resources"
+          emptyMinHeightClassName="min-h-[14rem]"
+        />
 
         <section aria-labelledby="docs-api-overview">
           <InnerPageSection className="pb-2">

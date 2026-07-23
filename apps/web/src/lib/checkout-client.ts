@@ -20,6 +20,13 @@ export type CheckoutResult = {
 export type CheckoutOptions = {
   /** Only when user confirms early resubscribe rollover */
   rolloverRemaining?: boolean;
+  promotionAttribution?: {
+    promotionId: string;
+    variantId?: string | null;
+    placement: string;
+    pagePath: string;
+    revenueValueUsd?: number;
+  };
 };
 
 /** Shared Paddle / Lemon Squeezy / local demo checkout for Studio + Profile. */
@@ -34,6 +41,7 @@ export async function startCheckout(
     body: JSON.stringify({
       email: profile.email,
       plan,
+      promotionAttribution: options?.promotionAttribution,
     }),
   });
 
