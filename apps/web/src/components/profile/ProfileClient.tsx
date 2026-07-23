@@ -564,6 +564,14 @@ export function ProfileClient({ initialProfile }: Props) {
               <span className="dashboard-action__title">Help Center</span>
               <span className="dashboard-action__desc">FAQ, billing help, and troubleshooting</span>
             </Link>
+            <Link href="/profile/privacy" className="dashboard-action" role="listitem">
+              <span className="dashboard-action__title">Privacy settings</span>
+              <span className="dashboard-action__desc">Data export, cookies, deletion requests</span>
+            </Link>
+            <Link href="/security" className="dashboard-action" role="listitem">
+              <span className="dashboard-action__title">Security Center</span>
+              <span className="dashboard-action__desc">Password, sessions, and security tips</span>
+            </Link>
           </div>
         </section>
 
