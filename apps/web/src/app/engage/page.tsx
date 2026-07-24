@@ -106,7 +106,7 @@ export default function EngagePage() {
             >
               <h2 className="text-xl text-ds-text">{s.title}</h2>
               <p className="mt-2 text-sm text-ds-text-muted">{s.body}</p>
-              {s.external ? (
+              {"external" in s && s.external ? (
                 <a
                   href={s.href}
                   className="mt-4 inline-block text-sm text-ds-accent underline-offset-4 hover:underline"
