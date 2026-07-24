@@ -87,6 +87,9 @@ export async function POST(request: Request) {
       });
     }
     default:
-      return NextResponse.json({ ok: true, ignored: event.reason });
+      return NextResponse.json({
+        ok: true,
+        ignored: event.type === "ignored" ? event.reason : event.type,
+      });
   }
 }

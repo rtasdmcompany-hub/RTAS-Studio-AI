@@ -360,7 +360,7 @@ export function processPaymentEvent(
           {
             kind: "audit",
             eventType: "ignored",
-            detail: "reason" in event ? event.reason : "unknown",
+            detail: event.type === "ignored" ? event.reason : event.type,
           },
         ],
       };
