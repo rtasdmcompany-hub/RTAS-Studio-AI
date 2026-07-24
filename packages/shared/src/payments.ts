@@ -30,11 +30,18 @@ export type { PaidPlanType };
 
 export type PaymentProvider = "paddle" | "lemon_squeezy" | "manual";
 
+/** Billing cycle — yearly prices are Planned until shared constants exist */
+export type BillingCycle = "monthly" | "yearly" | "one_time";
+
 /** Normalized event after provider-specific parsing */
 export type PaymentWebhookEvent =
   | { type: "subscription_activated"; provider: PaymentProvider; payload: SubscriptionActivatedPayload }
   | { type: "subscription_renewed"; provider: PaymentProvider; payload: SubscriptionActivatedPayload }
   | { type: "subscription_cancelled"; provider: PaymentProvider; payload: SubscriptionCancelledPayload }
+  | { type: "subscription_expired"; provider: PaymentProvider; payload: SubscriptionCancelledPayload }
+  | { type: "payment_failed"; provider: PaymentProvider; payload: PaymentFailedPayload }
+  | { type: "payment_refunded"; provider: PaymentProvider; payload: PaymentRefundedPayload }
+  | { type: "checkout_cancelled"; provider: PaymentProvider; payload: CheckoutCancelledPayload }
   | { type: "ignored"; provider: PaymentProvider; reason: string };
 
 export interface SubscriptionActivatedPayload {
@@ -46,6 +53,8 @@ export interface SubscriptionActivatedPayload {
   planType: PaidPlanType;
   creditsToGrant: number;
   billingPeriodEnd: string;
+  billingCycle?: BillingCycle;
+  amountUsd?: number;
   /** Idempotency key (subscription id, order id, or transaction id) */
   paymentId?: string;
 }
@@ -54,7 +63,37 @@ export interface SubscriptionCancelledPayload {
   userId: string;
   externalSubscriptionId: string;
   provider: PaymentProvider;
+  /** When true, access ends immediately; otherwise cancel-at-period-end */
+  immediate?: boolean;
 }
+
+export interface PaymentFailedPayload {
+  userId: string;
+  externalSubscriptionId?: string;
+  provider: PaymentProvider;
+  paymentId?: string;
+  reason?: string;
+}
+
+export interface PaymentRefundedPayload {
+  userId: string;
+  externalSubscriptionId?: string;
+  provider: PaymentProvider;
+  paymentId?: string;
+  amountUsd?: number;
+  /** Credits to claw back when known */
+  creditsToRevoke?: number;
+}
+
+export interface CheckoutCancelledPayload {
+  userId?: string;
+  provider: PaymentProvider;
+  paymentId?: string;
+  reason?: string;
+}
+
+/** Recommended strategic MoR (Sprint 2). Active runtime still follows ENV. */
+export const RECOMMENDED_PAYMENT_PROVIDER: PaymentProvider = "lemon_squeezy";
 
 export function creditsForPaidPlan(plan: PaidPlanType): number {
   if (plan === "tester") return TESTER_PLAN_CREDITS;
