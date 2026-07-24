@@ -87,7 +87,7 @@ export async function POST(request: Request) {
   let stored = false;
   if (isPrismaConfigured()) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // marketingLead may be absent until Prisma client regenerate
       const client = prisma as any;
       if (client.marketingLead?.upsert) {
         await client.marketingLead.upsert({

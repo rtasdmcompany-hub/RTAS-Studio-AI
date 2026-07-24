@@ -156,7 +156,7 @@ export async function fetchRevenueOpsMetrics(): Promise<RevenueOpsMetrics> {
     prisma.systemLog.count({ where: { source: "commercial.lead" } }),
     (async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // marketingLead may be absent until Prisma client regenerate
         const client = prisma as any;
         const tableCount =
           client.marketingLead?.count != null

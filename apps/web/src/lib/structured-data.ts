@@ -1,7 +1,18 @@
-import { PRODUCT_NAME } from "@rtas/shared";
+import {
+  PREMIUM_CREDITS,
+  PREMIUM_PRICE_USD,
+  PRODUCT_NAME,
+  STANDARD_CREDITS,
+  STANDARD_PRICE_USD,
+  TESTER_CREDITS,
+  TESTER_DURATION_DAYS,
+  TESTER_PRICE_USD,
+} from "@rtas/shared";
 import { SITE_METADATA_DESCRIPTION, SITE_OG_IMAGE_URL } from "@/lib/site-metadata";
 import { SITE_SUPPORT_EMAIL } from "@/lib/site-links";
 import { SITE_URL } from "@/lib/site-url";
+
+const LOGO_URL = `${SITE_URL}/rtas-logo.png`;
 
 export function organizationSchema() {
   return {
@@ -10,7 +21,8 @@ export function organizationSchema() {
     name: PRODUCT_NAME,
     legalName: "RTAS Digital Marketing Company",
     url: SITE_URL,
-    logo: SITE_OG_IMAGE_URL,
+    logo: LOGO_URL,
+    image: SITE_OG_IMAGE_URL,
     email: SITE_SUPPORT_EMAIL,
     sameAs: [
       "https://www.youtube.com/@RTASDigital",
@@ -39,10 +51,11 @@ export function websiteSchema() {
     name: PRODUCT_NAME,
     url: SITE_URL,
     description: SITE_METADATA_DESCRIPTION,
+    inLanguage: "en-US",
     publisher: {
       "@type": "Organization",
       name: PRODUCT_NAME,
-      logo: SITE_OG_IMAGE_URL,
+      logo: LOGO_URL,
     },
     potentialAction: {
       "@type": "SearchAction",
@@ -64,16 +77,74 @@ export function softwareApplicationSchema() {
     operatingSystem: "Web",
     url: SITE_URL,
     description: SITE_METADATA_DESCRIPTION,
+    image: SITE_OG_IMAGE_URL,
     offers: {
-      "@type": "Offer",
+      "@type": "AggregateOffer",
       url: `${SITE_URL}/pricing`,
       priceCurrency: "USD",
+      lowPrice: String(TESTER_PRICE_USD),
+      highPrice: String(PREMIUM_PRICE_USD),
+      offerCount: 3,
       availability: "https://schema.org/InStock",
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Creator Starter (Tester)",
+          price: String(TESTER_PRICE_USD),
+          priceCurrency: "USD",
+          url: `${SITE_URL}/pricing`,
+          description: `${TESTER_CREDITS} seconds for ${TESTER_DURATION_DAYS} days. 1 credit = 1 second.`,
+          category: "one_time",
+        },
+        {
+          "@type": "Offer",
+          name: "Pro Studio (Standard)",
+          price: String(STANDARD_PRICE_USD),
+          priceCurrency: "USD",
+          url: `${SITE_URL}/pricing`,
+          description: `${STANDARD_CREDITS} seconds per month. 1 credit = 1 second.`,
+          category: "subscription",
+        },
+        {
+          "@type": "Offer",
+          name: "Production Enterprise (Premium 4K)",
+          price: String(PREMIUM_PRICE_USD),
+          priceCurrency: "USD",
+          url: `${SITE_URL}/pricing`,
+          description: `${PREMIUM_CREDITS} seconds per month with cinematic 4K capacity. 1 credit = 1 second.`,
+          category: "subscription",
+        },
+      ],
     },
     publisher: {
       "@type": "Organization",
+      name: "RTAS Digital Marketing Company",
+      logo: LOGO_URL,
+    },
+  };
+}
+
+/** Product + Offer graph for the pricing page (commercial visibility). */
+export function pricingProductSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: PRODUCT_NAME,
+    description: SITE_METADATA_DESCRIPTION,
+    brand: {
+      "@type": "Brand",
       name: PRODUCT_NAME,
-      logo: SITE_OG_IMAGE_URL,
+    },
+    url: `${SITE_URL}/pricing`,
+    image: SITE_OG_IMAGE_URL,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "USD",
+      lowPrice: String(TESTER_PRICE_USD),
+      highPrice: String(PREMIUM_PRICE_USD),
+      offerCount: 3,
+      availability: "https://schema.org/InStock",
+      url: `${SITE_URL}/pricing`,
     },
   };
 }
