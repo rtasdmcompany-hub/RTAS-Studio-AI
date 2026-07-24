@@ -4,34 +4,21 @@
 
 import { randomBytes } from "crypto";
 import { isPrismaConfigured, prisma } from "@/lib/prisma";
+import type { TicketCategory, TicketPriority } from "./ticket-constants";
 
-export const TICKET_CATEGORIES = [
-  "account",
-  "billing",
-  "credits",
-  "video_generation",
-  "templates",
-  "ai_models",
-  "enterprise",
-  "api",
-  "security",
-  "technical",
-  "other",
-] as const;
-
-export type TicketCategory = (typeof TICKET_CATEGORIES)[number];
-
-export const TICKET_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
-export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
-
-export const TICKET_STATUSES = [
-  "open",
-  "in_progress",
-  "waiting_on_customer",
-  "resolved",
-  "closed",
-] as const;
-export type TicketStatus = (typeof TICKET_STATUSES)[number];
+export type {
+  TicketCategory,
+  TicketPriority,
+  TicketStatus,
+} from "./ticket-constants";
+export {
+  TICKET_CATEGORIES,
+  TICKET_PRIORITIES,
+  TICKET_STATUSES,
+  isTicketCategory,
+  isTicketPriority,
+  isTicketStatus,
+} from "./ticket-constants";
 
 export type AttachmentInput = {
   fileName: string;
@@ -39,18 +26,6 @@ export type AttachmentInput = {
   sizeBytes?: number;
   storageKey?: string;
 };
-
-export function isTicketCategory(value: string): value is TicketCategory {
-  return (TICKET_CATEGORIES as readonly string[]).includes(value);
-}
-
-export function isTicketPriority(value: string): value is TicketPriority {
-  return (TICKET_PRIORITIES as readonly string[]).includes(value);
-}
-
-export function isTicketStatus(value: string): value is TicketStatus {
-  return (TICKET_STATUSES as readonly string[]).includes(value);
-}
 
 function makeTicketNumber(): string {
   const day = new Date().toISOString().slice(0, 10).replace(/-/g, "");

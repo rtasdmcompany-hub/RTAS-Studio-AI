@@ -12,7 +12,7 @@ import {
 import {
   TICKET_CATEGORIES,
   TICKET_PRIORITIES,
-} from "@/lib/customer-success/tickets";
+} from "@/lib/customer-success/ticket-constants";
 
 type TicketListItem = {
   id: string;
