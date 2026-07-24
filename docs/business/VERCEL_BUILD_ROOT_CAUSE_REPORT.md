@@ -2,51 +2,81 @@
 
 **Product:** RTAS Studio AI · https://rtasstudio.com  
 **Date:** 24 July 2026  
-**Investigated deployment:** `dpl_FPRUP4QHuBXk5VK1PwYNBSFmPUfP`  
-**Failed commit on Vercel:** `0112368`  
+**Phase:** 13 — CTO Build Failure Root-Cause Investigation  
 
 ---
 
-## Root cause
+## Verdict
 
-**Category:** TypeScript compile error (Next.js production typecheck phase)
+Production deployment is **READY**.
 
-**First stopping error (from Vercel build log):**
-
-```
-./src/lib/promotions/engine.ts:39:3
-Type error: Type '{ ... audienceOverrides: PromotionAudienceRules | null; }[]'
-is not assignable to type 'PromotionVariant[]'.
-  Types of property 'audienceOverrides' are incompatible.
-    Type 'PromotionAudienceRules | null' is not assignable to
-    type 'PromotionAudienceRules | undefined'.
-      Type 'null' is not assignable to type 'PromotionAudienceRules | undefined'.
-```
-
-Webpack had already printed `Compiled successfully`. Failure occurred in **“Linting and checking validity of types …”**. ESLint warnings alone did not fail the build.
+| Item | Value |
+|------|--------|
+| Successful deploy | `dpl_7cspZ9anUg9dDsDGfukCAxuWHgTn` |
+| Commit | `4dd6713` — `fix(build): Suspense-wrap PromotionAttributionTracker for static prerender` |
+| Production URL | https://rtasstudio.com (aliased from Vercel production) |
+| Prior failed deploys | `dpl_FPRUP4QHuBXk5VK1PwYNBSFmPUfP`, `dpl_DvxytUVTTwNrTb52eorTf2BgxbAP` (ERROR — superseded) |
 
 ---
 
-## Why it happened
+## Investigation method
 
-`safeVariants()` called `safeAudienceRules()`, which returns `PromotionAudienceRules | null`, and assigned that value directly onto `PromotionVariant.audienceOverrides`, which is typed as `PromotionAudienceRules | undefined` (optional property — not `null`).
+1. Listed latest production deployments via Vercel API (`apps/web/scripts/check-vercel-deploy.mjs`).
+2. Fetched **complete** build event logs for the latest ERROR deploy.
+3. Identified the **first** hard stop error only (ignored cascades).
+4. Fixed that cause, pushed, re-read the next failure if any.
+5. Repeated until Production reached READY.
 
-Strict TypeScript rejects `null` where only `undefined` (or omit) is allowed. This surfaced after the Revenue Promotion Engine landed and previous payment/engage type fixes cleared earlier blockers.
+No speculative rewrites. No disabling TypeScript/ESLint. No business-logic changes beyond type/Suspense correctness required for build.
 
 ---
 
-## Files changed (root-cause + immediate follow-on type blockers)
+## Root cause chain (two sequential first errors)
+
+Vercel failed twice for **different first errors**. Both were real; both had to be fixed in order.
+
+### Failure A — TypeScript compile error
+
+| Field | Detail |
+|-------|--------|
+| **Category** | TypeScript compile error (Next.js “Linting and checking validity of types”) |
+| **Deploy** | `dpl_FPRUP4QHuBXk5VK1PwYNBSFmPUfP` |
+| **Commit** | `0112368` |
+| **First error** | `apps/web/src/lib/promotions/engine.ts` — `audienceOverrides: PromotionAudienceRules \| null` assigned where `PromotionVariant` expects `PromotionAudienceRules \| undefined` |
+
+Webpack had already printed **Compiled successfully**. The build stopped in the typecheck phase.
+
+**Why:** Revenue Promotion Engine mapped Prisma/`safeAudienceRules()` (`null`) onto an optional TS field (`undefined` only). Strict null checks reject that.
+
+**Fix commits:** `4cf165e`, `97f9f3d` (engine + remaining typecheck blockers surfaced by local `tsc`).
+
+### Failure B — Next.js static generation / Client Component
+
+| Field | Detail |
+|-------|--------|
+| **Category** | Client Component error / Route generation error (static prerender) |
+| **Deploy** | `dpl_DvxytUVTTwNrTb52eorTf2BgxbAP` |
+| **Commit** | `97f9f3d` (typecheck green; prerender failed) |
+| **First error** | `useSearchParams() should be wrapped in a suspense boundary at page "/auth/check-email"` |
+
+Cascades to homepage, studio, admin, and many other routes were **downstream** of the same root mount — not separate bugs.
+
+**Why:** `PromotionAttributionTracker` calls `useSearchParams()` and was mounted in root `AppProviders` **without** `<Suspense>`. Next.js requires a Suspense boundary for that hook during static prerender. Auth pages already Suspense-wrapped their own clients; the global tracker was the missing boundary.
+
+**Fix commit:** `4dd6713` — wrap tracker in `<Suspense fallback={null}>` inside `AppProviders.tsx`.
+
+---
+
+## Files changed (build-failure repairs only)
 
 | File | Change |
 |------|--------|
-| `apps/web/src/lib/promotions/engine.ts` | Build variants without assigning `null` audienceOverrides; Prisma JSON via `Prisma.JsonNull` / `InputJsonValue` |
+| `apps/web/src/lib/promotions/engine.ts` | Do not assign `null` to `audienceOverrides`; Prisma JSON via `Prisma.JsonNull` / `InputJsonValue` |
 | `packages/shared/src/legal/privacy.ts` | Import missing `LEGAL_JURISDICTION` |
 | `packages/utils/src/payments/registry.ts` | Narrow recommended provider away from `"manual"` before indexing adapters |
-| `packages/utils/src/payments/process-event.ts` | Fix `ignored` webhook branch narrowing (`event.type` on `never`) |
-
-**Commits:**
-- `4cf165e` — RPE `audienceOverrides` nullability (primary Vercel error)
-- `97f9f3d` — remaining typecheck blockers exposed by local `tsc`
+| `packages/utils/src/payments/process-event.ts` | Fix `ignored` webhook branch narrowing |
+| `apps/web/src/components/providers/AppProviders.tsx` | Suspense-wrap `PromotionAttributionTracker` |
+| `docs/business/VERCEL_BUILD_ROOT_CAUSE_REPORT.md` | This report |
 
 ---
 
@@ -54,11 +84,12 @@ Strict TypeScript rejects `null` where only `undefined` (or omit) is allowed. Th
 
 | Command | Result |
 |---------|--------|
-| Vercel API: latest production deployments | Latest 3 = `ERROR` |
-| Vercel events log for `dpl_FPRUP4QHuBXk5VK1PwYNBSFmPUfP` | Captured first type error |
+| Vercel API: list production deployments | Confirmed ERROR → BUILDING → READY |
+| Vercel events log for failed deploys | Captured first errors for Failure A and B |
 | `npm run lint` (`apps/web`) | **PASS** (exit 0; react-hooks warnings only) |
-| `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck` | **PASS** (exit 0) after fixes |
-| `npm run build` (local) | Webpack **Compiled successfully**; hung/stalled >90m on Next embedded typecheck after lint warnings — killed. Authoritative typecheck covered by `npm run typecheck` PASS. Production confirmation deferred to Vercel deploy. |
+| `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck` | **PASS** (exit 0) after TS fixes |
+| `npm run build` (local) | Webpack **Compiled successfully**; workstation stalled >90m on Next embedded typecheck after lint — killed. Authoritative gates: local `typecheck` PASS + Vercel production build **READY** |
+| `git commit` / `git push origin HEAD` | Pushed through `4dd6713` |
 
 ---
 
@@ -68,7 +99,7 @@ Strict TypeScript rejects `null` where only `undefined` (or omit) is allowed. Th
 |------|--------|
 | Lint | **PASS** |
 | Typecheck | **PASS** |
-| Full local `next build` completion | **INCONCLUSIVE** (resource hang after successful compile + lint; not a remaining type error — `tsc --noEmit` already green) |
+| Full local `next build` wall-clock completion | **INCONCLUSIVE on this workstation** (resource hang after successful compile; not a remaining type/prerender error — Vercel completed the same pipeline to READY) |
 
 ---
 
@@ -76,20 +107,25 @@ Strict TypeScript rejects `null` where only `undefined` (or omit) is allowed. Th
 
 | Item | Status |
 |------|--------|
-| Push of fix commits to `origin/master` | In progress / verify after push |
-| New Vercel Production deployment | Pending READY after push |
-| Prior production deploys | ERROR (blocked by root cause above) |
+| Latest production deploy | **READY** — `dpl_7cspZ9anUg9dDsDGfukCAxuWHgTn` |
+| Commit on READY deploy | `4dd6713` |
+| Failed deploys after READY | None (latest is READY) |
 
 ---
 
-## Remaining issues
+## Remaining issues (non-blocking for this investigation)
 
-1. Confirm Vercel Production reaches **READY** after `97f9f3d` (or later) is on `origin/master`.
-2. Local full `next build` is extremely slow/hang-prone on this workstation during the embedded typecheck phase; prefer `npm run typecheck` + Vercel build as CI truth until machine resources improve.
-3. Unrelated dirty working tree files were **not** included in this fix commit.
+1. Local full `next build` remains slow/hang-prone on this machine during Next’s embedded typecheck; use `npm run typecheck` + Vercel as CI truth until workstation resources improve.
+2. Unrelated dirty working-tree files were **not** included in these fix commits.
+3. Commercial blockers outside build scope (Paddle purchase→credits E2E, live Fal generation, pending Prisma migrations on prod if any) are **not** caused by this build failure chain.
 
 ---
 
-## Verdict (investigation)
+## Summary
 
-Root cause **identified and fixed in code**. Production GREEN status depends on successful push + Vercel redeploy verification (next section of ops).
+| # | Category | First error location | Fix |
+|---|----------|----------------------|-----|
+| 1 | TypeScript compile error | `promotions/engine.ts` null vs undefined | `4cf165e` / `97f9f3d` |
+| 2 | Client Component / route prerender | Global `useSearchParams` without Suspense | `4dd6713` |
+
+**Production is GREEN.**
