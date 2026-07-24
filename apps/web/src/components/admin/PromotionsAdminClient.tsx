@@ -101,7 +101,9 @@ export function PromotionsAdminClient() {
         variants: [],
         ctaLabel: form.ctaLabel || "Learn more",
         ctaHref: form.ctaHref || "/pricing",
-        ctaKind: form.ctaKind === "checkout" ? "checkout" : "link",
+        ctaKind: (form.ctaKind === "checkout" ? "checkout" : "link") as
+          | "link"
+          | "checkout",
         checkoutPlan:
           form.checkoutPlan === "tester" ||
           form.checkoutPlan === "standard" ||
@@ -370,7 +372,10 @@ function PromotionCardPreview({
   item,
 }: {
   item: {
-    promotion: Omit<PromotionAdminRow, "metrics">;
+    promotion: Pick<
+      PromotionAdminRow,
+      "title" | "description" | "ctaLabel" | "sponsorLabel" | "badgeText"
+    >;
     variant: null;
     placement: string;
     pagePath: string;

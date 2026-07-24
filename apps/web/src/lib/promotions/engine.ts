@@ -68,7 +68,7 @@ function toPromotionRecord(row: PromotionRowRaw): PromotionRecord {
     variants: safeVariants(row.variants),
     ctaLabel: row.ctaLabel,
     ctaHref: row.ctaHref,
-    ctaKind: row.ctaKind === "checkout" ? "checkout" : "link",
+    ctaKind: (row.ctaKind === "checkout" ? "checkout" : "link") as PromotionRecord["ctaKind"],
     checkoutPlan:
       row.checkoutPlan === "tester" ||
       row.checkoutPlan === "standard" ||
