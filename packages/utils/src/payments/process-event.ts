@@ -351,6 +351,18 @@ export function processPaymentEvent(
       };
 
     case "ignored":
+      return {
+        profile,
+        applied: false,
+        duplicateSafe: true,
+        actions: [
+          {
+            kind: "audit",
+            eventType: "ignored",
+            detail: event.reason || "ignored",
+          },
+        ],
+      };
     default:
       return {
         profile,
@@ -360,7 +372,7 @@ export function processPaymentEvent(
           {
             kind: "audit",
             eventType: "ignored",
-            detail: event.type === "ignored" ? event.reason : event.type,
+            detail: "unhandled_event",
           },
         ],
       };

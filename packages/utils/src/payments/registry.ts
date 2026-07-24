@@ -35,6 +35,11 @@ export function getPaymentAdapter(
 }
 
 export function getRecommendedPaymentAdapter(): PaymentProviderAdapter {
+  if (RECOMMENDED_PAYMENT_PROVIDER === "manual") {
+    throw new Error(
+      "RECOMMENDED_PAYMENT_PROVIDER must be paddle or lemon_squeezy."
+    );
+  }
   return ADAPTERS[RECOMMENDED_PAYMENT_PROVIDER];
 }
 

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { Prisma } from "@prisma/client";
 import { prisma, isPrismaConfigured } from "@/lib/prisma";
 import { getServerProfile } from "@/lib/server/profile-store";
 import { trackServerEvent } from "@/lib/analytics";
@@ -13,6 +14,14 @@ import type {
   PromotionVariant,
   PromotionViewerContext,
 } from "./types";
+
+function toInputJson(
+  value: Record<string, unknown> | PromotionAudienceRules | PromotionVariant[] | null | undefined
+): Prisma.InputJsonValue | typeof Prisma.JsonNull | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return Prisma.JsonNull;
+  return value as Prisma.InputJsonValue;
+}
 
 type PromotionRowRaw = Awaited<
   ReturnType<typeof prisma.revenuePromotion.findMany>
@@ -315,7 +324,7 @@ export async function recordPromotionInteraction(input: {
       country: input.country?.toLowerCase() ?? null,
       language: input.language?.toLowerCase() ?? null,
       revenueAmountCents: Math.max(0, Math.round(input.revenueAmountCents ?? 0)),
-      metadataJson: input.metadataJson ?? undefined,
+      metadataJson: toInputJson(input.metadataJson),
     },
   });
 
@@ -412,8 +421,10 @@ export async function savePromotionFromAdmin(input: Record<string, string>) {
     status: input.status?.trim() || "draft",
     targetPage: normalizePath(input.targetPage?.trim() || "*"),
     placements: splitCsv(input.placements),
-    audienceRules: parseJson<PromotionAudienceRules | null>(input.audienceRules, null),
-    variants: parseJson<PromotionVariant[]>(input.variants, []),
+    audienceRules: toInputJson(
+      parseJson<PromotionAudienceRules | null>(input.audienceRules, null)
+    ),
+    variants: toInputJson(parseJson<PromotionVariant[]>(input.variants, [])),
     ctaLabel: input.ctaLabel?.trim() || "Learn more",
     ctaHref,
     ctaKind: input.ctaKind === "checkout" ? "checkout" : "link",
@@ -430,9 +441,11 @@ export async function savePromotionFromAdmin(input: Record<string, string>) {
     revenueValueCents: Math.max(0, Math.round((Number(input.revenueValueUsd ?? "0") || 0) * 100)),
     startAt: input.startAt ? new Date(input.startAt) : null,
     endAt: input.endAt ? new Date(input.endAt) : null,
-    metadataJson: parseJson<Record<string, unknown> | null>(input.metadataJson, {
-      updatedAt: now.toISOString(),
-    }),
+    metadataJson: toInputJson(
+      parseJson<Record<string, unknown> | null>(input.metadataJson, {
+        updatedAt: now.toISOString(),
+      })
+    ),
   };
 
   const id = input.id?.trim();
