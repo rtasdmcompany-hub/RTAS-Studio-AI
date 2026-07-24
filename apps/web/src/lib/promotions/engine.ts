@@ -40,15 +40,17 @@ function safeVariants(value: unknown): PromotionVariant[] {
     .filter((item) => item && typeof item === "object")
     .map((item, index) => {
       const row = item as Record<string, unknown>;
-      return {
+      const variant: PromotionVariant = {
         id: String(row.id ?? `variant-${index + 1}`),
-        headline: typeof row.headline === "string" ? row.headline : undefined,
-        body: typeof row.body === "string" ? row.body : undefined,
-        ctaLabel: typeof row.ctaLabel === "string" ? row.ctaLabel : undefined,
-        imageUrl: typeof row.imageUrl === "string" ? row.imageUrl : undefined,
-        placement: typeof row.placement === "string" ? row.placement : undefined,
-        audienceOverrides: safeAudienceRules(row.audienceOverrides),
       };
+      if (typeof row.headline === "string") variant.headline = row.headline;
+      if (typeof row.body === "string") variant.body = row.body;
+      if (typeof row.ctaLabel === "string") variant.ctaLabel = row.ctaLabel;
+      if (typeof row.imageUrl === "string") variant.imageUrl = row.imageUrl;
+      if (typeof row.placement === "string") variant.placement = row.placement;
+      const audienceOverrides = safeAudienceRules(row.audienceOverrides);
+      if (audienceOverrides) variant.audienceOverrides = audienceOverrides;
+      return variant;
     });
 }
 
