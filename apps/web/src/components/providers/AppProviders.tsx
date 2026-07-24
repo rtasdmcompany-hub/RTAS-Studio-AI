@@ -1,7 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
 import { PromotionAttributionTracker } from "@/components/promotions/PromotionAttributionTracker";
 import { StudioProfileProvider } from "@/context/StudioProfileContext";
@@ -11,7 +11,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <SessionProvider>
       <StudioProfileProvider>
         <AnalyticsProvider>
-          <PromotionAttributionTracker />
+          <Suspense fallback={null}>
+            <PromotionAttributionTracker />
+          </Suspense>
           {children}
         </AnalyticsProvider>
       </StudioProfileProvider>
